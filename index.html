@@ -10,7 +10,7 @@
     const params = new URLSearchParams(window.location.search);
     const email = params.get('email');
     const accion = params.get('accion');
-    const flowUrl = 'FLOW2_URL';
+    const flowUrl = 'https://bd4a763d737defaeacf0e99a4d082f.58.environment.api.powerplatform.com:443/powerautomate/automations/direct/workflows/b2fe41514358434ebfd8d0c3ac7d93bf/triggers/manual/paths/invoke?api-version=1';
 
     if (email && accion) {
       fetch(`${flowUrl}&email=${encodeURIComponent(email)}&accion=${accion}`)
