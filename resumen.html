@@ -831,7 +831,7 @@ async function saveRegistro() {
   const payload = {
     email,
     accion: editingId ? 'editar' : 'nuevo',
-    ID: editingId || null,
+    ...(editingId ? { ID: parseInt(editingId) } : {}),
     FechaRegistro: fecha,
     HoraInicio: ini,
     HoraFin: fin,
