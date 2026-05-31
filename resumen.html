@@ -1,0 +1,881 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Mi jornada semanal · KN</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link href="https://fonts.googleapis.com/css2?family=DM+Mono:wght@400;500&family=Syne:wght@400;500;600;700&display=swap" rel="stylesheet">
+<style>
+  :root {
+    --bg: #f5f4f0;
+    --surface: #ffffff;
+    --surface2: #f0efe9;
+    --border: rgba(0,0,0,0.1);
+    --border2: rgba(0,0,0,0.18);
+    --text: #1a1a18;
+    --muted: #6b6b64;
+    --accent: #1D9E75;
+    --accent-bg: #E1F5EE;
+    --accent-text: #085041;
+    --warn: #BA7517;
+    --warn-bg: #FAEEDA;
+    --warn-text: #633806;
+    --danger: #A32D2D;
+    --danger-bg: #FCEBEB;
+    --danger-text: #501313;
+    --info: #185FA5;
+    --info-bg: #E6F1FB;
+    --info-text: #042C53;
+    --gray-bg: #F1EFE8;
+    --gray-text: #444441;
+    --r: 10px;
+    --r-lg: 16px;
+    --mono: 'DM Mono', monospace;
+    --sans: 'Syne', sans-serif;
+  }
+  @media (prefers-color-scheme: dark) {
+    :root {
+      --bg: #16161a;
+      --surface: #1e1e24;
+      --surface2: #26262e;
+      --border: rgba(255,255,255,0.1);
+      --border2: rgba(255,255,255,0.18);
+      --text: #e8e8e0;
+      --muted: #8a8a82;
+      --accent: #1D9E75;
+      --accent-bg: #04342C;
+      --accent-text: #9FE1CB;
+      --warn: #EF9F27;
+      --warn-bg: #412402;
+      --warn-text: #FAC775;
+      --danger: #E24B4A;
+      --danger-bg: #501313;
+      --danger-text: #F7C1C1;
+      --info: #378ADD;
+      --info-bg: #042C53;
+      --info-text: #B5D4F4;
+      --gray-bg: #2C2C2A;
+      --gray-text: #B4B2A9;
+    }
+  }
+  * { box-sizing: border-box; margin: 0; padding: 0; }
+  body {
+    background: var(--bg);
+    color: var(--text);
+    font-family: var(--sans);
+    min-height: 100vh;
+    padding: 0 0 60px;
+  }
+  header {
+    background: var(--surface);
+    border-bottom: 1px solid var(--border);
+    padding: 20px 24px 16px;
+    position: sticky; top: 0; z-index: 100;
+  }
+  .header-inner {
+    max-width: 720px; margin: 0 auto;
+    display: flex; align-items: center; justify-content: space-between; gap: 12px;
+  }
+  .logo { font-size: 13px; font-weight: 700; letter-spacing: 0.12em; color: var(--muted); text-transform: uppercase; }
+  .employee-chip {
+    display: flex; align-items: center; gap: 8px;
+    background: var(--surface2); border-radius: 999px; padding: 6px 14px 6px 8px;
+    border: 1px solid var(--border);
+  }
+  .avatar {
+    width: 28px; height: 28px; border-radius: 50%;
+    background: var(--accent-bg); color: var(--accent-text);
+    display: flex; align-items: center; justify-content: center;
+    font-size: 11px; font-weight: 600; font-family: var(--mono);
+  }
+  .emp-name { font-size: 13px; font-weight: 500; }
+
+  main { max-width: 720px; margin: 0 auto; padding: 24px 16px 0; }
+
+  .week-nav {
+    display: flex; align-items: center; gap: 12px; margin-bottom: 24px;
+  }
+  .week-label {
+    flex: 1; text-align: center;
+    font-family: var(--mono); font-size: 13px; color: var(--muted);
+    font-weight: 500;
+  }
+  .btn-icon {
+    width: 36px; height: 36px; border-radius: var(--r);
+    background: var(--surface); border: 1px solid var(--border2);
+    display: flex; align-items: center; justify-content: center;
+    cursor: pointer; transition: background 0.15s;
+    font-size: 16px; color: var(--text);
+  }
+  .btn-icon:hover { background: var(--surface2); }
+
+  .summary-bar {
+    display: grid; grid-template-columns: repeat(4, 1fr); gap: 8px;
+    margin-bottom: 24px;
+  }
+  .stat {
+    background: var(--surface); border: 1px solid var(--border);
+    border-radius: var(--r); padding: 12px;
+  }
+  .stat-label { font-size: 11px; color: var(--muted); text-transform: uppercase; letter-spacing: 0.08em; margin-bottom: 4px; }
+  .stat-val { font-family: var(--mono); font-size: 20px; font-weight: 500; }
+  .stat-val.ok { color: var(--accent); }
+  .stat-val.warn { color: var(--warn); }
+  .stat-val.danger { color: var(--danger); }
+
+  .day-block { margin-bottom: 12px; }
+  .day-header {
+    display: flex; align-items: center; justify-content: space-between;
+    padding: 10px 14px; background: var(--surface);
+    border: 1px solid var(--border); border-radius: var(--r);
+    cursor: pointer; transition: background 0.15s; gap: 8px;
+    user-select: none;
+  }
+  .day-header:hover { background: var(--surface2); }
+  .day-header.expanded { border-radius: var(--r) var(--r) 0 0; border-bottom-color: transparent; }
+  .day-name { font-size: 14px; font-weight: 600; min-width: 90px; }
+  .day-date { font-family: var(--mono); font-size: 12px; color: var(--muted); }
+  .day-hours { font-family: var(--mono); font-size: 13px; font-weight: 500; margin-left: auto; }
+  .day-status-badges { display: flex; gap: 6px; flex-wrap: wrap; }
+  .badge {
+    font-size: 11px; font-weight: 500; padding: 3px 8px; border-radius: 999px;
+    font-family: var(--mono);
+  }
+  .badge.ok { background: var(--accent-bg); color: var(--accent-text); }
+  .badge.warn { background: var(--warn-bg); color: var(--warn-text); }
+  .badge.danger { background: var(--danger-bg); color: var(--danger-text); }
+  .badge.info { background: var(--info-bg); color: var(--info-text); }
+  .badge.gray { background: var(--gray-bg); color: var(--gray-text); }
+  .chevron { font-size: 14px; color: var(--muted); transition: transform 0.2s; }
+  .chevron.open { transform: rotate(180deg); }
+
+  .day-body {
+    background: var(--surface); border: 1px solid var(--border);
+    border-top: none; border-radius: 0 0 var(--r) var(--r);
+    overflow: hidden;
+    display: none;
+  }
+  .day-body.open { display: block; }
+
+  .registro-row {
+    display: grid;
+    grid-template-columns: 1fr 1fr 80px 100px 100px 40px;
+    gap: 8px; align-items: center;
+    padding: 10px 14px;
+    border-top: 1px solid var(--border);
+    font-size: 13px;
+  }
+  .registro-row.header-row {
+    font-size: 11px; color: var(--muted); font-weight: 500;
+    text-transform: uppercase; letter-spacing: 0.07em;
+    padding: 8px 14px;
+    border-top: none;
+    background: var(--surface2);
+  }
+  .time-val { font-family: var(--mono); font-size: 13px; }
+  .time-val.missing { color: var(--danger); font-style: italic; font-size: 12px; }
+  .btn-edit {
+    width: 28px; height: 28px; border-radius: 6px;
+    background: transparent; border: 1px solid var(--border2);
+    display: flex; align-items: center; justify-content: center;
+    cursor: pointer; font-size: 13px; color: var(--muted);
+    transition: all 0.15s;
+  }
+  .btn-edit:hover { background: var(--info-bg); color: var(--info-text); border-color: var(--info); }
+
+  .add-registro-btn {
+    width: 100%; padding: 10px; border: none;
+    background: var(--surface2); color: var(--muted);
+    font-family: var(--sans); font-size: 13px; cursor: pointer;
+    display: flex; align-items: center; justify-content: center; gap: 6px;
+    transition: all 0.15s;
+    border-top: 1px solid var(--border);
+  }
+  .add-registro-btn:hover { background: var(--accent-bg); color: var(--accent-text); }
+
+  .day-missing {
+    background: var(--danger-bg); border-color: var(--danger);
+  }
+  .day-missing .day-header { background: var(--danger-bg); }
+  .day-missing .day-name { color: var(--danger-text); }
+
+  /* MODAL */
+  .modal-backdrop {
+    display: none;
+    position: fixed; inset: 0; z-index: 200;
+    background: rgba(0,0,0,0.5);
+    align-items: flex-end; justify-content: center;
+    padding: 0;
+  }
+  @media (min-width: 600px) {
+    .modal-backdrop { align-items: center; padding: 20px; }
+  }
+  .modal-backdrop.open { display: flex; }
+  .modal {
+    background: var(--surface); width: 100%; max-width: 480px;
+    border-radius: var(--r-lg) var(--r-lg) 0 0;
+    padding: 24px;
+    max-height: 90vh; overflow-y: auto;
+  }
+  @media (min-width: 600px) { .modal { border-radius: var(--r-lg); } }
+  .modal-title { font-size: 17px; font-weight: 600; margin-bottom: 20px; }
+  .modal-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 14px; }
+  .field { display: flex; flex-direction: column; gap: 6px; }
+  .field.full { grid-column: 1 / -1; }
+  label { font-size: 12px; font-weight: 500; color: var(--muted); text-transform: uppercase; letter-spacing: 0.07em; }
+  input[type=time], input[type=date], select, textarea {
+    padding: 9px 12px; border-radius: var(--r);
+    border: 1px solid var(--border2); background: var(--surface2);
+    color: var(--text); font-family: var(--mono); font-size: 14px;
+    width: 100%; outline: none;
+    transition: border-color 0.15s;
+  }
+  input:focus, select:focus, textarea:focus {
+    border-color: var(--accent);
+    box-shadow: 0 0 0 3px rgba(29,158,117,0.15);
+  }
+  textarea { resize: vertical; min-height: 70px; font-family: var(--sans); font-size: 13px; }
+  .field-error { font-size: 12px; color: var(--danger); margin-top: 4px; display: none; }
+  .field-error.show { display: block; }
+  .modal-warn-box {
+    background: var(--warn-bg); color: var(--warn-text);
+    border-radius: var(--r); padding: 10px 14px;
+    font-size: 13px; margin-bottom: 16px; display: none;
+  }
+  .modal-warn-box.show { display: block; }
+  .modal-info-box {
+    background: var(--info-bg); color: var(--info-text);
+    border-radius: var(--r); padding: 10px 14px;
+    font-size: 13px; margin-bottom: 16px; display: none;
+  }
+  .modal-info-box.show { display: block; }
+  .modal-actions { display: flex; gap: 10px; margin-top: 20px; }
+  .btn-primary {
+    flex: 1; padding: 11px; border-radius: var(--r);
+    background: var(--accent); color: #fff; border: none;
+    font-family: var(--sans); font-size: 14px; font-weight: 600;
+    cursor: pointer; transition: opacity 0.15s;
+  }
+  .btn-primary:hover { opacity: 0.88; }
+  .btn-primary:disabled { opacity: 0.45; cursor: not-allowed; }
+  .btn-cancel {
+    padding: 11px 20px; border-radius: var(--r);
+    background: transparent; color: var(--muted);
+    border: 1px solid var(--border2);
+    font-family: var(--sans); font-size: 14px; cursor: pointer;
+    transition: background 0.15s;
+  }
+  .btn-cancel:hover { background: var(--surface2); }
+
+  .loading-state {
+    text-align: center; padding: 60px 20px; color: var(--muted);
+    font-family: var(--mono); font-size: 14px;
+  }
+  .loading-dot { animation: blink 1.2s infinite; }
+  .loading-dot:nth-child(2) { animation-delay: 0.4s; }
+  .loading-dot:nth-child(3) { animation-delay: 0.8s; }
+  @keyframes blink { 0%,80%,100%{opacity:0.2} 40%{opacity:1} }
+
+  .empty-day {
+    padding: 16px 14px;
+    font-size: 13px; color: var(--muted);
+    border-top: 1px solid var(--border);
+    font-style: italic;
+  }
+
+  .toast {
+    position: fixed; bottom: 24px; left: 50%; transform: translateX(-50%) translateY(80px);
+    background: var(--text); color: var(--bg);
+    padding: 10px 20px; border-radius: 999px;
+    font-size: 13px; font-weight: 500;
+    transition: transform 0.3s ease; z-index: 300;
+    pointer-events: none; white-space: nowrap;
+  }
+  .toast.show { transform: translateX(-50%) translateY(0); }
+  .toast.error { background: var(--danger); color: #fff; }
+
+  .approval-note {
+    font-size: 12px; color: var(--info-text); margin-top: 6px;
+    display: none; background: var(--info-bg); padding: 8px 10px; border-radius: 6px;
+  }
+  .approval-note.show { display: block; }
+
+  @media (max-width: 500px) {
+    .registro-row {
+      grid-template-columns: 1fr 1fr 70px 80px 80px 32px;
+      font-size: 12px; gap: 4px; padding: 8px 10px;
+    }
+    .summary-bar { grid-template-columns: repeat(2, 1fr); }
+  }
+</style>
+</head>
+<body>
+
+<header>
+  <div class="header-inner">
+    <span class="logo">KN · Jornadas</span>
+    <div class="employee-chip">
+      <div class="avatar" id="avatarInitials">--</div>
+      <span class="emp-name" id="empNameDisplay">Cargando...</span>
+    </div>
+  </div>
+</header>
+
+<main>
+  <div class="week-nav">
+    <button class="btn-icon" id="btnPrevWeek" title="Semana anterior">&#8592;</button>
+    <div class="week-label" id="weekLabel">—</div>
+    <button class="btn-icon" id="btnNextWeek" title="Semana siguiente">&#8594;</button>
+  </div>
+
+  <div class="summary-bar" id="summaryBar">
+    <div class="stat"><div class="stat-label">Registros</div><div class="stat-val" id="statTotal">—</div></div>
+    <div class="stat"><div class="stat-label">Horas norm.</div><div class="stat-val ok" id="statOrd">—</div></div>
+    <div class="stat"><div class="stat-label">Horas extra</div><div class="stat-val warn" id="statExtra">—</div></div>
+    <div class="stat"><div class="stat-label">Pendientes</div><div class="stat-val danger" id="statPending">—</div></div>
+  </div>
+
+  <div id="diasContainer">
+    <div class="loading-state">
+      Cargando jornadas<span class="loading-dot">.</span><span class="loading-dot">.</span><span class="loading-dot">.</span>
+    </div>
+  </div>
+</main>
+
+<!-- Modal agregar/editar -->
+<div class="modal-backdrop" id="modalBackdrop">
+  <div class="modal" role="dialog" aria-modal="true" aria-labelledby="modalTitle">
+    <div class="modal-title" id="modalTitle">Nuevo registro</div>
+
+    <div class="modal-warn-box" id="warnOverlap">
+      ⚠️ El horario ingresado se cruza con otro registro existente en esta fecha.
+    </div>
+    <div class="modal-info-box" id="infoAprobacion">
+      ℹ️ Este registro contiene horas extra o recargos. Al guardar se generará una nueva solicitud de aprobación al jefe.
+    </div>
+
+    <div class="modal-grid">
+      <div class="field">
+        <label for="fFecha">Fecha</label>
+        <input type="date" id="fFecha" />
+        <span class="field-error" id="errFecha">Selecciona una fecha</span>
+      </div>
+      <div class="field">
+        <label for="fTipoDia">Tipo de día</label>
+        <select id="fTipoDia">
+          <option value="Ordinario">Ordinario</option>
+          <option value="Festivo">Festivo</option>
+          <option value="Dominical">Dominical</option>
+          <option value="Compensado">Compensado</option>
+        </select>
+      </div>
+      <div class="field">
+        <label for="fHoraInicio">Hora inicio</label>
+        <input type="time" id="fHoraInicio" />
+        <span class="field-error" id="errHoraInicio">Campo requerido</span>
+      </div>
+      <div class="field">
+        <label for="fHoraFin">Hora fin</label>
+        <input type="time" id="fHoraFin" />
+        <span class="field-error" id="errHoraFin">Campo requerido</span>
+      </div>
+      <div class="field">
+        <label for="fFranjaInicio">Franja inicio</label>
+        <select id="fFranjaInicio">
+          <option value="Diurna">Diurna (06:00–21:00)</option>
+          <option value="Nocturna">Nocturna (21:00–06:00)</option>
+        </select>
+      </div>
+      <div class="field">
+        <label for="fFranjaFin">Franja fin</label>
+        <select id="fFranjaFin">
+          <option value="Diurna">Diurna (06:00–21:00)</option>
+          <option value="Nocturna">Nocturna (21:00–06:00)</option>
+        </select>
+      </div>
+      <div class="field">
+        <label for="fTipoHoraExtra">Tipo hora extra</label>
+        <select id="fTipoHoraExtra">
+          <option value="N/A">N/A (sin extra)</option>
+          <option value="Extra diurna">Extra diurna</option>
+          <option value="Extra nocturna">Extra nocturna</option>
+          <option value="Extra dominical diurna">Extra dominical diurna</option>
+          <option value="Extra dominical nocturna">Extra dominical nocturna</option>
+          <option value="Extra festiva diurna">Extra festiva diurna</option>
+          <option value="Extra festiva nocturna">Extra festiva nocturna</option>
+        </select>
+      </div>
+      <div class="field">
+        <label for="fRecargo">Recargo</label>
+        <select id="fRecargo">
+          <option value="N/A">N/A</option>
+          <option value="Nocturno">Nocturno</option>
+          <option value="Dominical/Festivo diurno">Dominical/Festivo diurno</option>
+          <option value="Dominical/Festivo nocturno">Dominical/Festivo nocturno</option>
+        </select>
+      </div>
+      <div class="field full">
+        <label for="fObservaciones">Observaciones</label>
+        <textarea id="fObservaciones" placeholder="Notas opcionales..."></textarea>
+      </div>
+    </div>
+
+    <div class="approval-note" id="approvalNote">
+      ℹ️ Se generará una nueva solicitud de aprobación porque modificaste horas extra o recargos.
+    </div>
+
+    <div class="modal-actions">
+      <button class="btn-cancel" id="btnCancelModal">Cancelar</button>
+      <button class="btn-primary" id="btnSaveModal">Guardar registro</button>
+    </div>
+  </div>
+</div>
+
+<div class="toast" id="toast"></div>
+
+<script>
+// ─── CONFIG ──────────────────────────────────────────────────────────────────
+// Reemplaza estas URLs con las de tus flows reales en Power Automate
+const FLOW_GET_REGISTROS = 'https://bd4a763d737defaeacf0e99a4d082f.58.environment.api.powerplatform.com:443/powerautomate/automations/direct/workflows/3fd25ad09b5449a9a614f784b10bbc72/triggers/manual/paths/invoke?api-version=1&sp=%2Ftriggers%2Fmanual%2Frun&sv=1.0&sig=oYx-w7yw0ZHA9-KETPaXHxpMvUHGEI0iUJoElGXsHvQ';
+const FLOW_SAVE_REGISTRO  = 'https://bd4a763d737defaeacf0e99a4d082f.58.environment.api.powerplatform.com:443/powerautomate/automations/direct/workflows/4bf538c812444c8096c44a5ad50feaf3/triggers/manual/paths/invoke?api-version=1&sp=%2Ftriggers%2Fmanual%2Frun&sv=1.0&sig=SswvE8QSJmpcTFxMkC9giytk9b_0Y7ul2I0u24sC53Y';
+// ─────────────────────────────────────────────────────────────────────────────
+
+const params  = new URLSearchParams(location.search);
+const email   = params.get('email') || '';
+const nameParam = params.get('nombre') || '';
+
+let registros   = [];
+let weekOffset  = 0;
+let editingId   = null;
+let originalExtras = null;
+
+const DIAS_ES = ['Domingo','Lunes','Martes','Miércoles','Jueves','Viernes','Sábado'];
+const DIAS_SHORT = ['dom','lun','mar','mié','jue','vie','sáb'];
+const MESES = ['ene','feb','mar','abr','may','jun','jul','ago','sep','oct','nov','dic'];
+
+// ── Init ──────────────────────────────────────────────────────────────────────
+document.addEventListener('DOMContentLoaded', () => {
+  if (!email) {
+    document.getElementById('diasContainer').innerHTML =
+      '<div class="loading-state" style="color:var(--danger)">⚠️ No se encontró el correo en la URL.<br>El enlace debe incluir ?email=tu@correo.com</div>';
+    return;
+  }
+  initEmployee();
+  renderWeekNav();
+  loadRegistros();
+  bindModal();
+  document.getElementById('btnPrevWeek').addEventListener('click', () => { weekOffset--; renderWeekNav(); renderDias(); });
+  document.getElementById('btnNextWeek').addEventListener('click', () => { weekOffset++; renderWeekNav(); renderDias(); });
+});
+
+function initEmployee() {
+  const display = nameParam || email.split('@')[0].replace('.', ' ');
+  const parts = display.split(' ');
+  const initials = parts.map(p => p[0]?.toUpperCase() || '').join('').slice(0,2);
+  document.getElementById('avatarInitials').textContent = initials || '??';
+  document.getElementById('empNameDisplay').textContent = display;
+}
+
+// ── Week helpers ──────────────────────────────────────────────────────────────
+function getWeekBounds(offset = 0) {
+  const now = new Date();
+  const dayOfWeek = now.getDay();
+  const monday = new Date(now);
+  monday.setDate(now.getDate() - ((dayOfWeek + 6) % 7) + offset * 7);
+  monday.setHours(0,0,0,0);
+  const sunday = new Date(monday);
+  sunday.setDate(monday.getDate() + 6);
+  sunday.setHours(23,59,59,999);
+  return { monday, sunday };
+}
+
+function formatDate(d) {
+  return `${d.getFullYear()}-${String(d.getMonth()+1).padStart(2,'0')}-${String(d.getDate()).padStart(2,'0')}`;
+}
+function formatDateShort(d) {
+  return `${String(d.getDate()).padStart(2,'0')} ${MESES[d.getMonth()]}`;
+}
+function parseDate(str) {
+  const [y,m,d] = str.split('-').map(Number);
+  return new Date(y, m-1, d);
+}
+function timeToMins(t) {
+  const [h,m] = t.split(':').map(Number);
+  return h*60 + m;
+}
+function minsToTime(m) {
+  return `${String(Math.floor(m/60)).padStart(2,'0')}:${String(m%60).padStart(2,'0')}`;
+}
+function calcHoras(ini, fin) {
+  if (!ini || !fin) return null;
+  let diff = timeToMins(fin) - timeToMins(ini);
+  if (diff < 0) diff += 24*60;
+  return (diff / 60).toFixed(1);
+}
+
+function renderWeekNav() {
+  const { monday, sunday } = getWeekBounds(weekOffset);
+  const label = weekOffset === 0 ? 'Esta semana' :
+                weekOffset === -1 ? 'Semana pasada' :
+                `${formatDateShort(monday)} – ${formatDateShort(sunday)}`;
+  document.getElementById('weekLabel').textContent = label;
+  document.getElementById('btnNextWeek').disabled = weekOffset >= 0;
+  document.getElementById('btnNextWeek').style.opacity = weekOffset >= 0 ? '0.35' : '1';
+}
+
+// ── Load data ─────────────────────────────────────────────────────────────────
+async function loadRegistros() {
+  const { monday, sunday } = getWeekBounds(weekOffset);
+  document.getElementById('diasContainer').innerHTML =
+    '<div class="loading-state">Cargando jornadas<span class="loading-dot">.</span><span class="loading-dot">.</span><span class="loading-dot">.</span></div>';
+  try {
+const resp = await fetch(FLOW_GET_REGISTROS, {
+  method: 'POST',
+  headers: { 'Content-Type': 'application/json' },
+  body: JSON.stringify({...})
+});
+    const data = await resp.json();
+    registros = data.registros || data.value || data || [];
+  } catch(e) {
+    // Demo: datos de prueba si el flow no está configurado
+    registros = getDemoData();
+  }
+  renderDias();
+}
+
+function getDemoData() {
+  const { monday } = getWeekBounds(weekOffset);
+  const demos = [];
+  const base = new Date(monday);
+  [
+    { d:0, ini:'08:00', fin:'17:30', tipo:'Ordinario', extra:'N/A', recargo:'N/A', aprobado: true, estado:'Cerrado' },
+    { d:1, ini:'08:15', fin:'18:45', tipo:'Ordinario', extra:'Extra diurna', recargo:'N/A', aprobado: false, estado:'Cerrado' },
+    { d:2, ini:'08:00', fin:null,    tipo:'Ordinario', extra:'N/A', recargo:'N/A', aprobado: null, estado:'Abierto' },
+    { d:4, ini:'07:00', fin:'16:00', tipo:'Ordinario', extra:'N/A', recargo:'Nocturno', aprobado: false, estado:'Cerrado' },
+  ].forEach(r => {
+    const fecha = new Date(base);
+    fecha.setDate(base.getDate() + r.d);
+    demos.push({
+      ID: 100 + r.d,
+      FechaRegistro: formatDate(fecha),
+      HoraInicio: r.ini,
+      HoraFin: r.fin,
+      TipoDia: r.tipo,
+      FranjaInicio: 'Diurna',
+      FranjaFin: r.fin ? 'Diurna' : null,
+      TipoHoraExtra: r.extra,
+      Recargo: r.recargo || 'N/A',
+      AprobadoJefe: r.aprobado,
+      Estado: r.estado,
+      Observaciones: '',
+      HorasOrdinarias: r.fin ? calcHoras(r.ini, r.fin) : null
+    });
+  });
+  return demos;
+}
+
+// ── Render ────────────────────────────────────────────────────────────────────
+function renderDias() {
+  const { monday } = getWeekBounds(weekOffset);
+  const container = document.getElementById('diasContainer');
+  container.innerHTML = '';
+
+  let totalRegs = 0, totalOrd = 0, totalExtra = 0, totalPending = 0;
+  const today = new Date(); today.setHours(0,0,0,0);
+
+  for (let i = 0; i < 7; i++) {
+    const dia = new Date(monday);
+    dia.setDate(monday.getDate() + i);
+    const diaStr = formatDate(dia);
+    const regsDelDia = registros.filter(r => r.FechaRegistro === diaStr);
+    const isPast = dia < today;
+    const isToday = formatDate(dia) === formatDate(today);
+    const isFuture = dia > today;
+    const sinRegistro = regsDelDia.length === 0 && isPast && dia.getDay() !== 0 && dia.getDay() !== 6;
+    const tieneAbierto = regsDelDia.some(r => r.Estado === 'Abierto');
+    const tieneExtras = regsDelDia.some(r => r.TipoHoraExtra !== 'N/A' || r.Recargo !== 'N/A');
+    const pendienteAprobacion = regsDelDia.some(r =>
+      (r.TipoHoraExtra !== 'N/A' || r.Recargo !== 'N/A') && r.AprobadoJefe === false
+    );
+
+    totalRegs += regsDelDia.length;
+    regsDelDia.forEach(r => {
+      if (r.HoraFin) totalOrd += parseFloat(calcHoras(r.HoraInicio, r.HoraFin) || 0);
+    });
+    if (pendienteAprobacion || sinRegistro || tieneAbierto) totalPending++;
+
+    const block = document.createElement('div');
+    block.className = 'day-block';
+    if (sinRegistro) block.classList.add('day-missing');
+
+    const badges = [];
+    if (sinRegistro) badges.push('<span class="badge danger">Sin registro</span>');
+    else if (tieneAbierto) badges.push('<span class="badge warn">Check-out pendiente</span>');
+    else if (regsDelDia.length > 0) badges.push('<span class="badge ok">Completo</span>');
+    if (tieneExtras) badges.push('<span class="badge info">Horas extra</span>');
+    if (pendienteAprobacion) badges.push('<span class="badge warn">Aprob. pendiente</span>');
+    if (isFuture) badges.push('<span class="badge gray">Futuro</span>');
+
+    let totalHorasDia = 0;
+    regsDelDia.forEach(r => {
+      if (r.HoraInicio && r.HoraFin) totalHorasDia += parseFloat(calcHoras(r.HoraInicio, r.HoraFin));
+    });
+    const horasStr = regsDelDia.length > 0 && totalHorasDia > 0 ? `${totalHorasDia.toFixed(1)}h` : '';
+
+    const expanded = isToday || sinRegistro || tieneAbierto;
+
+    block.innerHTML = `
+      <div class="day-header ${expanded ? 'expanded' : ''}" data-dia="${diaStr}">
+        <span class="day-name">${DIAS_ES[dia.getDay()]}</span>
+        <span class="day-date">${formatDateShort(dia)}</span>
+        <div class="day-status-badges">${badges.join('')}</div>
+        ${horasStr ? `<span class="day-hours">${horasStr}</span>` : ''}
+        <span class="chevron ${expanded ? 'open' : ''}">&#9660;</span>
+      </div>
+      <div class="day-body ${expanded ? 'open' : ''}" id="body-${diaStr}">
+        ${renderDayBody(regsDelDia, diaStr, isFuture)}
+      </div>
+    `;
+
+    block.querySelector('.day-header').addEventListener('click', function() {
+      const body = document.getElementById('body-' + diaStr);
+      const isOpen = body.classList.toggle('open');
+      this.classList.toggle('expanded', isOpen);
+      this.querySelector('.chevron').classList.toggle('open', isOpen);
+    });
+
+    container.appendChild(block);
+  }
+
+  document.getElementById('statTotal').textContent = totalRegs;
+  document.getElementById('statOrd').textContent = totalOrd.toFixed(1) + 'h';
+  document.getElementById('statExtra').textContent = regsConExtras() + ' regs';
+  document.getElementById('statPending').textContent = totalPending;
+}
+
+function regsConExtras() {
+  return registros.filter(r => r.TipoHoraExtra !== 'N/A' || r.Recargo !== 'N/A').length;
+}
+
+function renderDayBody(regs, diaStr, isFuture) {
+  let html = '';
+  if (regs.length > 0) {
+    html += `<div class="registro-row header-row">
+      <span>Entrada</span><span>Salida</span><span>Horas</span>
+      <span>Tipo extra</span><span>Aprobado</span><span></span>
+    </div>`;
+    regs.forEach(r => {
+      const horas = r.HoraInicio && r.HoraFin ? calcHoras(r.HoraInicio, r.HoraFin) + 'h' : '—';
+      const aprobado = r.AprobadoJefe === true
+        ? '<span class="badge ok">✓ Sí</span>'
+        : r.AprobadoJefe === false && (r.TipoHoraExtra !== 'N/A' || r.Recargo !== 'N/A')
+          ? '<span class="badge warn">Pendiente</span>'
+          : '<span class="badge gray">N/A</span>';
+      const extra = r.TipoHoraExtra && r.TipoHoraExtra !== 'N/A'
+        ? `<span class="badge info" style="font-size:10px">${r.TipoHoraExtra}</span>`
+        : r.Recargo && r.Recargo !== 'N/A'
+          ? `<span class="badge warn" style="font-size:10px">Rec. ${r.Recargo}</span>`
+          : '<span style="color:var(--muted);font-size:12px">—</span>';
+      html += `<div class="registro-row">
+        <span class="time-val">${r.HoraInicio || '—'}</span>
+        <span class="time-val ${!r.HoraFin ? 'missing' : ''}">${r.HoraFin || 'Sin salida'}</span>
+        <span class="time-val">${horas}</span>
+        <span>${extra}</span>
+        <span>${aprobado}</span>
+        <button class="btn-edit" title="Editar" onclick="openEdit(${r.ID})">✏️</button>
+      </div>`;
+    });
+  } else {
+    html += `<div class="empty-day">Sin registros para este día.</div>`;
+  }
+  if (!isFuture) {
+    html += `<button class="btn-add-reg add-registro-btn" onclick="openNew('${diaStr}')">
+      + Agregar registro
+    </button>`;
+  }
+  return html;
+}
+
+// ── Modal ─────────────────────────────────────────────────────────────────────
+function bindModal() {
+  document.getElementById('btnCancelModal').addEventListener('click', closeModal);
+  document.getElementById('modalBackdrop').addEventListener('click', e => {
+    if (e.target.id === 'modalBackdrop') closeModal();
+  });
+  document.getElementById('btnSaveModal').addEventListener('click', saveRegistro);
+  ['fHoraInicio','fHoraFin','fTipoHoraExtra','fRecargo'].forEach(id => {
+    document.getElementById(id).addEventListener('change', onFormChange);
+  });
+}
+
+function openNew(fecha) {
+  editingId = null;
+  originalExtras = null;
+  document.getElementById('modalTitle').textContent = 'Nuevo registro';
+  resetForm();
+  document.getElementById('fFecha').value = fecha;
+  document.getElementById('fFecha').readOnly = true;
+  document.getElementById('infoAprobacion').classList.remove('show');
+  document.getElementById('warnOverlap').classList.remove('show');
+  document.getElementById('approvalNote').classList.remove('show');
+  document.getElementById('modalBackdrop').classList.add('open');
+}
+
+function openEdit(id) {
+  const reg = registros.find(r => r.ID == id);
+  if (!reg) return;
+  editingId = id;
+  originalExtras = { tipo: reg.TipoHoraExtra, recargo: reg.Recargo };
+  document.getElementById('modalTitle').textContent = 'Editar registro';
+  document.getElementById('fFecha').value = reg.FechaRegistro;
+  document.getElementById('fFecha').readOnly = true;
+  document.getElementById('fHoraInicio').value = reg.HoraInicio || '';
+  document.getElementById('fHoraFin').value = reg.HoraFin || '';
+  document.getElementById('fTipoDia').value = reg.TipoDia || 'Ordinario';
+  document.getElementById('fFranjaInicio').value = reg.FranjaInicio || 'Diurna';
+  document.getElementById('fFranjaFin').value = reg.FranjaFin || 'Diurna';
+  document.getElementById('fTipoHoraExtra').value = reg.TipoHoraExtra || 'N/A';
+  document.getElementById('fRecargo').value = reg.Recargo || 'N/A';
+  document.getElementById('fObservaciones').value = reg.Observaciones || '';
+  document.getElementById('warnOverlap').classList.remove('show');
+  document.getElementById('infoAprobacion').classList.remove('show');
+  document.getElementById('approvalNote').classList.remove('show');
+  document.getElementById('modalBackdrop').classList.add('open');
+}
+
+function resetForm() {
+  ['fFecha','fHoraInicio','fHoraFin','fObservaciones'].forEach(id => document.getElementById(id).value = '');
+  document.getElementById('fTipoDia').value = 'Ordinario';
+  document.getElementById('fFranjaInicio').value = 'Diurna';
+  document.getElementById('fFranjaFin').value = 'Diurna';
+  document.getElementById('fTipoHoraExtra').value = 'N/A';
+  document.getElementById('fRecargo').value = 'N/A';
+  ['errFecha','errHoraInicio','errHoraFin'].forEach(id => document.getElementById(id).classList.remove('show'));
+}
+
+function closeModal() {
+  document.getElementById('modalBackdrop').classList.remove('open');
+  editingId = null;
+}
+
+function onFormChange() {
+  checkOverlap();
+  checkApprovalWarning();
+}
+
+function checkOverlap() {
+  const fecha = document.getElementById('fFecha').value;
+  const ini = document.getElementById('fHoraInicio').value;
+  const fin = document.getElementById('fHoraFin').value;
+  if (!fecha || !ini || !fin) return;
+
+  const iniMin = timeToMins(ini);
+  const finMin = timeToMins(fin);
+  const regsDelDia = registros.filter(r => r.FechaRegistro === fecha && r.ID != editingId);
+  const overlap = regsDelDia.some(r => {
+    if (!r.HoraInicio || !r.HoraFin) return false;
+    const rIni = timeToMins(r.HoraInicio);
+    const rFin = timeToMins(r.HoraFin);
+    return iniMin < rFin && finMin > rIni;
+  });
+  document.getElementById('warnOverlap').classList.toggle('show', overlap);
+  document.getElementById('btnSaveModal').disabled = overlap;
+}
+
+function checkApprovalWarning() {
+  const tipoExtra = document.getElementById('fTipoHoraExtra').value;
+  const recargo = document.getElementById('fRecargo').value;
+  const hasExtras = tipoExtra !== 'N/A' || recargo !== 'N/A';
+
+  if (!editingId) {
+    document.getElementById('infoAprobacion').classList.toggle('show', hasExtras);
+    document.getElementById('approvalNote').classList.remove('show');
+  } else if (originalExtras) {
+    const changed = tipoExtra !== originalExtras.tipo || recargo !== originalExtras.recargo;
+    const showNote = hasExtras && changed;
+    document.getElementById('approvalNote').classList.toggle('show', showNote);
+    document.getElementById('infoAprobacion').classList.remove('show');
+  }
+}
+
+async function saveRegistro() {
+  const fecha = document.getElementById('fFecha').value;
+  const ini = document.getElementById('fHoraInicio').value;
+  const fin = document.getElementById('fHoraFin').value;
+  let valid = true;
+
+  if (!fecha) { document.getElementById('errFecha').classList.add('show'); valid = false; }
+  else document.getElementById('errFecha').classList.remove('show');
+  if (!ini) { document.getElementById('errHoraInicio').classList.add('show'); valid = false; }
+  else document.getElementById('errHoraInicio').classList.remove('show');
+  if (!fin) { document.getElementById('errHoraFin').classList.add('show'); valid = false; }
+  else document.getElementById('errHoraFin').classList.remove('show');
+  if (!valid) return;
+
+  if (timeToMins(fin) <= timeToMins(ini)) {
+    showToast('La hora de salida debe ser mayor a la de entrada', true);
+    return;
+  }
+
+  const tipoExtra = document.getElementById('fTipoHoraExtra').value;
+  const recargo = document.getElementById('fRecargo').value;
+  const needsApproval = tipoExtra !== 'N/A' || recargo !== 'N/A';
+  const approvalTriggered = editingId
+    ? needsApproval && (tipoExtra !== originalExtras?.tipo || recargo !== originalExtras?.recargo)
+    : needsApproval;
+
+  const payload = {
+    email,
+    accion: editingId ? 'editar' : 'nuevo',
+    ID: editingId || null,
+    FechaRegistro: fecha,
+    HoraInicio: ini,
+    HoraFin: fin,
+    TipoDia: document.getElementById('fTipoDia').value,
+    FranjaInicio: document.getElementById('fFranjaInicio').value,
+    FranjaFin: document.getElementById('fFranjaFin').value,
+    TipoHoraExtra: tipoExtra,
+    Recargo: recargo,
+    Observaciones: document.getElementById('fObservaciones').value,
+    GenerarAprobacion: approvalTriggered
+  };
+
+  const btn = document.getElementById('btnSaveModal');
+  btn.disabled = true;
+  btn.textContent = 'Guardando...';
+
+  try {
+    await fetch(FLOW_SAVE_REGISTRO, {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify(payload),
+      mode: 'no-cors'
+    });
+    closeModal();
+    const msg = approvalTriggered
+      ? '✓ Registro guardado. Se envió solicitud de aprobación al jefe.'
+      : '✓ Registro guardado correctamente.';
+    showToast(msg);
+    setTimeout(() => loadRegistros(), 1500);
+  } catch(e) {
+    showToast('Error al guardar. Intenta de nuevo.', true);
+  } finally {
+    btn.disabled = false;
+    btn.textContent = 'Guardar registro';
+  }
+}
+
+// ── Toast ─────────────────────────────────────────────────────────────────────
+function showToast(msg, isError = false) {
+  const t = document.getElementById('toast');
+  t.textContent = msg;
+  t.className = 'toast' + (isError ? ' error' : '');
+  requestAnimationFrame(() => {
+    requestAnimationFrame(() => t.classList.add('show'));
+  });
+  setTimeout(() => t.classList.remove('show'), 3800);
+}
+</script>
+</body>
+</html>
