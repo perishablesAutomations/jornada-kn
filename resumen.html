@@ -347,19 +347,10 @@
     </div>
 
     <div class="modal-grid">
-      <div class="field">
+      <div class="field full">
         <label for="fFecha">Fecha</label>
         <input type="date" id="fFecha" />
         <span class="field-error" id="errFecha">Selecciona una fecha</span>
-      </div>
-      <div class="field">
-        <label for="fTipoDia">Tipo de día</label>
-        <select id="fTipoDia">
-          <option value="Ordinario">Ordinario</option>
-          <option value="Festivo">Festivo</option>
-          <option value="Dominical">Dominical</option>
-          <option value="Compensado">Compensado</option>
-        </select>
       </div>
       <div class="field">
         <label for="fHoraInicio">Hora inicio</label>
@@ -370,41 +361,6 @@
         <label for="fHoraFin">Hora fin</label>
         <input type="time" id="fHoraFin" />
         <span class="field-error" id="errHoraFin">Campo requerido</span>
-      </div>
-      <div class="field">
-        <label for="fFranjaInicio">Franja inicio</label>
-        <select id="fFranjaInicio">
-          <option value="Diurna">Diurna (06:00–21:00)</option>
-          <option value="Nocturna">Nocturna (21:00–06:00)</option>
-        </select>
-      </div>
-      <div class="field">
-        <label for="fFranjaFin">Franja fin</label>
-        <select id="fFranjaFin">
-          <option value="Diurna">Diurna (06:00–21:00)</option>
-          <option value="Nocturna">Nocturna (21:00–06:00)</option>
-        </select>
-      </div>
-      <div class="field">
-        <label for="fTipoHoraExtra">Tipo hora extra</label>
-        <select id="fTipoHoraExtra">
-          <option value="N/A">N/A (sin extra)</option>
-          <option value="Extra diurna">Extra diurna</option>
-          <option value="Extra nocturna">Extra nocturna</option>
-          <option value="Extra dominical diurna">Extra dominical diurna</option>
-          <option value="Extra dominical nocturna">Extra dominical nocturna</option>
-          <option value="Extra festiva diurna">Extra festiva diurna</option>
-          <option value="Extra festiva nocturna">Extra festiva nocturna</option>
-        </select>
-      </div>
-      <div class="field">
-        <label for="fRecargo">Recargo</label>
-        <select id="fRecargo">
-          <option value="N/A">N/A</option>
-          <option value="Nocturno">Nocturno</option>
-          <option value="Dominical/Festivo diurno">Dominical/Festivo diurno</option>
-          <option value="Dominical/Festivo nocturno">Dominical/Festivo nocturno</option>
-        </select>
       </div>
       <div class="field full">
         <label for="fObservaciones">Observaciones</label>
@@ -707,7 +663,7 @@ function bindModal() {
     if (e.target.id === 'modalBackdrop') closeModal();
   });
   document.getElementById('btnSaveModal').addEventListener('click', saveRegistro);
-  ['fHoraInicio','fHoraFin','fTipoHoraExtra','fRecargo'].forEach(id => {
+  ['fHoraInicio','fHoraFin'].forEach(id => {
     document.getElementById(id).addEventListener('change', onFormChange);
   });
 }
@@ -719,9 +675,7 @@ function openNew(fecha) {
   resetForm();
   document.getElementById('fFecha').value = fecha;
   document.getElementById('fFecha').readOnly = true;
-  document.getElementById('infoAprobacion').classList.remove('show');
   document.getElementById('warnOverlap').classList.remove('show');
-  document.getElementById('approvalNote').classList.remove('show');
   document.getElementById('modalBackdrop').classList.add('open');
 }
 
@@ -729,7 +683,7 @@ function openEdit(id) {
   const reg = registros.find(r => r.ID == id);
   if (!reg) return;
   editingId = id;
-  originalExtras = { tipo: reg.TipoHoraExtra, recargo: reg.Recargo };
+  originalExtras = null;
   document.getElementById('modalTitle').textContent = 'Editar registro';
   document.getElementById('fFecha').value = reg.FechaRegistro;
   document.getElementById('fFecha').readOnly = true;
@@ -742,8 +696,6 @@ function openEdit(id) {
   document.getElementById('fRecargo').value = reg.Recargo || 'N/A';
   document.getElementById('fObservaciones').value = reg.Observaciones || '';
   document.getElementById('warnOverlap').classList.remove('show');
-  document.getElementById('infoAprobacion').classList.remove('show');
-  document.getElementById('approvalNote').classList.remove('show');
   document.getElementById('modalBackdrop').classList.add('open');
 }
 
@@ -764,7 +716,6 @@ function closeModal() {
 
 function onFormChange() {
   checkOverlap();
-  checkApprovalWarning();
 }
 
 function checkOverlap() {
@@ -821,12 +772,7 @@ async function saveRegistro() {
     return;
   }
 
-  const tipoExtra = document.getElementById('fTipoHoraExtra').value;
-  const recargo = document.getElementById('fRecargo').value;
-  const needsApproval = tipoExtra !== 'N/A' || recargo !== 'N/A';
-  const approvalTriggered = editingId
-    ? needsApproval && (tipoExtra !== originalExtras?.tipo || recargo !== originalExtras?.recargo)
-    : needsApproval;
+
 
   const payload = {
     email,
@@ -835,13 +781,7 @@ async function saveRegistro() {
     FechaRegistro: fecha,
     HoraInicio: ini,
     HoraFin: fin,
-    TipoDia: document.getElementById('fTipoDia').value,
-    FranjaInicio: document.getElementById('fFranjaInicio').value,
-    FranjaFin: document.getElementById('fFranjaFin').value,
-    TipoHoraExtra: tipoExtra,
-    Recargo: recargo,
-    Observaciones: document.getElementById('fObservaciones').value,
-    GenerarAprobacion: approvalTriggered
+    Observaciones: document.getElementById('fObservaciones').value
   };
 
   const btn = document.getElementById('btnSaveModal');
@@ -855,10 +795,7 @@ async function saveRegistro() {
       body: JSON.stringify(payload)
     });
     closeModal();
-    const msg = approvalTriggered
-      ? '✓ Registro guardado. Se envió solicitud de aprobación al jefe.'
-      : '✓ Registro guardado correctamente.';
-    showToast(msg);
+    showToast('✓ Registro guardado correctamente.');
     setTimeout(() => loadRegistros(), 1500);
   } catch(e) {
     showToast('Error al guardar. Intenta de nuevo.', true);
