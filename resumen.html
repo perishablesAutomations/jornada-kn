@@ -683,17 +683,11 @@ function openEdit(id) {
   const reg = registros.find(r => r.ID == id);
   if (!reg) return;
   editingId = id;
-  originalExtras = null;
   document.getElementById('modalTitle').textContent = 'Editar registro';
   document.getElementById('fFecha').value = reg.FechaRegistro;
   document.getElementById('fFecha').readOnly = true;
   document.getElementById('fHoraInicio').value = reg.HoraInicio || '';
   document.getElementById('fHoraFin').value = reg.HoraFin || '';
-  document.getElementById('fTipoDia').value = reg.TipoDia || 'Ordinario';
-  document.getElementById('fFranjaInicio').value = reg.FranjaInicio || 'Diurna';
-  document.getElementById('fFranjaFin').value = reg.FranjaFin || 'Diurna';
-  document.getElementById('fTipoHoraExtra').value = reg.TipoHoraExtra || 'N/A';
-  document.getElementById('fRecargo').value = reg.Recargo || 'N/A';
   document.getElementById('fObservaciones').value = reg.Observaciones || '';
   document.getElementById('warnOverlap').classList.remove('show');
   document.getElementById('modalBackdrop').classList.add('open');
@@ -701,11 +695,6 @@ function openEdit(id) {
 
 function resetForm() {
   ['fFecha','fHoraInicio','fHoraFin','fObservaciones'].forEach(id => document.getElementById(id).value = '');
-  document.getElementById('fTipoDia').value = 'Ordinario';
-  document.getElementById('fFranjaInicio').value = 'Diurna';
-  document.getElementById('fFranjaFin').value = 'Diurna';
-  document.getElementById('fTipoHoraExtra').value = 'N/A';
-  document.getElementById('fRecargo').value = 'N/A';
   ['errFecha','errHoraInicio','errHoraFin'].forEach(id => document.getElementById(id).classList.remove('show'));
 }
 
