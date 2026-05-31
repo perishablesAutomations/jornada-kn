@@ -63,7 +63,6 @@
   .col-horas   { width: 70px; }
   .col-tipo    { width: 160px; }
   .col-obs     { min-width: 140px; }
-  .col-comp    { width: 110px; }
   .col-accion  { width: 180px; white-space: nowrap; }
 
   /* Mobile: cards */
@@ -100,9 +99,6 @@
   .btn-rechazar { background: #fee2e2; color: #991b1b; border: 1.5px solid #fca5a5; }
   .btn-rechazar:hover { background: #991b1b; color: #fff; }
   .btn-decision:disabled { opacity: 0.35; cursor: not-allowed; }
-
-  .compensado-toggle { display: flex; align-items: center; gap: 6px; font-size: 12px; color: var(--muted); cursor: pointer; white-space: nowrap; }
-  .compensado-toggle input { accent-color: var(--kn-green); width: 14px; height: 14px; cursor: pointer; }
 
   .status-chip { font-size: 12px; font-family: var(--mono); padding: 5px 12px; border-radius: 999px; font-weight: 500; white-space: nowrap; }
   .status-chip.aprobado { background: #e6faf4; color: #035c41; }
@@ -249,7 +245,6 @@ function renderPendientes() {
         <td class="col-horas"><span class="time-val">${r.HorasBrutas ? parseFloat(r.HorasBrutas).toFixed(1)+'h' : '—'}</span></td>
         <td class="col-tipo">${tipoPagoHtml(r.TipoPago)}</td>
         <td class="col-obs"><span style="font-size:12px;color:var(--muted);font-style:italic">${r.Observaciones||'—'}</span></td>
-        <td class="col-comp"><label class="compensado-toggle"><input type="checkbox" id="comp-${r.ID}"><span>Compensar</span></label></td>
         <td class="col-accion"><div class="actions-cell" id="actions-${r.ID}">
           <button class="btn-decision btn-extra"      onclick="procesar(${r.ID},'extra')"><span class="material-icons-round">schedule</span>Hora extra</button>
           <button class="btn-decision btn-recargo"    onclick="procesar(${r.ID},'recargo')"><span class="material-icons-round">nightlight</span>Recargo</button>
@@ -288,7 +283,7 @@ function renderPendientes() {
             <button class="btn-decision btn-recargo"    onclick="procesar(${r.ID},'recargo')"><span class="material-icons-round">nightlight</span>Recargo</button>
             <button class="btn-decision btn-compensado" onclick="procesar(${r.ID},'compensado')"><span class="material-icons-round">event_available</span>Compensado</button>
             <button class="btn-decision btn-rechazar"   onclick="procesar(${r.ID},'rechazado')"><span class="material-icons-round">block</span>Rechazar</button>
-            <label class="reg-card-comp"><input type="checkbox" id="comp-${r.ID}"><span>Compensar</span></label>
+
           </div>
         </div>
       </div>`).join('');
@@ -308,7 +303,6 @@ function renderPendientes() {
           <th class="col-horas">Horas</th>
           <th class="col-tipo">Tipo pago</th>
           <th class="col-obs">Observaciones</th>
-          <th class="col-comp">Compensado</th>
           <th class="col-accion">Acción</th>
         </tr></thead>
         <tbody>${desktopRows}</tbody>
