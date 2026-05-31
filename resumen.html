@@ -599,7 +599,7 @@ function renderDias() {
     const tieneAbierto = regsDelDia.some(r => r.Estado === 'Abierto');
     const tieneExtras = regsDelDia.some(r => r.TipoHoraExtra !== 'N/A' || r.Recargo !== 'N/A');
     const pendienteAprobacion = regsDelDia.some(r =>
-      (r.TipoHoraExtra !== 'N/A' || r.Recargo !== 'N/A') && r.AprobadoJefe === false
+      r.RequiereAprobacion === true && r.AprobadoJefe === false
     );
 
     totalRegs += regsDelDia.length;
@@ -671,8 +671,8 @@ function renderDayBody(regs, diaStr, isFuture) {
     regs.forEach(r => {
       const horas = r.HoraInicio && r.HoraFin ? calcHoras(r.HoraInicio, r.HoraFin) + 'h' : '—';
       const aprobado = r.AprobadoJefe === true
-        ? '<span class="badge ok">✓ Sí</span>'
-        : r.AprobadoJefe === false && (r.TipoHoraExtra !== 'N/A' || r.Recargo !== 'N/A')
+        ? '<span class="badge ok">✓ Aprobado</span>'
+        : r.RequiereAprobacion === true && r.AprobadoJefe === false
           ? '<span class="badge warn">Pendiente</span>'
           : '<span class="badge gray">N/A</span>';
       const extra = r.TipoHoraExtra && r.TipoHoraExtra !== 'N/A'
