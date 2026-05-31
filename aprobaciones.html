@@ -1,0 +1,378 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Aprobaciones · KN</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link href="https://fonts.googleapis.com/css2?family=DM+Mono:wght@400;500&family=Syne:wght@400;500;600;700&display=swap" rel="stylesheet">
+<style>
+  :root {
+    --bg: #ffffff;
+    --surface: #ffffff;
+    --surface2: #f0f6ff;
+    --border: rgba(0,51,105,0.12);
+    --border2: rgba(0,51,105,0.22);
+    --text: #001a38;
+    --muted: #4a6080;
+    --kn-navy: #003369;
+    --kn-blue: #0099DA;
+    --kn-green: #08C792;
+    --danger: #dc2626;
+    --danger-bg: #fee2e2;
+    --danger-text: #7f1d1d;
+    --warn-bg: #fef3c7;
+    --warn-text: #92400e;
+    --info-bg: #e0f4fd;
+    --info-text: #003369;
+    --r: 10px;
+    --r-lg: 16px;
+    --mono: 'DM Mono', monospace;
+    --sans: 'Syne', sans-serif;
+  }
+  * { box-sizing: border-box; margin: 0; padding: 0; }
+  body { background: var(--bg); color: var(--text); font-family: var(--sans); min-height: 100vh; padding: 0 0 60px; }
+
+  header {
+    background: var(--kn-navy);
+    border-bottom: 3px solid var(--kn-blue);
+    padding: 16px 24px;
+    position: sticky; top: 0; z-index: 100;
+  }
+  .header-inner { max-width: 760px; margin: 0 auto; display: flex; align-items: center; justify-content: space-between; gap: 12px; }
+  .logo { font-size: 13px; font-weight: 700; letter-spacing: 0.14em; color: rgba(255,255,255,0.9); text-transform: uppercase; display: flex; align-items: center; gap: 10px; }
+  .logo-dot { width: 8px; height: 8px; border-radius: 50%; background: var(--kn-green); display: inline-block; }
+  .manager-chip { display: flex; align-items: center; gap: 8px; background: rgba(255,255,255,0.12); border-radius: 999px; padding: 5px 14px 5px 6px; border: 1px solid rgba(255,255,255,0.2); }
+  .avatar { width: 28px; height: 28px; border-radius: 50%; background: var(--kn-green); color: var(--kn-navy); display: flex; align-items: center; justify-content: center; font-size: 11px; font-weight: 700; font-family: var(--mono); }
+  .mgr-name { font-size: 13px; font-weight: 500; color: #fff; }
+
+  main { max-width: 760px; margin: 0 auto; padding: 24px 16px 0; }
+
+  .page-title { font-size: 22px; font-weight: 700; color: var(--kn-navy); margin-bottom: 4px; }
+  .page-subtitle { font-size: 13px; color: var(--muted); margin-bottom: 24px; font-family: var(--mono); }
+
+  .summary-bar { display: grid; grid-template-columns: repeat(3, 1fr); gap: 8px; margin-bottom: 28px; }
+  .stat { background: var(--surface); border: 1px solid var(--border); border-radius: var(--r); padding: 12px; border-top: 3px solid var(--kn-blue); }
+  .stat:first-child { border-top-color: var(--kn-navy); }
+  .stat:nth-child(2) { border-top-color: var(--warn-text); }
+  .stat:nth-child(3) { border-top-color: var(--kn-green); }
+  .stat-label { font-size: 11px; color: var(--muted); text-transform: uppercase; letter-spacing: 0.08em; margin-bottom: 4px; }
+  .stat-val { font-family: var(--mono); font-size: 22px; font-weight: 500; color: var(--kn-navy); }
+
+  .empleado-block { margin-bottom: 20px; border: 1px solid var(--border); border-radius: var(--r-lg); overflow: hidden; }
+  .empleado-header { background: var(--kn-navy); padding: 14px 18px; display: flex; align-items: center; justify-content: space-between; gap: 12px; }
+  .emp-info { display: flex; align-items: center; gap: 10px; }
+  .emp-avatar { width: 32px; height: 32px; border-radius: 50%; background: var(--kn-green); color: var(--kn-navy); display: flex; align-items: center; justify-content: center; font-size: 12px; font-weight: 700; font-family: var(--mono); flex-shrink: 0; }
+  .emp-name { font-size: 14px; font-weight: 600; color: #fff; }
+  .emp-email { font-size: 12px; color: rgba(255,255,255,0.6); font-family: var(--mono); }
+  .emp-count { font-size: 12px; font-family: var(--mono); color: rgba(255,255,255,0.7); background: rgba(255,255,255,0.1); padding: 4px 10px; border-radius: 999px; }
+
+  .registros-table { width: 100%; border-collapse: collapse; }
+  .registros-table th { font-size: 11px; color: var(--muted); text-transform: uppercase; letter-spacing: 0.07em; padding: 10px 14px; background: var(--surface2); border-bottom: 1px solid var(--border); text-align: left; font-weight: 500; }
+  .registros-table td { padding: 12px 14px; border-bottom: 1px solid var(--border); font-size: 13px; vertical-align: middle; }
+  .registros-table tr:last-child td { border-bottom: none; }
+  .registros-table tr:hover td { background: var(--surface2); }
+
+  .time-val { font-family: var(--mono); font-size: 13px; }
+  .badge { font-size: 11px; font-weight: 500; padding: 3px 8px; border-radius: 999px; font-family: var(--mono); }
+  .badge.dominical { background: #f3e8ff; color: #6b21a8; }
+  .badge.sabado { background: var(--info-bg); color: var(--info-text); }
+  .badge.habil { background: var(--surface2); color: var(--muted); }
+  .badge.nocturno { background: #1e1b4b; color: #a5b4fc; }
+  .badge.extra { background: var(--warn-bg); color: var(--warn-text); }
+
+  .actions-cell { display: flex; gap: 8px; align-items: center; white-space: nowrap; }
+  .btn-aprobar { padding: 7px 14px; border-radius: 6px; background: var(--kn-green); color: var(--kn-navy); border: none; font-family: var(--sans); font-size: 12px; font-weight: 700; cursor: pointer; transition: all 0.15s; display: flex; align-items: center; gap: 5px; }
+  .btn-aprobar:hover { background: #06a87c; color: #fff; }
+  .btn-rechazar { padding: 7px 14px; border-radius: 6px; background: transparent; color: var(--danger); border: 1px solid var(--danger); font-family: var(--sans); font-size: 12px; font-weight: 700; cursor: pointer; transition: all 0.15s; display: flex; align-items: center; gap: 5px; }
+  .btn-rechazar:hover { background: var(--danger-bg); }
+  .btn-aprobar:disabled, .btn-rechazar:disabled { opacity: 0.4; cursor: not-allowed; }
+
+  .compensado-toggle { display: flex; align-items: center; gap: 6px; font-size: 12px; color: var(--muted); cursor: pointer; }
+  .compensado-toggle input { accent-color: var(--kn-green); width: 14px; height: 14px; cursor: pointer; }
+
+  .status-chip { font-size: 12px; font-family: var(--mono); padding: 4px 10px; border-radius: 999px; font-weight: 500; }
+  .status-chip.aprobado { background: #e6faf4; color: #035c41; }
+  .status-chip.rechazado { background: var(--danger-bg); color: var(--danger-text); }
+  .status-chip.procesando { background: var(--info-bg); color: var(--info-text); }
+
+  .loading-state { text-align: center; padding: 60px 20px; color: var(--kn-blue); font-family: var(--mono); font-size: 14px; }
+  .loading-dot { animation: blink 1.2s infinite; }
+  .loading-dot:nth-child(2) { animation-delay: 0.4s; }
+  .loading-dot:nth-child(3) { animation-delay: 0.8s; }
+  @keyframes blink { 0%,80%,100%{opacity:0.2} 40%{opacity:1} }
+
+  .empty-state { text-align: center; padding: 60px 20px; color: var(--muted); }
+  .empty-icon { font-size: 40px; margin-bottom: 12px; }
+  .empty-title { font-size: 16px; font-weight: 600; color: var(--kn-navy); margin-bottom: 6px; }
+  .empty-sub { font-size: 13px; }
+
+  .toast { position: fixed; bottom: 24px; left: 50%; transform: translateX(-50%) translateY(80px); background: var(--kn-navy); color: #fff; padding: 10px 20px; border-radius: 999px; font-size: 13px; font-weight: 500; transition: transform 0.3s ease; z-index: 300; pointer-events: none; white-space: nowrap; border: 2px solid var(--kn-blue); }
+  .toast.show { transform: translateX(-50%) translateY(0); }
+  .toast.error { background: var(--danger); border-color: var(--danger); }
+  .toast.ok { background: #059669; border-color: #059669; }
+
+  @media (max-width: 600px) {
+    .registros-table th:nth-child(3), .registros-table td:nth-child(3),
+    .registros-table th:nth-child(4), .registros-table td:nth-child(4) { display: none; }
+    .summary-bar { grid-template-columns: repeat(3,1fr); }
+  }
+</style>
+</head>
+<body>
+
+<header>
+  <div class="header-inner">
+    <span class="logo"><span class="logo-dot"></span> KN · Aprobaciones</span>
+    <div class="manager-chip">
+      <div class="avatar" id="avatarInitials">--</div>
+      <span class="mgr-name" id="mgrNameDisplay">Cargando...</span>
+    </div>
+  </div>
+</header>
+
+<main>
+  <div class="page-title">Registros pendientes</div>
+  <div class="page-subtitle" id="pageSubtitle">Cargando...</div>
+
+  <div class="summary-bar">
+    <div class="stat"><div class="stat-label">Total pendientes</div><div class="stat-val" id="statTotal">—</div></div>
+    <div class="stat"><div class="stat-label">Empleados</div><div class="stat-val" id="statEmpleados">—</div></div>
+    <div class="stat"><div class="stat-label">Aprobados hoy</div><div class="stat-val" id="statAprobados">0</div></div>
+  </div>
+
+  <div id="container">
+    <div class="loading-state">Cargando pendientes<span class="loading-dot">.</span><span class="loading-dot">.</span><span class="loading-dot">.</span></div>
+  </div>
+</main>
+
+<div class="toast" id="toast"></div>
+
+<script>
+const FLOW_GET = 'https://bd4a763d737defaeacf0e99a4d082f.58.environment.api.powerplatform.com:443/powerautomate/automations/direct/workflows/3fd25ad09b5449a9a614f784b10bbc72/triggers/manual/paths/invoke?api-version=1&sp=%2Ftriggers%2Fmanual%2Frun&sv=1.0&sig=oYx-w7yw0ZHA9-KETPaXHxpMvUHGEI0iUJoElGXsHvQ';
+const FLOW_APROBAR = 'https://bd4a763d737defaeacf0e99a4d082f.58.environment.api.powerplatform.com:443/powerautomate/automations/direct/workflows/cad0dc8e16a4466cb83297306976794d/triggers/manual/paths/invoke?api-version=1&sp=%2Ftriggers%2Fmanual%2Frun&sv=1.0&sig=tTGdFfz_6i4mpPo6HmbobfRSPxoGwS9V5fBi0z7L9uA';
+
+const params = new URLSearchParams(location.search);
+const jefeEmail = params.get('jefe') || '';
+const nombreParam = params.get('nombre') || '';
+
+let registros = [];
+let aprobadosHoy = 0;
+
+const MESES = ['ene','feb','mar','abr','may','jun','jul','ago','sep','oct','nov','dic'];
+const DIAS = ['Dom','Lun','Mar','Mié','Jue','Vie','Sáb'];
+
+document.addEventListener('DOMContentLoaded', () => {
+  if (!jefeEmail) {
+    document.getElementById('container').innerHTML = '<div class="loading-state" style="color:var(--danger)">⚠️ No se encontró el email del jefe en la URL.<br>El enlace debe incluir ?jefe=tu@correo.com</div>';
+    return;
+  }
+  initManager();
+  loadPendientes();
+});
+
+function initManager() {
+  const display = nombreParam || jefeEmail.split('@')[0].replace('.', ' ');
+  const parts = display.split(' ');
+  const initials = parts.map(p => p[0]?.toUpperCase() || '').join('').slice(0,2);
+  document.getElementById('avatarInitials').textContent = initials || '??';
+  document.getElementById('mgrNameDisplay').textContent = display;
+}
+
+async function loadPendientes() {
+  try {
+    const resp = await fetch(FLOW_GET, {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({ jefeEmail })
+    });
+    const data = await resp.json();
+    const raw = data?.registros?.body || data.registros || data || [];
+    registros = raw.map(r => ({
+      ...r,
+      HoraInicio: r.HoraInicio ? r.HoraInicio.substring(11,16) : null,
+      HoraFin:    r.HoraFin    ? r.HoraFin.substring(11,16)    : null,
+      TipoPago:   r.TipoPago   || 'N/A',
+      _estado: 'pendiente'
+    }));
+  } catch(e) {
+    registros = [];
+  }
+  renderPendientes();
+}
+
+function renderPendientes() {
+  const container = document.getElementById('container');
+  const today = new Date().toISOString().slice(0,10);
+
+  document.getElementById('pageSubtitle').textContent =
+    `${registros.length} registro${registros.length !== 1 ? 's' : ''} pendiente${registros.length !== 1 ? 's' : ''} de aprobación`;
+  document.getElementById('statTotal').textContent = registros.length;
+
+  // Agrupar por empleado
+  const porEmpleado = {};
+  registros.forEach(r => {
+    const key = r.CorreoEmpleado;
+    if (!porEmpleado[key]) porEmpleado[key] = { nombre: r.NombreEmpleado, email: r.CorreoEmpleado, regs: [] };
+    porEmpleado[key].regs.push(r);
+  });
+
+  document.getElementById('statEmpleados').textContent = Object.keys(porEmpleado).length;
+
+  if (registros.length === 0) {
+    container.innerHTML = `
+      <div class="empty-state">
+        <div class="empty-icon">✅</div>
+        <div class="empty-title">Sin pendientes</div>
+        <div class="empty-sub">No tienes registros pendientes de aprobación.</div>
+      </div>`;
+    return;
+  }
+
+  container.innerHTML = '';
+  Object.values(porEmpleado).forEach(emp => {
+    const initials = emp.nombre.split(' ').map(p => p[0]?.toUpperCase() || '').join('').slice(0,2);
+    const nombreCorto = emp.nombre.split('/')[0].trim();
+
+    const block = document.createElement('div');
+    block.className = 'empleado-block';
+    block.innerHTML = `
+      <div class="empleado-header">
+        <div class="emp-info">
+          <div class="emp-avatar">${initials}</div>
+          <div>
+            <div class="emp-name">${nombreCorto}</div>
+            <div class="emp-email">${emp.email}</div>
+          </div>
+        </div>
+        <span class="emp-count">${emp.regs.length} pendiente${emp.regs.length !== 1 ? 's' : ''}</span>
+      </div>
+      <table class="registros-table">
+        <thead>
+          <tr>
+            <th>Fecha</th>
+            <th>Horario</th>
+            <th>Horas</th>
+            <th>Tipo pago</th>
+            <th>Compensado</th>
+            <th>Acción</th>
+          </tr>
+        </thead>
+        <tbody id="tbody-${emp.email.replace('@','_').replace('.','_')}">
+        </tbody>
+      </table>`;
+
+    container.appendChild(block);
+
+    const tbody = block.querySelector('tbody');
+    emp.regs.forEach(r => {
+      tbody.appendChild(buildRow(r));
+    });
+  });
+}
+
+function buildRow(r) {
+  const tr = document.createElement('tr');
+  tr.id = `row-${r.ID}`;
+
+  const fecha = r.FechaRegistro ? new Date(r.FechaRegistro + 'T12:00:00') : null;
+  const fechaStr = fecha ? `${DIAS[fecha.getDay()]} ${fecha.getDate()} ${MESES[fecha.getMonth()]}` : '—';
+
+  const tipoBadge = r.TipoDia === 'Dominical'
+    ? '<span class="badge dominical">Dominical</span>'
+    : r.TipoDia === 'Sabado'
+      ? '<span class="badge sabado">Sábado</span>'
+      : '<span class="badge habil">Hábil</span>';
+
+  const tipoPago = r.TipoPago && r.TipoPago !== 'N/A' && r.TipoPago !== 'Ordinario'
+    ? `<span class="badge extra">${r.TipoPago}</span>`
+    : `<span style="color:var(--muted);font-size:12px">—</span>`;
+
+  const horas = r.HorasBrutas ? `${parseFloat(r.HorasBrutas).toFixed(1)}h` : '—';
+
+  tr.innerHTML = `
+    <td>
+      <div style="font-weight:600;font-size:13px;">${fechaStr}</div>
+      <div style="margin-top:3px;">${tipoBadge}</div>
+    </td>
+    <td>
+      <span class="time-val">${r.HoraInicio || '—'}</span>
+      <span style="color:var(--muted);margin:0 4px;">→</span>
+      <span class="time-val">${r.HoraFin || '—'}</span>
+    </td>
+    <td><span class="time-val">${horas}</span></td>
+    <td>${tipoPago}</td>
+    <td>
+      <label class="compensado-toggle">
+        <input type="checkbox" id="comp-${r.ID}" />
+        <span>Compensar</span>
+      </label>
+    </td>
+    <td>
+      <div class="actions-cell" id="actions-${r.ID}">
+        <button class="btn-aprobar" onclick="procesar(${r.ID}, 'si')">✅ Aprobar</button>
+        <button class="btn-rechazar" onclick="procesar(${r.ID}, 'no')">❌ Rechazar</button>
+      </div>
+    </td>`;
+
+  return tr;
+}
+
+async function procesar(id, aprobado) {
+  const compensado = document.getElementById(`comp-${id}`)?.checked ? 'si' : 'no';
+  const actionsDiv = document.getElementById(`actions-${id}`);
+
+  // Deshabilitar botones
+  actionsDiv.querySelectorAll('button').forEach(b => b.disabled = true);
+  actionsDiv.innerHTML = '<span class="status-chip procesando">Procesando...</span>';
+
+  try {
+    const url = `${FLOW_APROBAR}&registro=${id}&aprobado=${aprobado}&compensado=${compensado}`;
+    await fetch(url, { method: 'GET' });
+
+    const chip = aprobado === 'si'
+      ? '<span class="status-chip aprobado">✓ Aprobado</span>'
+      : '<span class="status-chip rechazado">✗ Rechazado</span>';
+    actionsDiv.innerHTML = chip;
+
+    aprobadosHoy++;
+    document.getElementById('statAprobados').textContent = aprobadosHoy;
+
+    const msg = aprobado === 'si' ? '✅ Registro aprobado' : '❌ Registro rechazado';
+    showToast(msg, aprobado === 'si' ? 'ok' : 'error');
+
+    // Actualizar contador del empleado
+    const row = document.getElementById(`row-${id}`);
+    const empBlock = row?.closest('.empleado-block');
+    if (empBlock) {
+      const tbody = row.closest('tbody');
+      const pendientes = Array.from(tbody.querySelectorAll('tr')).filter(r => {
+        const chip = r.querySelector('.status-chip');
+        return !chip;
+      }).length - 1;
+      const countEl = empBlock.querySelector('.emp-count');
+      if (countEl) countEl.textContent = pendientes > 0 ? `${pendientes} pendiente${pendientes !== 1 ? 's' : ''}` : '✓ Completado';
+    }
+
+    // Actualizar stat total
+    const totalPendientes = document.querySelectorAll('.btn-aprobar:not(:disabled)').length;
+    document.getElementById('statTotal').textContent = totalPendientes;
+
+  } catch(e) {
+    actionsDiv.innerHTML = `
+      <button class="btn-aprobar" onclick="procesar(${id}, 'si')">✅ Aprobar</button>
+      <button class="btn-rechazar" onclick="procesar(${id}, 'no')">❌ Rechazar</button>`;
+    showToast('Error al procesar. Intenta de nuevo.', 'error');
+  }
+}
+
+function showToast(msg, type = '') {
+  const t = document.getElementById('toast');
+  t.textContent = msg;
+  t.className = 'toast' + (type ? ' ' + type : '');
+  requestAnimationFrame(() => requestAnimationFrame(() => t.classList.add('show')));
+  setTimeout(() => t.classList.remove('show'), 3500);
+}
+</script>
+</body>
+</html>
