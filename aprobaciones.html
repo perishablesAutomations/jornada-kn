@@ -113,8 +113,6 @@
   .toast.ok { background: #059669; border-color: #059669; }
 
   @media (max-width: 600px) {
-    .registros-table th:nth-child(3), .registros-table td:nth-child(3),
-    .registros-table th:nth-child(4), .registros-table td:nth-child(4) { display: none; }
     .summary-bar { grid-template-columns: repeat(3,1fr); }
   }
 </style>
@@ -247,20 +245,21 @@ function renderPendientes() {
         </div>
         <span class="emp-count">${emp.regs.length} pendiente${emp.regs.length !== 1 ? 's' : ''}</span>
       </div>
-      <table class="registros-table">
+      <div style="overflow-x:auto;-webkit-overflow-scrolling:touch;"><table class="registros-table" style="min-width:640px;">
         <thead>
           <tr>
             <th>Fecha</th>
             <th>Horario</th>
             <th>Horas</th>
             <th>Tipo pago</th>
+            <th>Observaciones</th>
             <th>Compensado</th>
             <th>Acción</th>
           </tr>
         </thead>
         <tbody id="tbody-${emp.email.replace('@','_').replace('.','_')}">
         </tbody>
-      </table>`;
+      </table></div>`;
 
     container.appendChild(block);
 
@@ -302,6 +301,7 @@ function buildRow(r) {
     </td>
     <td><span class="time-val">${horas}</span></td>
     <td>${tipoPago}</td>
+    <td style="max-width:160px;"><span style="font-size:12px;color:var(--muted);font-style:italic;">${r.Observaciones || '—'}</span></td>
     <td>
       <label class="compensado-toggle">
         <input type="checkbox" id="comp-${r.ID}" />
