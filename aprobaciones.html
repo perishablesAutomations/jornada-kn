@@ -6,6 +6,7 @@
 <title>Aprobaciones · KN</title>
 <link rel="preconnect" href="https://fonts.googleapis.com">
 <link href="https://fonts.googleapis.com/css2?family=DM+Mono:wght@400;500&family=Syne:wght@400;500;600;700&display=swap" rel="stylesheet">
+<link href="https://fonts.googleapis.com/icon?family=Material+Icons+Round" rel="stylesheet">
 <style>
   :root {
     --bg: #ffffff; --surface: #ffffff; --surface2: #f0f6ff;
@@ -87,12 +88,18 @@
   .badge.habil { background: var(--surface2); color: var(--muted); }
   .badge.extra { background: var(--warn-bg); color: var(--warn-text); }
 
-  .actions-cell { display: flex; gap: 6px; align-items: center; }
-  .btn-aprobar { padding: 7px 12px; border-radius: 6px; background: var(--kn-green); color: var(--kn-navy); border: none; font-family: var(--sans); font-size: 12px; font-weight: 700; cursor: pointer; transition: all 0.15s; white-space: nowrap; }
-  .btn-aprobar:hover { background: #06a87c; color: #fff; }
-  .btn-rechazar { padding: 7px 12px; border-radius: 6px; background: transparent; color: var(--danger); border: 1px solid var(--danger); font-family: var(--sans); font-size: 12px; font-weight: 700; cursor: pointer; transition: all 0.15s; white-space: nowrap; }
-  .btn-rechazar:hover { background: var(--danger-bg); }
-  .btn-aprobar:disabled, .btn-rechazar:disabled { opacity: 0.4; cursor: not-allowed; }
+  .actions-cell { display: flex; gap: 6px; align-items: center; flex-wrap: wrap; }
+  .btn-decision { display: inline-flex; align-items: center; gap: 4px; padding: 6px 11px; border-radius: 8px; border: none; font-family: var(--sans); font-size: 11px; font-weight: 700; cursor: pointer; transition: all 0.15s; white-space: nowrap; letter-spacing: 0.02em; }
+  .btn-decision .material-icons-round { font-size: 16px; }
+  .btn-extra    { background: #dbeafe; color: #1d4ed8; border: 1.5px solid #93c5fd; }
+  .btn-extra:hover    { background: #1d4ed8; color: #fff; }
+  .btn-recargo  { background: #fef9c3; color: #854d0e; border: 1.5px solid #fde047; }
+  .btn-recargo:hover  { background: #854d0e; color: #fff; }
+  .btn-compensado { background: #e6faf4; color: #065f46; border: 1.5px solid #6ee7b7; }
+  .btn-compensado:hover { background: #065f46; color: #fff; }
+  .btn-rechazar { background: #fee2e2; color: #991b1b; border: 1.5px solid #fca5a5; }
+  .btn-rechazar:hover { background: #991b1b; color: #fff; }
+  .btn-decision:disabled { opacity: 0.35; cursor: not-allowed; }
 
   .compensado-toggle { display: flex; align-items: center; gap: 6px; font-size: 12px; color: var(--muted); cursor: pointer; white-space: nowrap; }
   .compensado-toggle input { accent-color: var(--kn-green); width: 14px; height: 14px; cursor: pointer; }
@@ -244,8 +251,10 @@ function renderPendientes() {
         <td class="col-obs"><span style="font-size:12px;color:var(--muted);font-style:italic">${r.Observaciones||'—'}</span></td>
         <td class="col-comp"><label class="compensado-toggle"><input type="checkbox" id="comp-${r.ID}"><span>Compensar</span></label></td>
         <td class="col-accion"><div class="actions-cell" id="actions-${r.ID}">
-          <button class="btn-aprobar" onclick="procesar(${r.ID},'si')">✅ Aprobar</button>
-          <button class="btn-rechazar" onclick="procesar(${r.ID},'no')">❌ Rechazar</button>
+          <button class="btn-decision btn-extra"      onclick="procesar(${r.ID},'extra')"><span class="material-icons-round">schedule</span>Hora extra</button>
+          <button class="btn-decision btn-recargo"    onclick="procesar(${r.ID},'recargo')"><span class="material-icons-round">nightlight</span>Recargo</button>
+          <button class="btn-decision btn-compensado" onclick="procesar(${r.ID},'compensado')"><span class="material-icons-round">event_available</span>Compensado</button>
+          <button class="btn-decision btn-rechazar"   onclick="procesar(${r.ID},'rechazado')"><span class="material-icons-round">block</span>Rechazar</button>
         </div></td>
       </tr>`).join('');
 
@@ -275,8 +284,10 @@ function renderPendientes() {
         </div>` : ''}
         <div class="reg-card-actions">
           <div id="actions-${r.ID}" style="display:flex;gap:8px;flex-wrap:wrap;width:100%;align-items:center;">
-            <button class="btn-aprobar" onclick="procesar(${r.ID},'si')">✅ Aprobar</button>
-            <button class="btn-rechazar" onclick="procesar(${r.ID},'no')">❌ Rechazar</button>
+            <button class="btn-decision btn-extra"      onclick="procesar(${r.ID},'extra')"><span class="material-icons-round">schedule</span>Hora extra</button>
+            <button class="btn-decision btn-recargo"    onclick="procesar(${r.ID},'recargo')"><span class="material-icons-round">nightlight</span>Recargo</button>
+            <button class="btn-decision btn-compensado" onclick="procesar(${r.ID},'compensado')"><span class="material-icons-round">event_available</span>Compensado</button>
+            <button class="btn-decision btn-rechazar"   onclick="procesar(${r.ID},'rechazado')"><span class="material-icons-round">block</span>Rechazar</button>
             <label class="reg-card-comp"><input type="checkbox" id="comp-${r.ID}"><span>Compensar</span></label>
           </div>
         </div>
@@ -308,26 +319,29 @@ function renderPendientes() {
   });
 }
 
-async function procesar(id, aprobado) {
-  const compensado = document.getElementById(`comp-${id}`)?.checked ? 'si' : 'no';
+async function procesar(id, tipoAprobacion) {
+  const aprobado = tipoAprobacion === 'rechazado' ? 'no' : 'si';
+  const compensado = tipoAprobacion === 'compensado' ? 'si' : 'no';
   const actionsDiv = document.getElementById(`actions-${id}`);
   actionsDiv.querySelectorAll('button').forEach(b => b.disabled = true);
   actionsDiv.innerHTML = '<span class="status-chip procesando">⏳ Procesando...</span>';
 
   try {
-    await fetch(`${FLOW_APROBAR}&registro=${id}&aprobado=${aprobado}&compensado=${compensado}`, { method:'GET' });
-    actionsDiv.innerHTML = aprobado === 'si'
-      ? '<span class="status-chip aprobado">✓ Aprobado</span>'
-      : '<span class="status-chip rechazado">✗ Rechazado</span>';
+    await fetch(`${FLOW_APROBAR}&registro=${id}&aprobado=${aprobado}&compensado=${compensado}&tipoAprobacion=${tipoAprobacion}`, { method:'GET' });
+    const labels = { extra: '✓ Hora extra', recargo: '✓ Recargo', compensado: '✓ Compensado', rechazado: '✗ Rechazado' };
+    const chipClass = tipoAprobacion === 'rechazado' ? 'rechazado' : 'aprobado';
+    actionsDiv.innerHTML = `<span class="status-chip ${chipClass}">${labels[tipoAprobacion]||'✓ OK'}</span>`;
     aprobadosHoy++;
     document.getElementById('statAprobados').textContent = aprobadosHoy;
-    showToast(aprobado==='si' ? '✅ Registro aprobado' : '❌ Registro rechazado', aprobado==='si' ? 'ok' : 'error');
+    showToast(tipoAprobacion==='rechazado' ? '❌ Registro rechazado' : '✅ Registro aprobado', tipoAprobacion==='rechazado' ? 'error' : 'ok');
     const totalPendientes = document.querySelectorAll('.btn-aprobar:not(:disabled)').length;
     document.getElementById('statTotal').textContent = totalPendientes;
   } catch(e) {
     actionsDiv.innerHTML = `
-      <button class="btn-aprobar" onclick="procesar(${id},'si')">✅ Aprobar</button>
-      <button class="btn-rechazar" onclick="procesar(${id},'no')">❌ Rechazar</button>`;
+      <button class="btn-decision btn-extra"      onclick="procesar(${id},'extra')"><span class="material-icons-round">schedule</span>Hora extra</button>
+      <button class="btn-decision btn-recargo"    onclick="procesar(${id},'recargo')"><span class="material-icons-round">nightlight</span>Recargo</button>
+      <button class="btn-decision btn-compensado" onclick="procesar(${id},'compensado')"><span class="material-icons-round">event_available</span>Compensado</button>
+      <button class="btn-decision btn-rechazar"   onclick="procesar(${id},'rechazado')"><span class="material-icons-round">block</span>Rechazar</button>`;
     showToast('Error al procesar. Intenta de nuevo.', 'error');
   }
 }
