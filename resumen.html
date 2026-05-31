@@ -852,8 +852,7 @@ async function saveRegistro() {
     await fetch(FLOW_SAVE_REGISTRO, {
       method: 'POST',
       headers: { 'Content-Type': 'application/json' },
-      body: JSON.stringify(payload),
-      mode: 'no-cors'
+      body: JSON.stringify(payload)
     });
     closeModal();
     const msg = approvalTriggered
