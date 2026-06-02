@@ -414,8 +414,8 @@ document.addEventListener('DOMContentLoaded', () => {
   renderWeekNav();
   loadRegistros();
   bindModal();
-  document.getElementById('btnPrevWeek').addEventListener('click', () => { weekOffset--; renderWeekNav(); renderDias(); });
-  document.getElementById('btnNextWeek').addEventListener('click', () => { weekOffset++; renderWeekNav(); renderDias(); });
+  document.getElementById('btnPrevWeek').addEventListener('click', () => { weekOffset--; renderWeekNav(); loadRegistros(); });
+  document.getElementById('btnNextWeek').addEventListener('click', () => { weekOffset++; renderWeekNav(); loadRegistros(); });
 });
 
 function initEmployee() {
@@ -646,13 +646,13 @@ function renderDayBody(regs, diaStr, isFuture) {
         <span class="time-val">${horas}</span>
         <span>${extra}</span>
         <span>${aprobado}</span>
-        <button class="btn-edit" title="Editar" onclick="openEdit(${r.ID})">✏️</button>
+        ${weekOffset === 0 ? `<button class="btn-edit" title="Editar" onclick="openEdit(${r.ID})">✏️</button>` : ''}
       </div>`;
     });
   } else {
     html += `<div class="empty-day">Sin registros para este día.</div>`;
   }
-  if (!isFuture) {
+  if (!isFuture && weekOffset === 0) {
     html += `<button class="btn-add-reg add-registro-btn" onclick="openNew('${diaStr}')">
       + Agregar registro
     </button>`;
@@ -762,6 +762,14 @@ async function saveRegistro() {
 
   if (timeToMins(fin) <= timeToMins(ini)) {
     showToast('La hora de salida debe ser mayor a la de entrada', true);
+    return;
+  }
+
+  // Validar que la fecha y hora fin no sean futuras
+  const now = new Date();
+  const fechaFinDT = new Date(`${fecha}T${fin}:00`);
+  if (fechaFinDT > now) {
+    showToast('La hora de salida no puede ser mayor a la hora actual', true);
     return;
   }
 
