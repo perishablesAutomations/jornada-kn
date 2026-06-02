@@ -560,7 +560,7 @@ function renderDias() {
 
     totalRegs += regsDelDia.length;
     regsDelDia.forEach(r => {
-      if (r.HoraFin) totalOrd += parseFloat(calcHoras(r.HoraInicio, r.HoraFin) || 0);
+      if (r.HorasOrdinarias) totalOrd += parseFloat(r.HorasOrdinarias || 0);
     });
     if (pendienteAprobacion || sinRegistro || tieneAbierto) totalPending++;
 
@@ -578,7 +578,7 @@ function renderDias() {
 
     let totalHorasDia = 0;
     regsDelDia.forEach(r => {
-      if (r.HoraInicio && r.HoraFin) totalHorasDia += parseFloat(calcHoras(r.HoraInicio, r.HoraFin));
+      if (r.HorasOrdinarias) totalHorasDia += parseFloat(r.HorasOrdinarias || 0);
     });
     const horasStr = regsDelDia.length > 0 && totalHorasDia > 0 ? `${totalHorasDia.toFixed(1)}h` : '';
 
@@ -625,7 +625,7 @@ function renderDayBody(regs, diaStr, isFuture) {
       <span>Tipo extra</span><span>Aprobado</span><span></span>
     </div>`;
     regs.forEach(r => {
-      const horas = r.HoraInicio && r.HoraFin ? calcHoras(r.HoraInicio, r.HoraFin) + 'h' : '—';
+      const horas = r.HorasOrdinarias ? parseFloat(r.HorasOrdinarias).toFixed(1) + 'h' : '—';
       const aprobado = r.AprobadoJefe === true
         ? '<span class="badge ok">✓ Aprobado</span>'
         : r.RequiereAprobacion === true && r.AprobadoJefe === false
