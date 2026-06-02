@@ -220,7 +220,7 @@ function renderPendientes() {
 
   const porEmpleado = {};
   registros.forEach(r => {
-    if (!porEmpleado[r.CorreoEmpleado]) porEmpleado[r.CorreoEmpleado] = { nombre: r.NombreEmpleado, email: r.CorreoEmpleado, regs: [] };
+    if (!porEmpleado[r.CorreoEmpleado]) porEmpleado[r.CorreoEmpleado] = { nombre: r.NombreEmpleado || r.CorreoEmpleado.split('@')[0], email: r.CorreoEmpleado, regs: [] };
     porEmpleado[r.CorreoEmpleado].regs.push(r);
   });
   document.getElementById('statEmpleados').textContent = Object.keys(porEmpleado).length;
@@ -232,8 +232,8 @@ function renderPendientes() {
 
   container.innerHTML = '';
   Object.values(porEmpleado).forEach(emp => {
-    const initials = emp.nombre.split(' ').map(p=>p[0]?.toUpperCase()||'').join('').slice(0,2);
-    const nombreCorto = emp.nombre.split('/')[0].trim();
+    const initials = (emp.nombre || emp.email).split(/[ @]/).map(p=>p[0]?.toUpperCase()||'').join('').slice(0,2);
+    const nombreCorto = (emp.nombre || emp.email.split('@')[0]).split('/')[0].trim();
     const block = document.createElement('div');
     block.className = 'empleado-block';
 
