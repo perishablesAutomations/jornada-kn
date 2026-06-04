@@ -121,6 +121,28 @@
   .toast.error { background: var(--danger); border-color: var(--danger); }
   .toast.ok { background: #059669; border-color: #059669; }
 
+  /* Pestañas */
+  .tabs { display: flex; gap: 4px; margin-bottom: 24px; border-bottom: 2px solid var(--border); }
+  .tab-btn { padding: 10px 20px; background: none; border: none; font-family: var(--sans); font-size: 13px; font-weight: 600; color: var(--muted); cursor: pointer; border-bottom: 3px solid transparent; margin-bottom: -2px; transition: all 0.15s; }
+  .tab-btn:hover { color: var(--kn-navy); }
+  .tab-btn.active { color: var(--kn-navy); border-bottom-color: var(--kn-blue); }
+  .tab-content { display: none; }
+  .tab-content.active { display: block; }
+
+  /* Tabla resumen */
+  .resumen-wrap { overflow-x: auto; }
+  .resumen-table { width: 100%; border-collapse: collapse; font-size: 12px; }
+  .resumen-table th { font-size: 10px; color: var(--muted); text-transform: uppercase; letter-spacing: 0.07em; padding: 8px 10px; background: var(--surface2); border-bottom: 1px solid var(--border); text-align: right; white-space: nowrap; }
+  .resumen-table th:first-child { text-align: left; }
+  .resumen-table td { padding: 10px; border-bottom: 1px solid var(--border); text-align: right; font-family: var(--mono); }
+  .resumen-table td:first-child { text-align: left; font-family: var(--sans); font-weight: 600; color: var(--kn-navy); }
+  .resumen-table tr:last-child td { border-bottom: none; }
+  .resumen-table tr:hover td { background: #fafcff; }
+  .val-zero { color: var(--border2); }
+  .val-pos { color: var(--kn-navy); font-weight: 600; }
+  .semana-nav { display: flex; align-items: center; gap: 12px; margin-bottom: 20px; }
+  .semana-label { flex: 1; font-family: var(--mono); font-size: 13px; color: var(--kn-navy); font-weight: 500; text-align: center; }
+
   @media (max-width: 700px) {
     main { padding: 16px 12px 0; }
     .summary-bar { max-width: 100%; }
@@ -149,16 +171,36 @@
     <div class="stat"><div class="stat-label">Empleados</div><div class="stat-val" id="statEmpleados">—</div></div>
     <div class="stat"><div class="stat-label">Aprobados</div><div class="stat-val" id="statAprobados">0</div></div>
   </div>
-  <div id="container">
+  <div class="tabs">
+    <button class="tab-btn active" onclick="switchTab('pendientes', this)">📋 Pendientes <span id="tabCountPendientes"></span></button>
+    <button class="tab-btn" onclick="switchTab('resumen', this)">📊 Resumen semana</button>
+  </div>
+
+  <div class="tab-content active" id="tab-pendientes">
+    <div id="container">
     <div class="loading-state">Cargando pendientes<span class="loading-dot">.</span><span class="loading-dot">.</span><span class="loading-dot">.</span></div>
   </div>
 </main>
+    </div>
+  </div>
+
+  <div class="tab-content" id="tab-resumen">
+    <div class="semana-nav">
+      <button class="btn-icon" id="btnPrevSemana" onclick="cambiarSemana(-1)">&#8592;</button>
+      <div class="semana-label" id="semanaLabel">—</div>
+      <button class="btn-icon" id="btnNextSemana" onclick="cambiarSemana(1)">&#8594;</button>
+    </div>
+    <div id="resumenContainer">
+      <div class="loading-state">Selecciona la pestaña para cargar<span class="loading-dot">.</span></div>
+    </div>
+  </div>
 
 <div class="toast" id="toast"></div>
 
 <script>
 const FLOW_GET = 'https://bd4a763d737defaeacf0e99a4d082f.58.environment.api.powerplatform.com:443/powerautomate/automations/direct/workflows/3fd25ad09b5449a9a614f784b10bbc72/triggers/manual/paths/invoke?api-version=1&sp=%2Ftriggers%2Fmanual%2Frun&sv=1.0&sig=oYx-w7yw0ZHA9-KETPaXHxpMvUHGEI0iUJoElGXsHvQ';
 const FLOW_APROBAR = 'https://bd4a763d737defaeacf0e99a4d082f.58.environment.api.powerplatform.com:443/powerautomate/automations/direct/workflows/cad0dc8e16a4466cb83297306976794d/triggers/manual/paths/invoke?api-version=1&sp=%2Ftriggers%2Fmanual%2Frun&sv=1.0&sig=tTGdFfz_6i4mpPo6HmbobfRSPxoGwS9V5fBi0z7L9uA';
+const FLOW_RESUMEN = 'https://bd4a763d737defaeacf0e99a4d082f.58.environment.api.powerplatform.com:443/powerautomate/automations/direct/workflows/294ad9e473794caaa408b8156dcf55a3/triggers/manual/paths/invoke?api-version=1&sp=%2Ftriggers%2Fmanual%2Frun&sv=1.0&sig=YVuu_MDyDZH8cFKPSysHz9KquwmrblYo2nhGhwNOS_w';
 
 const params = new URLSearchParams(location.search);
 const jefeEmail = params.get('jefe') || '';
@@ -218,6 +260,7 @@ function renderPendientes() {
   document.getElementById('pageSubtitle').textContent =
     `${registros.length} registro${registros.length !== 1 ? 's' : ''} pendiente${registros.length !== 1 ? 's' : ''} de aprobación`;
   document.getElementById('statTotal').textContent = registros.length;
+  document.getElementById('tabCountPendientes').textContent = registros.length > 0 ? `(${registros.length})` : '';
 
   const porEmpleado = {};
   registros.forEach(r => {
@@ -347,6 +390,124 @@ async function procesar(id, tipoAprobacion) {
   }
 }
 
+// ── Pestañas ──────────────────────────────────────────────────────────────────
+let semanaOffset = 0;
+let resumenCargado = false;
+
+function switchTab(tab, btn) {
+  document.querySelectorAll('.tab-btn').forEach(b => b.classList.remove('active'));
+  document.querySelectorAll('.tab-content').forEach(c => c.classList.remove('active'));
+  btn.classList.add('active');
+  document.getElementById('tab-' + tab).classList.add('active');
+  if (tab === 'resumen' && !resumenCargado) {
+    renderSemanaNav();
+    loadResumen();
+    resumenCargado = true;
+  }
+}
+
+function getSemanaISO(offset) {
+  const now = new Date();
+  const monday = new Date(now);
+  monday.setDate(now.getDate() - ((now.getDay() + 6) % 7) + offset * 7);
+  return Math.ceil((((monday - new Date(monday.getFullYear(), 0, 1)) / 86400000) + 1) / 7);
+}
+
+function getSemanaLabel(offset) {
+  const now = new Date();
+  const monday = new Date(now);
+  monday.setDate(now.getDate() - ((now.getDay() + 6) % 7) + offset * 7);
+  const sunday = new Date(monday);
+  sunday.setDate(monday.getDate() + 6);
+  const MESES2 = ['ene','feb','mar','abr','may','jun','jul','ago','sep','oct','nov','dic'];
+  if (offset === 0) return 'Esta semana';
+  if (offset === -1) return 'Semana pasada';
+  return `${monday.getDate()} ${MESES2[monday.getMonth()]} – ${sunday.getDate()} ${MESES2[sunday.getMonth()]}`;
+}
+
+function renderSemanaNav() {
+  document.getElementById('semanaLabel').textContent = getSemanaLabel(semanaOffset);
+  document.getElementById('btnNextSemana').disabled = semanaOffset >= 0;
+  document.getElementById('btnNextSemana').style.opacity = semanaOffset >= 0 ? '0.35' : '1';
+}
+
+function cambiarSemana(dir) {
+  semanaOffset += dir;
+  renderSemanaNav();
+  resumenCargado = false;
+  loadResumen();
+  resumenCargado = true;
+}
+
+async function loadResumen() {
+  const container = document.getElementById('resumenContainer');
+  container.innerHTML = '<div class="loading-state">Cargando resumen<span class="loading-dot">.</span><span class="loading-dot">.</span><span class="loading-dot">.</span></div>';
+  const semana = getSemanaISO(semanaOffset);
+  try {
+    const resp = await fetch(FLOW_RESUMEN, {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({ jefeEmail, semanaISO: semana })
+    });
+    const data = await resp.json();
+    const filas = data?.resumen?.body || data.resumen || data || [];
+    renderResumen(filas);
+  } catch(e) {
+    container.innerHTML = '<div class="loading-state" style="color:var(--danger)">Error al cargar el resumen.</div>';
+  }
+}
+
+function renderResumen(filas) {
+  const container = document.getElementById('resumenContainer');
+  if (!filas.length) {
+    container.innerHTML = '<div class="empty-state"><div class="empty-icon">📊</div><div class="empty-title">Sin datos</div><div>No hay registros de nómina para esta semana.</div></div>';
+    return;
+  }
+
+  function val(v) {
+    const n = parseFloat(v) || 0;
+    return n > 0
+      ? `<span class="val-pos">${n.toFixed(1)}</span>`
+      : `<span class="val-zero">—</span>`;
+  }
+
+  const rows = filas.map(f => `
+    <tr>
+      <td>${(f.NombreEmpleado || f.CorreoEmpleado || '').split('/')[0].trim()}</td>
+      <td>${val(f.HorasOrdinarias)}</td>
+      <td>${val(f.Cod1060)}</td>
+      <td>${val(f.Cod1061)}</td>
+      <td>${val(f.Cod1062)}</td>
+      <td>${val(f.Cod1063)}</td>
+      <td>${val(f.Cod1064)}</td>
+      <td>${val(f.Cod1065)}</td>
+      <td>${val(f.Cod1066)}</td>
+      <td>${val(f.Cod1067)}</td>
+    </tr>`).join('');
+
+  container.innerHTML = `
+    <div class="resumen-wrap">
+      <table class="resumen-table">
+        <thead>
+          <tr>
+            <th>Empleado</th>
+            <th>Ord.</th>
+            <th title="Recargo nocturno">1060</th>
+            <th title="Extra diurna">1061</th>
+            <th title="Extra nocturna">1062</th>
+            <th title="Extra dominical diurna">1063</th>
+            <th title="Extra dominical nocturna">1064</th>
+            <th title="Festivo compensado">1065</th>
+            <th title="Recargo nocturno festivo">1066</th>
+            <th title="Festivo sin compensatorio">1067</th>
+          </tr>
+        </thead>
+        <tbody>${rows}</tbody>
+      </table>
+    </div>`;
+}
+
+// ── Toast ─────────────────────────────────────────────────────────────────────
 function showToast(msg, type='') {
   const t = document.getElementById('toast');
   t.textContent = msg;
