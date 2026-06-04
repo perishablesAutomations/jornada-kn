@@ -563,7 +563,7 @@ function renderDias() {
 
     totalRegs += regsDelDia.length;
     regsDelDia.forEach(r => {
-      if (r.HorasOrdinarias) totalOrd += parseFloat(r.HorasOrdinarias || 0);
+      if (r.HorasOrdinarias && (!r.TipoPago || r.TipoPago === 'N/A')) totalOrd += parseFloat(r.HorasOrdinarias || 0);
     });
     if (pendienteAprobacion || sinRegistro || tieneAbierto) totalPending++;
 
