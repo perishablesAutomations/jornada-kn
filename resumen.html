@@ -779,6 +779,13 @@ async function saveRegistro() {
       showToast('La hora de salida no puede ser mayor a la hora actual', true);
       return;
     }
+    // Validar mínimo 30 minutos
+    let diffMins = timeToMins(fin) - timeToMins(ini);
+    if (diffMins < 0) diffMins += 24 * 60;
+    if (diffMins < 30) {
+      showToast('El registro mínimo es de 30 minutos', true);
+      return;
+    }
   }
 
 
