@@ -150,9 +150,12 @@
         // Descontar almuerzo si >= 5h
         const horasNetas = horasBrutas >= 5 ? horasBrutas - 1 : horasBrutas;
         const horasExtra = Math.max(horasNetas - 8, 0);
+        // Solo pedir justificación si las horas extra son múltiplo de 30 min
+        const horasExtraMins = Math.round(horasExtra * 60);
+        const horasExtraValidas = Math.floor(horasExtraMins / 30) * 30 / 60;
 
-        if (horasExtra > 0) {
-          mostrarFormCheckout(horasExtra);
+        if (horasExtraValidas >= 0.5) {
+          mostrarFormCheckout(horasExtraValidas);
         } else {
           procesarCheckout('');
         }
