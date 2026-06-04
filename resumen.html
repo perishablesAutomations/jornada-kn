@@ -359,9 +359,8 @@
         <span class="field-error" id="errHoraInicio">Campo requerido</span>
       </div>
       <div class="field">
-        <label for="fHoraFin">Hora fin</label>
+        <label for="fHoraFin">Hora fin <span style="font-weight:400;color:var(--muted);text-transform:none;letter-spacing:0">(opcional — deja vacío para turno abierto)</span></label>
         <input type="time" id="fHoraFin" />
-        <span class="field-error" id="errHoraFin">Campo requerido</span>
       </div>
       <div class="field full">
         <label for="fObservaciones">Observaciones</label>
@@ -756,21 +755,20 @@ async function saveRegistro() {
   else document.getElementById('errFecha').classList.remove('show');
   if (!ini) { document.getElementById('errHoraInicio').classList.add('show'); valid = false; }
   else document.getElementById('errHoraInicio').classList.remove('show');
-  if (!fin) { document.getElementById('errHoraFin').classList.add('show'); valid = false; }
-  else document.getElementById('errHoraFin').classList.remove('show');
   if (!valid) return;
 
-  if (timeToMins(fin) <= timeToMins(ini)) {
-    showToast('La hora de salida debe ser mayor a la de entrada', true);
-    return;
-  }
-
-  // Validar que la fecha y hora fin no sean futuras
-  const now = new Date();
-  const fechaFinDT = new Date(`${fecha}T${fin}:00`);
-  if (fechaFinDT > now) {
-    showToast('La hora de salida no puede ser mayor a la hora actual', true);
-    return;
+  // Validaciones solo si hay hora fin
+  if (fin) {
+    if (timeToMins(fin) <= timeToMins(ini)) {
+      showToast('La hora de salida debe ser mayor a la de entrada', true);
+      return;
+    }
+    const now = new Date();
+    const fechaFinDT = new Date(`${fecha}T${fin}:00`);
+    if (fechaFinDT > now) {
+      showToast('La hora de salida no puede ser mayor a la hora actual', true);
+      return;
+    }
   }
 
 
@@ -781,7 +779,7 @@ async function saveRegistro() {
     ...(editingId ? { ID: parseInt(editingId) } : {}),
     FechaRegistro: fecha,
     HoraInicio: ini,
-    HoraFin: fin,
+    HoraFin: fin || null,
     Observaciones: document.getElementById('fObservaciones').value
   };
 
