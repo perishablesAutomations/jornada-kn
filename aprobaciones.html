@@ -499,7 +499,9 @@ function renderResumen(filas) {
 
   const rows = filas.map(f => {
     const nombre = (f.NombreEmpleado || f.CorreoEmpleado || '').split('/')[0].trim();
-    const total = CODIGOS.reduce((s, c) => s + fval(f[c.key]), 0);
+    const base = fval(f['HorasOrdinarias']);
+    const extras = CODIGOS.slice(1).reduce((s, c) => s + fval(f[c.key]), 0);
+    const total = base + extras;
     const initials = nombre.split(' ').map(p=>p[0]?.toUpperCase()||'').join('').slice(0,2);
     return `<tr>
       <td>
