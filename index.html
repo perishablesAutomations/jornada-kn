@@ -3,82 +3,186 @@
 <head>
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
-  <title>Control de Jornada</title>
+  <title>Control de Jornada · KN</title>
+  <link href="https://fonts.googleapis.com/css2?family=Syne:wght@400;500;600;700&display=swap" rel="stylesheet">
+  <style>
+    * { box-sizing: border-box; margin: 0; padding: 0; }
+    body { font-family: 'Syne', Calibri, Arial, sans-serif; display: flex; justify-content: center; align-items: center; min-height: 100vh; background: #f0f4f8; padding: 20px; }
+    .card { background: white; border-radius: 16px; box-shadow: 0 4px 24px rgba(0,51,105,0.12); max-width: 400px; width: 100%; overflow: hidden; }
+    .card-header { padding: 28px 24px; text-align: center; }
+    .card-header .icon { font-size: 36px; margin-bottom: 8px; }
+    .card-header .titulo { color: white; font-size: 18px; font-weight: 700; margin: 0; }
+    .card-header .subtitulo { color: rgba(255,255,255,0.8); font-size: 13px; margin: 4px 0 0 0; }
+    .card-body { padding: 24px; }
+    .card-body p { color: #555; font-size: 14px; line-height: 1.6; text-align: center; margin-bottom: 16px; }
+    .field { margin-bottom: 16px; }
+    .field label { display: block; font-size: 12px; font-weight: 600; color: #003369; text-transform: uppercase; letter-spacing: 0.08em; margin-bottom: 6px; }
+    .field textarea { width: 100%; padding: 10px 12px; border: 1px solid rgba(0,51,105,0.2); border-radius: 8px; font-family: inherit; font-size: 13px; color: #333; resize: none; min-height: 80px; outline: none; transition: border-color 0.15s; }
+    .field textarea:focus { border-color: #0099DA; box-shadow: 0 0 0 3px rgba(0,153,218,0.15); }
+    .info-box { background: #fff3cd; border-left: 3px solid #ff8c00; border-radius: 6px; padding: 10px 14px; font-size: 13px; color: #7a4a00; margin-bottom: 16px; text-align: left; }
+    .btn { display: block; width: 100%; padding: 13px; border: none; border-radius: 8px; font-family: inherit; font-size: 15px; font-weight: 700; cursor: pointer; transition: opacity 0.15s; text-align: center; }
+    .btn:hover { opacity: 0.88; }
+    .btn:disabled { opacity: 0.5; cursor: not-allowed; }
+    .link-resumen { display: block; text-align: center; color: #003366; font-size: 13px; margin-top: 14px; text-decoration: none; }
+    .link-resumen:hover { text-decoration: underline; }
+    .footer { color: #999; font-size: 12px; text-align: center; margin-top: 12px; }
+  </style>
 </head>
 <body>
-  <script>
-    const params = new URLSearchParams(window.location.search);
-    const email = params.get('email');
-    const accion = params.get('accion');
-    const flowUrl = 'https://bd4a763d737defaeacf0e99a4d082f.58.environment.api.powerplatform.com:443/powerautomate/automations/direct/workflows/b2fe41514358434ebfd8d0c3ac7d93bf/triggers/manual/paths/invoke?api-version=1&sp=%2Ftriggers%2Fmanual%2Frun&sv=1.0&sig=xraaWVMOl8mvVYae3WXNM_G9RTaBhuKB5pHja5eU5rQ';
-
-    const mensajes = {
-      checkin_ok: {
-        color: '#107C10',
-        icono: '✅',
-        titulo: 'Check In Registrado',
-        texto: 'Tu entrada fue registrada correctamente.'
-      },
-      checkout_ok: {
-        color: '#D13438',
-        icono: '🔴',
-        titulo: 'Check Out Registrado',
-        texto: 'Tu salida fue registrada correctamente.'
-      },
-      duplicado: {
-        color: '#FF8C00',
-        icono: '⚠️',
-        titulo: 'Ya tienes un turno abierto',
-        texto: 'No puedes hacer Check In porque ya tienes un turno activo hoy. Si necesitas corregir algo usa el Registro Manual.'
-      },
-      error: {
-        color: '#D13438',
-        icono: '❌',
-        titulo: 'Error al registrar',
-        texto: 'Por favor intenta de nuevo o usa el Registro Manual.'
-      }
-    };
-
-    function mostrarMensaje(tipo) {
-      const m = mensajes[tipo] || mensajes.error;
-      document.body.innerHTML = `
-        <div style="font-family:Calibri,Arial,sans-serif;display:flex;justify-content:center;align-items:center;min-height:100vh;background:#f0f2f5;padding:20px;">
-          <div style="background:white;border-radius:12px;box-shadow:0 4px 20px rgba(0,0,0,0.1);max-width:400px;width:100%;overflow:hidden;">
-            <div style="background:${m.color};padding:24px;text-align:center;">
-              <p style="color:white;font-size:32px;margin:0;">${m.icono}</p>
-              <p style="color:white;font-size:18px;font-weight:bold;margin:8px 0 0 0;">${m.titulo}</p>
-            </div>
-            <div style="padding:24px;text-align:center;">
-              <p style="color:#555;font-size:14px;line-height:1.6;">${m.texto}</p>
-              <p style="margin-top:16px;">
-                <a href="https://sebastianmoreno1204.github.io/jornada-kn/manual.html?email=${encodeURIComponent(email)}" 
-                   style="color:#003366;font-size:13px;">✏️ Ir al Registro Manual</a>
-              </p>
-              <p style="color:#999;font-size:12px;margin-top:12px;">Puedes cerrar esta ventana.</p>
-            </div>
-          </div>
-        </div>`;
-    }
-
-    if (email && accion) {
-      document.body.innerHTML = `
-        <div style="font-family:Calibri,Arial,sans-serif;display:flex;justify-content:center;align-items:center;min-height:100vh;background:#f0f2f5;">
-          <p style="color:#555;font-size:15px;">⏳ Procesando tu solicitud...</p>
-        </div>`;
-
-      fetch(`${flowUrl}&email=${encodeURIComponent(email)}&accion=${accion}`)
-        .then(res => res.text())
-        .then(body => {
-          if (body.includes('duplicado')) mostrarMensaje('duplicado');
-          else if (body.includes('checkin_ok')) mostrarMensaje('checkin_ok');
-          else if (body.includes('checkout_ok')) mostrarMensaje('checkout_ok');
-          else mostrarMensaje('error');
-        })
-        .catch(() => mostrarMensaje('error'));
-    }
-  </script>
-  <div style="font-family:Calibri,Arial,sans-serif;display:flex;justify-content:center;align-items:center;min-height:100vh;background:#f0f2f5;">
+<div class="card" id="card">
+  <div style="padding:40px;text-align:center;">
     <p style="color:#555;font-size:15px;">⏳ Cargando...</p>
   </div>
+</div>
+
+<script>
+  const params = new URLSearchParams(window.location.search);
+  const email = params.get('email');
+  const accion = params.get('accion');
+
+  const FLOW_CHECKINOUT = 'https://bd4a763d737defaeacf0e99a4d082f.58.environment.api.powerplatform.com:443/powerautomate/automations/direct/workflows/b2fe41514358434ebfd8d0c3ac7d93bf/triggers/manual/paths/invoke?api-version=1&sp=%2Ftriggers%2Fmanual%2Frun&sv=1.0&sig=xraaWVMOl8mvVYae3WXNM_G9RTaBhuKB5pHja5eU5rQ';
+  const FLOW_GET = 'https://bd4a763d737defaeacf0e99a4d082f.58.environment.api.powerplatform.com:443/powerautomate/automations/direct/workflows/3fd25ad09b5449a9a614f784b10bbc72/triggers/manual/paths/invoke?api-version=1&sp=%2Ftriggers%2Fmanual%2Frun&sv=1.0&sig=oYx-w7yw0ZHA9-KETPaXHxpMvUHGEI0iUJoElGXsHvQ';
+  const resumenUrl = `https://perishablesautomations.github.io/jornada-kn/resumen.html?email=${encodeURIComponent(email)}`;
+
+  const hoy = new Date().toISOString().slice(0,10);
+
+  const mensajes = {
+    checkin_ok:  { color: '#107C10', icono: '✅', titulo: 'Check In Registrado',  texto: 'Tu entrada fue registrada correctamente.' },
+    checkout_ok: { color: '#003369', icono: '🔴', titulo: 'Check Out Registrado', texto: 'Tu salida fue registrada correctamente.' },
+    duplicado:   { color: '#FF8C00', icono: '⚠️', titulo: 'Ya tienes un turno abierto', texto: 'No puedes hacer Check In porque ya tienes un turno activo hoy.' },
+    error:       { color: '#D13438', icono: '❌', titulo: 'Error al registrar', texto: 'Por favor intenta de nuevo.' }
+  };
+
+  function mostrarCargando(texto) {
+    document.getElementById('card').innerHTML = `
+      <div style="padding:40px;text-align:center;">
+        <p style="color:#555;font-size:15px;">⏳ ${texto}</p>
+      </div>`;
+  }
+
+  function mostrarMensaje(tipo) {
+    const m = mensajes[tipo] || mensajes.error;
+    document.getElementById('card').innerHTML = `
+      <div class="card-header" style="background:${m.color}">
+        <div class="icon">${m.icono}</div>
+        <p class="titulo">${m.titulo}</p>
+      </div>
+      <div class="card-body">
+        <p>${m.texto}</p>
+        <a href="${resumenUrl}" class="link-resumen">📋 Ver mi resumen de jornada</a>
+        <p class="footer">Puedes cerrar esta ventana.</p>
+      </div>`;
+  }
+
+  function procesarCheckin() {
+    mostrarCargando('Procesando tu Check In...');
+    fetch(`${FLOW_CHECKINOUT}&email=${encodeURIComponent(email)}&accion=checkin`)
+      .then(res => res.text())
+      .then(body => {
+        if (body.includes('duplicado')) mostrarMensaje('duplicado');
+        else if (body.includes('checkin_ok')) mostrarMensaje('checkin_ok');
+        else mostrarMensaje('error');
+      })
+      .catch(() => mostrarMensaje('error'));
+  }
+
+  function procesarCheckout(observaciones) {
+    mostrarCargando('Procesando tu Check Out...');
+    const url = `${FLOW_CHECKINOUT}&email=${encodeURIComponent(email)}&accion=checkout${observaciones ? '&observaciones=' + encodeURIComponent(observaciones) : ''}`;
+    fetch(url)
+      .then(res => res.text())
+      .then(body => {
+        if (body.includes('checkout_ok')) mostrarMensaje('checkout_ok');
+        else mostrarMensaje('error');
+      })
+      .catch(() => mostrarMensaje('error'));
+  }
+
+  function mostrarFormCheckout(horasExtra) {
+    document.getElementById('card').innerHTML = `
+      <div class="card-header" style="background:#D13438">
+        <div class="icon">🔴</div>
+        <p class="titulo">Check Out</p>
+        <p class="subtitulo">Registra tu salida</p>
+      </div>
+      <div class="card-body">
+        <div class="info-box">
+          ⚠️ Tienes aproximadamente <strong>${horasExtra.toFixed(1)}h extra</strong> hoy. Por favor justifica tu jornada extendida.
+        </div>
+        <div class="field">
+          <label>Observaciones *</label>
+          <textarea id="obsCheckout" placeholder="Describe el motivo de las horas extra..."></textarea>
+        </div>
+        <button class="btn" id="btnCheckout" style="background:#D13438;color:white;" onclick="confirmarCheckout()">
+          🔴 Confirmar Check Out
+        </button>
+        <p class="footer" style="margin-top:16px;">Puedes cerrar esta ventana si no deseas registrar la salida.</p>
+      </div>`;
+  }
+
+  function confirmarCheckout() {
+    const obs = document.getElementById('obsCheckout')?.value?.trim() || '';
+    document.getElementById('btnCheckout').disabled = true;
+    document.getElementById('btnCheckout').textContent = '⏳ Procesando...';
+    procesarCheckout(obs);
+  }
+
+  async function iniciarCheckout() {
+    mostrarCargando('Verificando tu jornada...');
+    try {
+      const resp = await fetch(FLOW_GET, {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ email, fechaInicio: hoy, fechaFin: hoy })
+      });
+      const data = await resp.json();
+      const raw = data?.registros?.body || data.registros || data.value || data || [];
+
+      // Buscar turno abierto
+      const turnoAbierto = raw.find(r => r.Estado === 'Abierto');
+
+      if (turnoAbierto && turnoAbierto.HoraInicio) {
+        const horaIni = turnoAbierto.HoraInicio.substring(11, 16);
+        const ahora = new Date();
+        const [h, m] = horaIni.split(':').map(Number);
+        const minutos = (ahora.getHours() * 60 + ahora.getMinutes()) - (h * 60 + m);
+        const horasBrutas = minutos / 60;
+        // Descontar almuerzo si >= 5h
+        const horasNetas = horasBrutas >= 5 ? horasBrutas - 1 : horasBrutas;
+        const horasExtra = Math.max(horasNetas - 8, 0);
+
+        if (horasExtra > 0) {
+          mostrarFormCheckout(horasExtra);
+        } else {
+          procesarCheckout('');
+        }
+      } else {
+        // No hay turno abierto, procesar directo
+        procesarCheckout('');
+      }
+    } catch(e) {
+      // Si falla la consulta, procesar directo sin observaciones
+      procesarCheckout('');
+    }
+  }
+
+  // Init
+  if (email && accion) {
+    if (accion === 'checkout') {
+      iniciarCheckout();
+    } else {
+      procesarCheckin();
+    }
+  } else {
+    document.getElementById('card').innerHTML = `
+      <div class="card-header" style="background:#003369">
+        <div class="icon">⚠️</div>
+        <p class="titulo">Enlace inválido</p>
+      </div>
+      <div class="card-body">
+        <p>El enlace no contiene la información necesaria. Por favor usa el enlace del correo.</p>
+      </div>`;
+  }
+</script>
 </body>
 </html>
