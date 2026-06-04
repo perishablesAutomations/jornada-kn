@@ -786,6 +786,19 @@ async function saveRegistro() {
       showToast('El registro mínimo es de 30 minutos', true);
       return;
     }
+    // Validar que las horas extra sean múltiplo de 30 min
+    const horasNetas = diffMins >= 300 ? diffMins - 60 : diffMins;
+    const horasExtraMins = Math.max(horasNetas - 480, 0);
+    if (horasExtraMins > 0 && horasExtraMins % 30 !== 0) {
+      const extraRedondeado = Math.floor(horasExtraMins / 30) * 30;
+      const minsTotales = diffMins - (horasExtraMins - extraRedondeado);
+      const horasSugeridas = timeToMins(ini) + minsTotales;
+      const hSug = Math.floor(horasSugeridas / 60) % 24;
+      const mSug = horasSugeridas % 60;
+      const horaSugerida = String(hSug).padStart(2,'0') + ':' + String(mSug).padStart(2,'0');
+      showToast(`Las horas extra deben ser múltiplo de 30 min. Hora sugerida de salida: ${horaSugerida}`, true);
+      return;
+    }
   }
 
 
