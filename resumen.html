@@ -497,6 +497,7 @@ const resp = await fetch(FLOW_GET_REGISTROS, {
       TipoHoraExtra: r.TipoHoraExtra || 'N/A',
       Recargo:       r.Recargo       || 'N/A',
       FechaAprobacion: r.FechaAprobacion || null,
+      HorasExtra: r.HorasExtra || 0,
     }));
   } catch(e) {
     // Demo: datos de prueba si el flow no está configurado
@@ -627,7 +628,11 @@ function renderDayBody(regs, diaStr, isFuture) {
       <span>Tipo extra</span><span>Aprobado</span><span></span>
     </div>`;
     regs.forEach(r => {
-      const horas = r.HorasOrdinarias ? parseFloat(r.HorasOrdinarias).toFixed(1) + 'h' : '—';
+      const horasOrd = r.HorasOrdinarias ? parseFloat(r.HorasOrdinarias).toFixed(1) + 'h' : '—';
+      const horasExtra = r.HorasExtra && parseFloat(r.HorasExtra) > 0
+        ? `<div style="font-size:11px;color:var(--warn-text);font-weight:600;margin-top:2px;">+${parseFloat(r.HorasExtra).toFixed(1)}h extra</div>`
+        : '';
+      const horas = `<div>${horasOrd}</div>${horasExtra}`;
       const aprobado = r.AprobadoJefe === true
         ? '<span class="badge ok">✓ Aprobado</span>'
         : r.RequiereAprobacion === true && r.AprobadoJefe === false
