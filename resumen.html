@@ -90,7 +90,7 @@
   .btn-icon:hover { background: var(--kn-navy); color: #fff; border-color: var(--kn-navy); }
 
   .summary-bar {
-    display: grid; grid-template-columns: repeat(4, 1fr); gap: 8px;
+    display: grid; grid-template-columns: repeat(5, 1fr); gap: 8px;
     margin-bottom: 24px;
   }
   .stat {
@@ -102,6 +102,7 @@
   .stat:nth-child(2) { border-top-color: var(--kn-green); }
   .stat:nth-child(3) { border-top-color: var(--kn-blue); }
   .stat:nth-child(4) { border-top-color: var(--danger); }
+  .stat:nth-child(5) { border-top-color: var(--warn); }
   .stat-label { font-size: 11px; color: var(--muted); text-transform: uppercase; letter-spacing: 0.08em; margin-bottom: 4px; }
   .stat-val { font-family: var(--mono); font-size: 20px; font-weight: 500; color: var(--kn-navy); }
   .stat-val.ok { color: var(--accent); }
@@ -298,7 +299,7 @@
       grid-template-columns: 1fr 1fr 70px 80px 80px 32px;
       font-size: 12px; gap: 4px; padding: 8px 10px;
     }
-    .summary-bar { grid-template-columns: repeat(2, 1fr); }
+    .summary-bar { grid-template-columns: repeat(3, 1fr); }
   }
 </style>
 </head>
@@ -325,6 +326,7 @@
     <div class="stat"><div class="stat-label">Registros</div><div class="stat-val" id="statTotal">—</div></div>
     <div class="stat"><div class="stat-label">Horas norm.</div><div class="stat-val ok" id="statOrd">—</div></div>
     <div class="stat"><div class="stat-label">Horas extra</div><div class="stat-val info" id="statExtra">—</div></div>
+    <div class="stat"><div class="stat-label">Total extras</div><div class="stat-val warn" id="statTotalExtra">—</div></div>
     <div class="stat"><div class="stat-label">Pendientes</div><div class="stat-val danger" id="statPending">—</div></div>
   </div>
 
@@ -563,7 +565,8 @@ function renderDias() {
 
     totalRegs += regsDelDia.length;
     regsDelDia.forEach(r => {
-      if (r.HorasOrdinarias && (!r.TipoPago || r.TipoPago === 'N/A')) totalOrd += parseFloat(r.HorasOrdinarias || 0);
+      if (r.HorasOrdinarias) totalOrd += parseFloat(r.HorasOrdinarias || 0);
+      if (r.HorasExtra) totalExtra += parseFloat(r.HorasExtra || 0);
     });
     if (pendienteAprobacion || sinRegistro || tieneAbierto) totalPending++;
 
@@ -613,6 +616,7 @@ function renderDias() {
   document.getElementById('statTotal').textContent = totalRegs;
   document.getElementById('statOrd').textContent = totalOrd.toFixed(1) + 'h';
   document.getElementById('statExtra').textContent = regsConExtras() + ' regs';
+  document.getElementById('statTotalExtra').textContent = totalExtra.toFixed(1) + 'h';
   document.getElementById('statPending').textContent = totalPending;
 }
 
