@@ -385,7 +385,7 @@ async function procesar(id, tipoAprobacion) {
   actionsDiv.innerHTML = '<span class="status-chip procesando">⏳ Procesando...</span>';
 
   try {
-    await fetch(`${FLOW_APROBAR}&registro=${id}&aprobado=${aprobado}&compensado=${compensado}&tipoAprobacion=${tipoAprobacion}`, { method:'GET' });
+    await fetch(`${FLOW_APROBAR}&registro=${id}&aprobado=${aprobado}&compensado=${compensado}&tipoAprobacion=${tipoAprobacion}`, { method:'GET', mode:'no-cors' });
     const labels = { extra: '✓ Hora extra', recargo: '✓ Recargo', compensado: '✓ Compensado', rechazado: '✗ Rechazado' };
     const chipClass = tipoAprobacion === 'rechazado' ? 'rechazado' : 'aprobado';
     actionsDiv.innerHTML = `<span class="status-chip ${chipClass}">${labels[tipoAprobacion]||'✓ OK'}</span>`;
