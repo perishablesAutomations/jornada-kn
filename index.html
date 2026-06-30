@@ -74,9 +74,22 @@
       </div>`;
   }
 
+  // ── Check In / Check Out ────────────────────────────────────────────────────
+  // IMPORTANTE: estas llamadas van por POST con JSON body, no por query string
+  // en la URL. Power Automate migró el formato de URLs de los triggers HTTP
+  // ("automations/direct/workflows/.../triggers/manual/...") y, desde ese
+  // cambio, los query params ya NO se parsean automáticamente al objeto
+  // triggerOutputs().queries del lado del flujo — sin importar cómo se
+  // declare el schema. Por eso email/accion/observaciones se mandan en el
+  // body, igual que ya hacían FLOW_GET y FLOW_SAVE_REGISTRO en resumen.html.
+
   function procesarCheckin() {
     mostrarCargando('Procesando tu Check In...');
-    fetch(`${FLOW_CHECKINOUT}&email=${encodeURIComponent(email)}&accion=checkin`)
+    fetch(FLOW_CHECKINOUT, {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({ email, accion: 'checkin' })
+    })
       .then(res => res.text())
       .then(body => {
         if (body.includes('duplicado')) mostrarMensaje('duplicado');
@@ -88,8 +101,11 @@
 
   function procesarCheckout(observaciones) {
     mostrarCargando('Procesando tu Check Out...');
-    const url = `${FLOW_CHECKINOUT}&email=${encodeURIComponent(email)}&accion=checkout${observaciones ? '&observaciones=' + encodeURIComponent(observaciones) : ''}`;
-    fetch(url)
+    fetch(FLOW_CHECKINOUT, {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({ email, accion: 'checkout', observaciones: observaciones || '' })
+    })
       .then(res => res.text())
       .then(body => {
         if (body.includes('checkout_ok')) mostrarMensaje('checkout_ok');
