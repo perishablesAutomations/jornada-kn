@@ -756,11 +756,15 @@ async function deleteRegistro(id) {
     email,
     accion: 'eliminar',
     ID: parseInt(id),
-    // El backend exige FechaRegistro y HoraInicio en el schema del trigger;
-    // se mandan tal cual están en el registro para no romper la validación,
-    // aunque no se usan en la rama de eliminación.
+    // El backend exige FechaRegistro, HoraInicio y evalúa HoraFin para decidir
+    // la rama del flujo (Tiene_HoraFin). Si HoraFin viaja vacío/null, el flujo
+    // entra por la rama de "check-in nuevo" en vez de la de eliminar, creando
+    // un registro abierto fantasma. Por eso se manda siempre con un valor,
+    // usando el HoraFin real si existe o un valor de respaldo si el registro
+    // estaba abierto.
     FechaRegistro: reg.FechaRegistro,
-    HoraInicio: reg.HoraInicio || '00:00'
+    HoraInicio: reg.HoraInicio || '00:00',
+    HoraFin: reg.HoraFin || '00:01'
   };
 
   try {
