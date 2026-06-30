@@ -309,6 +309,26 @@
     }
     .summary-bar { grid-template-columns: repeat(3, 1fr); }
   }
+
+  /* Selector de empleado (modo admin) */
+  .admin-select-wrap {
+    display: flex; align-items: center; gap: 8px;
+    background: rgba(255,255,255,0.12); border-radius: 999px;
+    padding: 4px 6px 4px 6px;
+    border: 1px solid rgba(255,255,255,0.3);
+  }
+  .admin-select-wrap select {
+    background: transparent; border: none; outline: none;
+    color: #fff; font-family: var(--sans); font-size: 13px;
+    font-weight: 500; cursor: pointer; max-width: 200px;
+    padding: 2px 4px;
+  }
+  .admin-select-wrap select option { color: var(--text); background: #fff; }
+  .admin-badge {
+    font-size: 10px; font-weight: 700; letter-spacing: 0.08em;
+    background: var(--kn-green); color: var(--kn-navy);
+    padding: 2px 7px; border-radius: 999px; white-space: nowrap;
+  }
 </style>
 </head>
 <body>
@@ -316,9 +336,13 @@
 <header>
   <div class="header-inner">
     <span class="logo"><span class="logo-dot"></span> KN · Jornadas</span>
-    <div class="employee-chip">
-      <div class="avatar" id="avatarInitials">--</div>
-      <span class="emp-name" id="empNameDisplay">Cargando...</span>
+    <div id="headerChip">
+      <!-- En modo normal: chip con avatar y nombre -->
+      <!-- En modo admin: se reemplaza por selector de empleados via loadEmpleados() -->
+      <div class="employee-chip">
+        <div class="avatar" id="avatarInitials">--</div>
+        <span class="emp-name" id="empNameDisplay">Cargando...</span>
+      </div>
     </div>
   </div>
 </header>
@@ -395,9 +419,9 @@
 
 <script>
 // ─── CONFIG ──────────────────────────────────────────────────────────────────
-// Reemplaza estas URLs con las de tus flows reales en Power Automate
 const FLOW_GET_REGISTROS = 'https://bd4a763d737defaeacf0e99a4d082f.58.environment.api.powerplatform.com:443/powerautomate/automations/direct/workflows/3fd25ad09b5449a9a614f784b10bbc72/triggers/manual/paths/invoke?api-version=1&sp=%2Ftriggers%2Fmanual%2Frun&sv=1.0&sig=oYx-w7yw0ZHA9-KETPaXHxpMvUHGEI0iUJoElGXsHvQ';
 const FLOW_SAVE_REGISTRO  = 'https://bd4a763d737defaeacf0e99a4d082f.58.environment.api.powerplatform.com:443/powerautomate/automations/direct/workflows/4bf538c812444c8096c44a5ad50feaf3/triggers/manual/paths/invoke?api-version=1&sp=%2Ftriggers%2Fmanual%2Frun&sv=1.0&sig=SswvE8QSJmpcTFxMkC9giytk9b_0Y7ul2I0u24sC53Y';
+const FLOW_GET_EMPLEADOS  = 'https://bd4a763d737defaeacf0e99a4d082f.58.environment.api.powerplatform.com:443/powerautomate/automations/direct/workflows/53acc2d4431d48989ebd3e8f29795b36/triggers/manual/paths/invoke?api-version=1';
 // ─────────────────────────────────────────────────────────────────────────────
 
 const params  = new URLSearchParams(location.search);
@@ -417,6 +441,9 @@ let registros   = [];
 let weekOffset  = 0;
 let editingId   = null;
 let originalExtras = null;
+// En modo admin, emailActivo puede ser distinto al email de la URL
+// (el admin puede cambiar qué empleado está viendo).
+let emailActivo = email;
 // Total de horas ordinarias acumuladas en la semana actualmente mostrada.
 // Se actualiza cada vez que se renderiza la semana (renderDias) y se usa
 // al guardar un registro de sábado/domingo para prorratear el tope de 44h.
@@ -437,6 +464,7 @@ document.addEventListener('DOMContentLoaded', () => {
   renderWeekNav();
   loadRegistros();
   bindModal();
+  if (isAdmin) loadEmpleados();
   document.getElementById('btnPrevWeek').addEventListener('click', () => { weekOffset--; renderWeekNav(); loadRegistros(); });
   document.getElementById('btnNextWeek').addEventListener('click', () => { weekOffset++; renderWeekNav(); loadRegistros(); });
 });
@@ -447,6 +475,48 @@ function initEmployee() {
   const initials = parts.map(p => p[0]?.toUpperCase() || '').join('').slice(0,2);
   document.getElementById('avatarInitials').textContent = initials || '??';
   document.getElementById('empNameDisplay').textContent = display;
+}
+
+// ── Admin: carga lista de empleados y arma el selector en el header ───────────
+async function loadEmpleados() {
+  try {
+    const resp = await fetch(FLOW_GET_EMPLEADOS, {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({})
+    });
+    const data = await resp.json();
+    const lista = data?.empleados || data || [];
+    if (!lista.length) return;
+
+    // Ordenar alfabéticamente por nombre
+    lista.sort((a, b) => (a.nombre || '').localeCompare(b.nombre || ''));
+
+    // Construir el selector reemplazando el chip del header
+    const options = lista.map(e => {
+      const selected = (e.email || '').toLowerCase() === emailActivo.toLowerCase() ? 'selected' : '';
+      return `<option value="${e.email}" ${selected}>${e.nombre || e.email}</option>`;
+    }).join('');
+
+    document.getElementById('headerChip').innerHTML = `
+      <div class="admin-select-wrap">
+        <span class="admin-badge">🔑 ADMIN</span>
+        <select id="empleadoSelect" onchange="cambiarEmpleado(this.value)">
+          ${options}
+        </select>
+      </div>`;
+  } catch(e) {
+    // Si falla, el chip normal sigue visible sin interrumpir la experiencia
+    console.warn('No se pudo cargar la lista de empleados:', e);
+  }
+}
+
+function cambiarEmpleado(nuevoEmail) {
+  if (!nuevoEmail || nuevoEmail === emailActivo) return;
+  emailActivo = nuevoEmail;
+  weekOffset = 0;
+  renderWeekNav();
+  loadRegistros();
 }
 
 // ── Week helpers ──────────────────────────────────────────────────────────────
@@ -506,7 +576,7 @@ const resp = await fetch(FLOW_GET_REGISTROS, {
   method: 'POST',
   headers: { 'Content-Type': 'application/json' },
   body: JSON.stringify({
-        email,
+        email: emailActivo,
         fechaInicio: formatDate(monday),
         fechaFin: formatDate(sunday)
       })
