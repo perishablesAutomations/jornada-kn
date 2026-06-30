@@ -42,7 +42,6 @@
   .stat-label { font-size: 11px; color: var(--muted); text-transform: uppercase; letter-spacing: 0.08em; margin-bottom: 4px; }
   .stat-val { font-family: var(--mono); font-size: 22px; font-weight: 500; color: var(--kn-navy); }
 
-  /* DESKTOP TABLE */
   .empleado-block { margin-bottom: 20px; border: 1px solid var(--border); border-radius: var(--r-lg); overflow: hidden; }
   .empleado-header { background: var(--kn-navy); padding: 12px 18px; display: flex; align-items: center; justify-content: space-between; gap: 12px; }
   .emp-info { display: flex; align-items: center; gap: 10px; }
@@ -51,13 +50,11 @@
   .emp-email { font-size: 11px; color: rgba(255,255,255,0.6); font-family: var(--mono); }
   .emp-count { font-size: 12px; font-family: var(--mono); color: rgba(255,255,255,0.7); background: rgba(255,255,255,0.1); padding: 4px 10px; border-radius: 999px; white-space: nowrap; }
 
-  /* Desktop: tabla full width */
   .desktop-table { display: table; width: 100%; border-collapse: collapse; }
   .desktop-table th { font-size: 11px; color: var(--muted); text-transform: uppercase; letter-spacing: 0.07em; padding: 9px 12px; background: var(--surface2); border-bottom: 1px solid var(--border); text-align: left; font-weight: 500; white-space: nowrap; }
   .desktop-table td { padding: 11px 12px; border-bottom: 1px solid var(--border); font-size: 13px; vertical-align: middle; }
   .desktop-table tr:last-child td { border-bottom: none; }
   .desktop-table tr:hover td { background: #fafcff; }
-  /* Proporciones de columnas desktop */
   .col-fecha   { width: 120px; }
   .col-horario { width: 130px; }
   .col-horas   { width: 70px; }
@@ -66,7 +63,6 @@
   .col-extra   { width: 90px; }
   .col-accion  { width: 180px; white-space: nowrap; }
 
-  /* Mobile: cards */
   .mobile-cards { display: none; }
   .reg-card { border-top: 1px solid var(--border); padding: 14px 16px; }
   .reg-card:last-child { border-bottom: none; }
@@ -75,11 +71,8 @@
   .reg-card-meta { display: flex; flex-wrap: wrap; gap: 6px; margin-bottom: 10px; align-items: center; }
   .reg-card-horario { font-family: var(--mono); font-size: 13px; color: var(--text); display: flex; align-items: center; gap: 4px; }
   .icon-label { display: flex; align-items: center; gap: 4px; font-size: 12px; color: var(--muted); }
-  .icon-label svg { flex-shrink: 0; }
   .reg-card-obs { font-size: 12px; color: var(--muted); font-style: italic; background: var(--surface2); padding: 7px 10px; border-radius: 6px; margin-bottom: 10px; display: flex; align-items: flex-start; gap: 6px; }
   .reg-card-actions { display: flex; gap: 8px; align-items: center; flex-wrap: wrap; }
-  .reg-card-comp { display: flex; align-items: center; gap: 6px; font-size: 12px; color: var(--muted); cursor: pointer; margin-left: auto; }
-  .reg-card-comp input { accent-color: var(--kn-green); width: 15px; height: 15px; cursor: pointer; }
 
   .time-val { font-family: var(--mono); font-size: 13px; }
   .badge { font-size: 11px; font-weight: 500; padding: 3px 8px; border-radius: 999px; font-family: var(--mono); }
@@ -121,7 +114,6 @@
   .toast.error { background: var(--danger); border-color: var(--danger); }
   .toast.ok { background: #059669; border-color: #059669; }
 
-  /* Pestañas */
   .tabs { display: flex; gap: 4px; margin-bottom: 24px; border-bottom: 2px solid var(--border); }
   .tab-btn { padding: 10px 20px; background: none; border: none; font-family: var(--sans); font-size: 13px; font-weight: 600; color: var(--muted); cursor: pointer; border-bottom: 3px solid transparent; margin-bottom: -2px; transition: all 0.15s; }
   .tab-btn:hover { color: var(--kn-navy); }
@@ -129,7 +121,6 @@
   .tab-content { display: none; }
   .tab-content.active { display: block; }
 
-  /* Tabla resumen */
   .resumen-wrap { overflow-x: auto; }
   .resumen-table { width: 100%; border-collapse: collapse; font-size: 12px; }
   .resumen-table th { font-size: 10px; color: var(--muted); text-transform: uppercase; letter-spacing: 0.07em; padding: 8px 10px; background: var(--surface2); border-bottom: 1px solid var(--border); text-align: right; white-space: nowrap; }
@@ -139,7 +130,6 @@
   .resumen-table tr:last-child td { border-bottom: none; }
   .resumen-table tr:hover td { background: #fafcff; }
   .val-zero { color: var(--border2); font-family: var(--mono); font-size: 12px; }
-  .val-pos { color: var(--kn-navy); font-weight: 600; }
   .chip-val { display: inline-block; padding: 3px 8px; border-radius: 6px; font-family: var(--mono); font-size: 12px; font-weight: 600; }
   .th-wrap { position: relative; cursor: default; display: inline-flex; align-items: center; gap: 3px; }
   .th-tooltip { display: none; position: absolute; top: 100%; left: 50%; transform: translateX(-50%); background: var(--kn-navy); color: #fff; font-size: 11px; padding: 5px 10px; border-radius: 6px; white-space: nowrap; z-index: 10; margin-top: 4px; font-weight: 400; letter-spacing: 0; text-transform: none; }
@@ -188,9 +178,7 @@
 
   <div class="tab-content active" id="tab-pendientes">
     <div id="container">
-    <div class="loading-state">Cargando pendientes<span class="loading-dot">.</span><span class="loading-dot">.</span><span class="loading-dot">.</span></div>
-  </div>
-</main>
+      <div class="loading-state">Cargando pendientes<span class="loading-dot">.</span><span class="loading-dot">.</span><span class="loading-dot">.</span></div>
     </div>
   </div>
 
@@ -208,24 +196,26 @@
       <div class="loading-state">Selecciona la pestaña para cargar<span class="loading-dot">.</span></div>
     </div>
   </div>
+</main>
 
 <div class="toast" id="toast"></div>
 
 <script>
-const FLOW_GET = 'https://bd4a763d737defaeacf0e99a4d082f.58.environment.api.powerplatform.com:443/powerautomate/automations/direct/workflows/3fd25ad09b5449a9a614f784b10bbc72/triggers/manual/paths/invoke?api-version=1&sp=%2Ftriggers%2Fmanual%2Frun&sv=1.0&sig=oYx-w7yw0ZHA9-KETPaXHxpMvUHGEI0iUJoElGXsHvQ';
+const FLOW_GET     = 'https://bd4a763d737defaeacf0e99a4d082f.58.environment.api.powerplatform.com:443/powerautomate/automations/direct/workflows/3fd25ad09b5449a9a614f784b10bbc72/triggers/manual/paths/invoke?api-version=1&sp=%2Ftriggers%2Fmanual%2Frun&sv=1.0&sig=oYx-w7yw0ZHA9-KETPaXHxpMvUHGEI0iUJoElGXsHvQ';
 const FLOW_APROBAR = 'https://bd4a763d737defaeacf0e99a4d082f.58.environment.api.powerplatform.com:443/powerautomate/automations/direct/workflows/cad0dc8e16a4466cb83297306976794d/triggers/manual/paths/invoke?api-version=1&sp=%2Ftriggers%2Fmanual%2Frun&sv=1.0&sig=tTGdFfz_6i4mpPo6HmbobfRSPxoGwS9V5fBi0z7L9uA';
 const FLOW_RESUMEN = 'https://bd4a763d737defaeacf0e99a4d082f.58.environment.api.powerplatform.com:443/powerautomate/automations/direct/workflows/294ad9e473794caaa408b8156dcf55a3/triggers/manual/paths/invoke?api-version=1&sp=%2Ftriggers%2Fmanual%2Frun&sv=1.0&sig=YVuu_MDyDZH8cFKPSysHz9KquwmrblYo2nhGhwNOS_w';
 
 const params = new URLSearchParams(location.search);
-const jefeEmail = params.get('jefe') || '';
+const jefeEmail  = params.get('jefe') || '';
 const nombreParam = params.get('nombre') || '';
 let registros = [], aprobadosHoy = 0;
 const MESES = ['ene','feb','mar','abr','may','jun','jul','ago','sep','oct','nov','dic'];
-const DIAS = ['Dom','Lun','Mar','Mié','Jue','Vie','Sáb'];
+const DIAS  = ['Dom','Lun','Mar','Mié','Jue','Vie','Sáb'];
 
 document.addEventListener('DOMContentLoaded', () => {
   if (!jefeEmail) {
-    document.getElementById('container').innerHTML = '<div class="loading-state" style="color:var(--danger)">⚠️ Falta el parámetro ?jefe= en la URL.</div>';
+    document.getElementById('container').innerHTML =
+      '<div class="loading-state" style="color:var(--danger)">⚠️ Falta el parámetro ?jefe= en la URL.</div>';
     return;
   }
   initManager();
@@ -241,7 +231,11 @@ function initManager() {
 
 async function loadPendientes() {
   try {
-    const resp = await fetch(FLOW_GET, { method:'POST', headers:{'Content-Type':'application/json'}, body: JSON.stringify({jefeEmail}) });
+    const resp = await fetch(FLOW_GET, {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({ jefeEmail })
+    });
     const data = await resp.json();
     const raw = data?.registros?.body || data.registros || data || [];
     registros = raw.map(r => ({
@@ -278,13 +272,16 @@ function renderPendientes() {
 
   const porEmpleado = {};
   registros.forEach(r => {
-    if (!porEmpleado[r.CorreoEmpleado]) porEmpleado[r.CorreoEmpleado] = { nombre: r.NombreEmpleado || r.CorreoEmpleado.split('@')[0], email: r.CorreoEmpleado, regs: [] };
+    if (!porEmpleado[r.CorreoEmpleado]) porEmpleado[r.CorreoEmpleado] = {
+      nombre: r.NombreEmpleado || r.CorreoEmpleado.split('@')[0],
+      email: r.CorreoEmpleado, regs: []
+    };
     porEmpleado[r.CorreoEmpleado].regs.push(r);
   });
   document.getElementById('statEmpleados').textContent = Object.keys(porEmpleado).length;
 
   if (registros.length === 0) {
-    container.innerHTML = `<div class="empty-state"><div class="empty-icon">✅</div><div class="empty-title">Sin pendientes</div><div class="empty-sub">No hay registros pendientes de aprobación.</div></div>`;
+    container.innerHTML = `<div class="empty-state"><div class="empty-icon">✅</div><div class="empty-title">Sin pendientes</div><div>No hay registros pendientes de aprobación.</div></div>`;
     return;
   }
 
@@ -295,7 +292,6 @@ function renderPendientes() {
     const block = document.createElement('div');
     block.className = 'empleado-block';
 
-    // Desktop table rows
     const desktopRows = emp.regs.map(r => `
       <tr id="row-${r.ID}">
         <td class="col-fecha"><div style="font-weight:600">${fechaStr(r)}</div><div style="margin-top:3px">${tipoBadge(r.TipoDia)}</div></td>
@@ -312,7 +308,6 @@ function renderPendientes() {
         </div></td>
       </tr>`).join('');
 
-    // Mobile cards
     const mobileCards = emp.regs.map(r => `
       <div class="reg-card" id="card-${r.ID}">
         <div class="reg-card-top">
@@ -332,7 +327,7 @@ function renderPendientes() {
             <span>${r.HorasOrdinarias ? parseFloat(r.HorasOrdinarias).toFixed(1)+'h' : '—'}</span>
           </div>
           <div class="icon-label">
-            <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="var(--warn-text)" stroke-width="2"><circle cx="12" cy="12" r="10"/><polyline points="12 6 12 12 16 14"/><line x1="12" y1="16" x2="12.01" y2="16"/></svg>
+            <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="var(--warn-text)" stroke-width="2"><circle cx="12" cy="12" r="10"/><polyline points="12 6 12 12 16 14"/></svg>
             <span style="color:var(--warn-text)">${r.HorasExtra ? parseFloat(r.HorasExtra).toFixed(1)+'h extra' : 'Sin extra'}</span>
           </div>
         </div>
@@ -346,7 +341,6 @@ function renderPendientes() {
             <button class="btn-decision btn-recargo"    onclick="procesar(${r.ID},'recargo')"><span class="material-icons-round">nightlight</span>Recargo</button>
             <button class="btn-decision btn-compensado" onclick="procesar(${r.ID},'compensado')"><span class="material-icons-round">event_available</span>Compensado</button>
             <button class="btn-decision btn-rechazar"   onclick="procesar(${r.ID},'rechazado')"><span class="material-icons-round">block</span>Rechazar</button>
-
           </div>
         </div>
       </div>`).join('');
@@ -377,23 +371,34 @@ function renderPendientes() {
   });
 }
 
+// ── Procesar aprobación ───────────────────────────────────────────────────────
+// IMPORTANTE: se manda como POST con JSON body, no como GET con query string.
+// Power Automate ya no parsea query params con el nuevo formato de URLs.
 async function procesar(id, tipoAprobacion) {
-  const aprobado = tipoAprobacion === 'rechazado' ? 'no' : 'si';
+  const aprobado   = tipoAprobacion === 'rechazado' ? 'no' : 'si';
   const compensado = tipoAprobacion === 'compensado' ? 'si' : 'no';
   const actionsDiv = document.getElementById(`actions-${id}`);
   actionsDiv.querySelectorAll('button').forEach(b => b.disabled = true);
   actionsDiv.innerHTML = '<span class="status-chip procesando">⏳ Procesando...</span>';
 
   try {
-    await fetch(`${FLOW_APROBAR}&registro=${id}&aprobado=${aprobado}&compensado=${compensado}&tipoAprobacion=${tipoAprobacion}`, { method:'GET', mode:'no-cors' });
+    await fetch(FLOW_APROBAR, {
+      method: 'POST',
+      mode: 'no-cors',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({
+        registro: String(id),
+        aprobado,
+        compensado,
+        tipoAprobacion
+      })
+    });
     const labels = { extra: '✓ Hora extra', recargo: '✓ Recargo', compensado: '✓ Compensado', rechazado: '✗ Rechazado' };
     const chipClass = tipoAprobacion === 'rechazado' ? 'rechazado' : 'aprobado';
     actionsDiv.innerHTML = `<span class="status-chip ${chipClass}">${labels[tipoAprobacion]||'✓ OK'}</span>`;
     aprobadosHoy++;
     document.getElementById('statAprobados').textContent = aprobadosHoy;
-    showToast(tipoAprobacion==='rechazado' ? '❌ Registro rechazado' : '✅ Registro aprobado', tipoAprobacion==='rechazado' ? 'error' : 'ok');
-    const totalPendientes = document.querySelectorAll('.btn-aprobar:not(:disabled)').length;
-    document.getElementById('statTotal').textContent = totalPendientes;
+    showToast(tipoAprobacion === 'rechazado' ? '❌ Registro rechazado' : '✅ Registro aprobado', tipoAprobacion === 'rechazado' ? 'error' : 'ok');
   } catch(e) {
     actionsDiv.innerHTML = `
       <button class="btn-decision btn-extra"      onclick="procesar(${id},'extra')"><span class="material-icons-round">schedule</span>Hora extra</button>
@@ -478,15 +483,15 @@ function renderResumen(filas) {
   }
 
   const CODIGOS = [
-    { key: 'HorasOrdinarias', label: 'Base', desc: 'Horas sin recargo ni extra', color: 'var(--kn-navy)' },
-    { key: 'Cod1060', label: 'Rec.Noc', desc: '1060 · Recargo nocturno (35%)', color: '#6366f1' },
-    { key: 'Cod1061', label: 'Ext.Diu', desc: '1061 · Extra diurna (125%)', color: '#0099DA' },
-    { key: 'Cod1062', label: 'Ext.Noc', desc: '1062 · Extra nocturna (175%)', color: '#7c3aed' },
-    { key: 'Cod1063', label: 'Ext.Dom.D', desc: '1063 · Extra dominical diurna (205%)', color: '#d97706' },
-    { key: 'Cod1064', label: 'Ext.Dom.N', desc: '1064 · Extra dominical nocturna (255%)', color: '#b45309' },
-    { key: 'Cod1065', label: 'Fest.Comp', desc: '1065 · Festivo/Dominical compensado (80%)', color: '#08C792' },
-    { key: 'Cod1066', label: 'Rec.Noc.F', desc: '1066 · Recargo nocturno festivo (215%)', color: '#dc2626' },
-    { key: 'Cod1067', label: 'Fest.S/C', desc: '1067 · Festivo sin compensatorio (180%)', color: '#9333ea' },
+    { key: 'HorasOrdinarias', label: 'Base',      desc: 'Horas sin recargo ni extra',                   color: 'var(--kn-navy)' },
+    { key: 'Cod1060',         label: 'Rec.Noc',   desc: '1060 · Recargo nocturno (35%)',                color: '#6366f1' },
+    { key: 'Cod1061',         label: 'Ext.Diu',   desc: '1061 · Extra diurna (125%)',                   color: '#0099DA' },
+    { key: 'Cod1062',         label: 'Ext.Noc',   desc: '1062 · Extra nocturna (175%)',                 color: '#7c3aed' },
+    { key: 'Cod1063',         label: 'Ext.Dom.D', desc: '1063 · Extra dominical diurna (205%)',         color: '#d97706' },
+    { key: 'Cod1064',         label: 'Ext.Dom.N', desc: '1064 · Extra dominical nocturna (255%)',       color: '#b45309' },
+    { key: 'Cod1065',         label: 'Fest.Comp', desc: '1065 · Festivo/Dominical compensado (80%)',    color: '#08C792' },
+    { key: 'Cod1066',         label: 'Rec.Noc.F', desc: '1066 · Recargo nocturno festivo (215%)',      color: '#dc2626' },
+    { key: 'Cod1067',         label: 'Fest.S/C',  desc: '1067 · Festivo sin compensatorio (180%)',     color: '#9333ea' },
   ];
 
   function fval(v) { return parseFloat(v) || 0; }
@@ -498,10 +503,10 @@ function renderResumen(filas) {
   }
 
   const rows = filas.map(f => {
-    const nombre = (f.NombreEmpleado || f.CorreoEmpleado || '').split('/')[0].trim();
-    const base = fval(f['HorasOrdinarias']);
-    const extras = CODIGOS.slice(1).reduce((s, c) => s + fval(f[c.key]), 0);
-    const total = base + extras;
+    const nombre  = (f.NombreEmpleado || f.CorreoEmpleado || '').split('/')[0].trim();
+    const base    = fval(f['HorasOrdinarias']);
+    const extras  = CODIGOS.slice(1).reduce((s, c) => s + fval(f[c.key]), 0);
+    const total   = base + extras;
     const initials = nombre.split(' ').map(p=>p[0]?.toUpperCase()||'').join('').slice(0,2);
     return `<tr>
       <td>
@@ -518,7 +523,6 @@ function renderResumen(filas) {
     </tr>`;
   }).join('');
 
-  // Totales generales
   const totales = CODIGOS.map(c => filas.reduce((s,f) => s + fval(f[c.key]), 0));
   const grandTotal = totales.reduce((s,v) => s+v, 0);
   const totalesRow = `<tr style="background:var(--surface2);font-weight:700;">
@@ -531,7 +535,7 @@ function renderResumen(filas) {
   </tr>`;
 
   const headers = CODIGOS.map(c =>
-    `<th><div class="th-wrap" title="${c.desc}">${c.label}<span class="th-tooltip">${c.desc}</span></div></th>`
+    `<th><div class="th-wrap">${c.label}<span class="th-tooltip">${c.desc}</span></div></th>`
   ).join('');
 
   container.innerHTML = `
