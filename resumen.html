@@ -148,7 +148,7 @@
 
   .registro-row {
     display: grid;
-    grid-template-columns: 1fr 1fr 80px 100px 100px 40px;
+    grid-template-columns: 1fr 1fr 80px 100px 100px 40px 40px;
     gap: 8px; align-items: center;
     padding: 10px 14px;
     border-top: 1px solid var(--border);
@@ -171,6 +171,14 @@
     transition: all 0.15s;
   }
   .btn-edit:hover { background: var(--info-bg); color: var(--kn-blue); border-color: var(--kn-blue); }
+  .btn-delete {
+    width: 28px; height: 28px; border-radius: 6px;
+    background: transparent; border: 1px solid var(--border2);
+    display: flex; align-items: center; justify-content: center;
+    cursor: pointer; font-size: 13px; color: var(--muted);
+    transition: all 0.15s;
+  }
+  .btn-delete:hover { background: var(--danger-bg); color: var(--danger); border-color: var(--danger); }
 
   .add-registro-btn {
     width: 100%; padding: 10px; border: none;
@@ -672,6 +680,7 @@ function renderDayBody(regs, diaStr, isFuture) {
         <span>${extra}</span>
         <span>${aprobado}</span>
         ${weekOffset === 0 ? `<button class="btn-edit" title="Editar" onclick="openEdit(${r.ID})">✏️</button>` : ''}
+        ${weekOffset === 0 ? `<button class="btn-delete" title="Eliminar" onclick="deleteRegistro(${r.ID})">🗑️</button>` : ''}
       </div>`;
     });
   } else {
@@ -730,6 +739,46 @@ function resetForm() {
 function closeModal() {
   document.getElementById('modalBackdrop').classList.remove('open');
   editingId = null;
+}
+
+// ── Eliminar registro ────────────────────────────────────────────────────────
+// Solo disponible para registros de la semana actual (weekOffset === 0),
+// igual que agregar/editar. Pide confirmación antes de llamar al backend.
+async function deleteRegistro(id) {
+  const reg = registros.find(r => r.ID == id);
+  if (!reg) return;
+
+  const horaTxt = reg.HoraInicio ? `${reg.HoraInicio}${reg.HoraFin ? ' - ' + reg.HoraFin : ''}` : '';
+  const confirmado = confirm(`¿Eliminar el registro del ${reg.FechaRegistro} (${horaTxt})? Esta acción no se puede deshacer.`);
+  if (!confirmado) return;
+
+  const payload = {
+    email,
+    accion: 'eliminar',
+    ID: parseInt(id),
+    // El backend exige FechaRegistro y HoraInicio en el schema del trigger;
+    // se mandan tal cual están en el registro para no romper la validación,
+    // aunque no se usan en la rama de eliminación.
+    FechaRegistro: reg.FechaRegistro,
+    HoraInicio: reg.HoraInicio || '00:00'
+  };
+
+  try {
+    const resp = await fetch(FLOW_SAVE_REGISTRO, {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify(payload)
+    });
+    const data = await resp.json().catch(() => ({}));
+    if (data && data.ok === false) {
+      showToast('No se pudo eliminar el registro. Intenta de nuevo.', true);
+      return;
+    }
+    showToast('✓ Registro eliminado.');
+    setTimeout(() => loadRegistros(), 1200);
+  } catch (e) {
+    showToast('Error al eliminar. Intenta de nuevo.', true);
+  }
 }
 
 function onFormChange() {
