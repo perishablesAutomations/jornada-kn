@@ -136,9 +136,9 @@
       text-transform: uppercase;
       letter-spacing: 0.6px;
     }
-    .badge.pending { background: #fff3e0; color: #e65100; }
-    .badge.open    { background: #e8f5e9; color: #2e7d32; }
-    .badge.done    { background: #e8f5e9; color: #1b5e20; }
+    .badge.pending { background: #fef3c7; color: #b45309; border: 1px solid #fcd34d; }
+    .badge.open    { background: #dcfce7; color: #15803d; border: 1px solid #86efac; }
+    .badge.done    { background: #f0fdf4; color: #15803d; border: 1px solid #bbf7d0; }
 
     /* ── RESUMEN HORAS ──────────────────────────── */
     .resumen-horas {
@@ -154,10 +154,10 @@
     .hora-stat:last-child { border-right: none; }
     .hora-val {
       display: block;
-      font-size: 22px;
-      font-weight: 800;
+      font-size: 18px;
+      font-weight: 700;
       color: #1a1a2e;
-      letter-spacing: -0.5px;
+      letter-spacing: -0.3px;
     }
     .hora-lbl {
       font-size: 10px;
@@ -167,8 +167,8 @@
       letter-spacing: 0.7px;
       margin-top: 2px;
     }
-    .hora-stat.alerta .hora-val { color: #e65100; }
-    .hora-stat.ok     .hora-val { color: #2e7d32; }
+    .hora-stat.alerta .hora-val { color: #c2410c; }
+    .hora-stat.ok     .hora-val { color: #15803d; }
 
     /* ── BARRA 44H ──────────────────────────────── */
     .barra-wrap { padding: 10px 20px 0; }
@@ -229,10 +229,10 @@
       letter-spacing: 0.4px;
       white-space: nowrap;
     }
-    .chip-habil      { background: #e8f0fe; color: #1a56db; }
-    .chip-sabado     { background: #f3e8ff; color: #7c3aed; }
-    .chip-dominical  { background: #fce4ec; color: #be185d; }
-    .chip-festivo    { background: #fff3e0; color: #c2410c; }
+    .chip-habil      { background: #dbeafe; color: #1d4ed8; }
+    .chip-sabado     { background: #ede9fe; color: #6d28d9; }
+    .chip-dominical  { background: #fce7f3; color: #be185d; }
+    .chip-festivo    { background: #ffedd5; color: #c2410c; }
     .chip-desconocido{ background: #f3f4f6; color: #6b7280; }
 
     /* ── DECISION BUTTONS ───────────────────────── */
@@ -382,7 +382,7 @@
 <div id="toast"></div>
 
 <header>
-  <span class="logo">KN <em>·</em> Perishables</span>
+  <span class="logo">KN <em>·</em> Aprobaciones</span>
   <span class="jefe-chip" id="jefeChip">—</span>
 </header>
 
@@ -475,17 +475,18 @@ async function cargarRegistros() {
 // SEMANAS (lunes–domingo, hora local Colombia UTC-5)
 // ══════════════════════════════════════════════════════════════════
 function toLocalDate(isoStr) {
-  // Convierte timestamp UTC a hora Colombia (UTC-5)
-  const d = new Date(isoStr);
-  return new Date(d.getTime() - 5 * 60 * 60 * 1000);
+  // Los timestamps están guardados como hora local Colombia con notación UTC
+  // No se aplica offset — se usan métodos getUTC* para leer la hora "local" almacenada
+  return new Date(isoStr);
 }
 
 function getWeekStart(isoStr) {
-  const local = toLocalDate(isoStr);
-  const dow = local.getUTCDay();               // 0=Dom, 1=Lun
+  // Usar UTC* directamente — las fechas almacenadas son hora local Colombia
+  const d   = new Date(isoStr);
+  const dow  = d.getUTCDay();                  // 0=Dom, 1=Lun
   const diff = dow === 0 ? -6 : 1 - dow;      // días hasta el lunes
-  const monday = new Date(local);
-  monday.setUTCDate(local.getUTCDate() + diff);
+  const monday = new Date(d);
+  monday.setUTCDate(d.getUTCDate() + diff);
   return monday.toISOString().split('T')[0];   // 'YYYY-MM-DD'
 }
 
@@ -531,10 +532,10 @@ function formatHora(isoStr) {
 
 function formatFecha(isoStr) {
   if (!isoStr) return '—';
-  const local = toLocalDate(isoStr);
-  return local.toLocaleDateString('es-CO', {
-    weekday: 'short', day: 'numeric', month: 'short', timeZone: 'UTC'
-  });
+  const d = new Date(isoStr);
+  const dias  = ['dom','lun','mar','mié','jue','vie','sáb'];
+  const meses = ['ene','feb','mar','abr','may','jun','jul','ago','sep','oct','nov','dic'];
+  return `${dias[d.getUTCDay()]}, ${d.getUTCDate()} ${meses[d.getUTCMonth()]}`;
 }
 
 function formatNombre(nombreCompleto) {
@@ -642,7 +643,7 @@ function buildEmpCard(email, nombre, registros) {
   const hayAbierto = sorted.some(r => getVal(r.Estado) === 'Abierto');
   const restante44 = Math.max(44 - horasOrd, 0);
   const pct44      = Math.min((horasOrd / 44) * 100, 100);
-  const barColor   = pct44 >= 100 ? '#dc2626' : pct44 >= 75 ? '#d97706' : '#16a34a';
+  const barColor   = pct44 >= 100 ? '#dc2626' : pct44 >= 88 ? '#d97706' : '#2563eb';
   const hasPend    = pendientes.length > 0;
   const empSafeId  = safeId(email);
 
