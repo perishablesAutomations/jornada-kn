@@ -404,6 +404,15 @@ const params  = new URLSearchParams(location.search);
 const email   = params.get('email') || '';
 const nameParam = params.get('nombre') || '';
 
+// ── Admin mode ────────────────────────────────────────────────────────────────
+// Si la URL incluye ?adminToken=<token>, se activa el modo admin:
+// el usuario puede editar/eliminar/agregar registros en cualquier semana
+// pasada, no solo la semana actual. Sin este token, todo funciona igual
+// que para un usuario normal.
+const ADMIN_TOKEN = 'kn-perish-2026-adm-X7mQ9p';
+const isAdmin = params.get('adminToken') === ADMIN_TOKEN;
+// ─────────────────────────────────────────────────────────────────────────────
+
 let registros   = [];
 let weekOffset  = 0;
 let editingId   = null;
@@ -482,7 +491,7 @@ function renderWeekNav() {
   const label = weekOffset === 0 ? 'Esta semana' :
                 weekOffset === -1 ? 'Semana pasada' :
                 `${formatDateShort(monday)} – ${formatDateShort(sunday)}`;
-  document.getElementById('weekLabel').textContent = label;
+  document.getElementById('weekLabel').textContent = label + (isAdmin ? ' 🔑' : '');
   document.getElementById('btnNextWeek').disabled = weekOffset >= 0;
   document.getElementById('btnNextWeek').style.opacity = weekOffset >= 0 ? '0.35' : '1';
 }
@@ -679,14 +688,14 @@ function renderDayBody(regs, diaStr, isFuture) {
         <span class="time-val">${horas}</span>
         <span>${extra}</span>
         <span>${aprobado}</span>
-        ${weekOffset === 0 ? `<button class="btn-edit" title="Editar" onclick="openEdit(${r.ID})">✏️</button>` : ''}
-        ${weekOffset === 0 ? `<button class="btn-delete" title="Eliminar" onclick="deleteRegistro(${r.ID})">🗑️</button>` : ''}
+        ${weekOffset === 0 || isAdmin ? `<button class="btn-edit" title="Editar" onclick="openEdit(${r.ID})">✏️</button>` : ''}
+        ${weekOffset === 0 || isAdmin ? `<button class="btn-delete" title="Eliminar" onclick="deleteRegistro(${r.ID})">🗑️</button>` : ''}
       </div>`;
     });
   } else {
     html += `<div class="empty-day">Sin registros para este día.</div>`;
   }
-  if (!isFuture && weekOffset === 0) {
+  if (!isFuture && (weekOffset === 0 || isAdmin)) {
     html += `<button class="btn-add-reg add-registro-btn" onclick="openNew('${diaStr}')">
       + Agregar registro
     </button>`;
