@@ -400,6 +400,10 @@ let registros   = [];
 let weekOffset  = 0;
 let editingId   = null;
 let originalExtras = null;
+// Total de horas ordinarias acumuladas en la semana actualmente mostrada.
+// Se actualiza cada vez que se renderiza la semana (renderDias) y se usa
+// al guardar un registro de sábado/domingo para prorratear el tope de 44h.
+let weekHorasOrdinarias = 0;
 
 const DIAS_ES = ['Domingo','Lunes','Martes','Miércoles','Jueves','Viernes','Sábado'];
 const DIAS_SHORT = ['dom','lun','mar','mié','jue','vie','sáb'];
@@ -613,6 +617,11 @@ function renderDias() {
     container.appendChild(block);
   }
 
+  // Guardamos el acumulado de horas ordinarias de la semana mostrada en una
+  // variable global. Se usa al guardar un registro de sábado/domingo para
+  // prorratear el tope semanal de 44h (ver saveRegistro()).
+  weekHorasOrdinarias = totalOrd;
+
   document.getElementById('statTotal').textContent = totalRegs;
   document.getElementById('statOrd').textContent = totalOrd.toFixed(1) + 'h';
   document.getElementById('statExtra').textContent = regsConExtras() + ' regs';
@@ -798,7 +807,12 @@ async function saveRegistro() {
     }
   }
 
-
+  // Si el registro cae en sábado (6) o domingo (0), mandamos el acumulado de
+  // horas ordinarias de la semana mostrada, para que el backend (Flow 4)
+  // pueda prorratear el tope semanal de 44h. Para días entre semana no se
+  // envía este campo y el cálculo sigue igual que hoy (tope diario de 8h).
+  const fechaObj = parseDate(fecha);
+  const esFinDeSemana = fechaObj.getDay() === 0 || fechaObj.getDay() === 6;
 
   const payload = {
     email,
@@ -807,7 +821,8 @@ async function saveRegistro() {
     FechaRegistro: fecha,
     HoraInicio: ini,
     HoraFin: fin || null,
-    Observaciones: document.getElementById('fObservaciones').value
+    Observaciones: document.getElementById('fObservaciones').value,
+    ...(esFinDeSemana ? { HorasOrdinariasAcumuladasSemana: weekHorasOrdinarias } : {})
   };
 
   const btn = document.getElementById('btnSaveModal');
