@@ -1,567 +1,936 @@
 <!DOCTYPE html>
 <html lang="es">
 <head>
-<meta charset="UTF-8">
-<meta name="viewport" content="width=device-width, initial-scale=1.0">
-<title>Aprobaciones · KN</title>
-<link rel="preconnect" href="https://fonts.googleapis.com">
-<link href="https://fonts.googleapis.com/css2?family=DM+Mono:wght@400;500&family=Syne:wght@400;500;600;700&display=swap" rel="stylesheet">
-<link href="https://fonts.googleapis.com/icon?family=Material+Icons+Round" rel="stylesheet">
-<style>
-  :root {
-    --bg: #ffffff; --surface: #ffffff; --surface2: #f0f6ff;
-    --border: rgba(0,51,105,0.12); --border2: rgba(0,51,105,0.22);
-    --text: #001a38; --muted: #4a6080;
-    --kn-navy: #003369; --kn-blue: #0099DA; --kn-green: #08C792;
-    --danger: #dc2626; --danger-bg: #fee2e2; --danger-text: #7f1d1d;
-    --warn-bg: #fef3c7; --warn-text: #92400e;
-    --info-bg: #e0f4fd; --info-text: #003369;
-    --r: 10px; --r-lg: 16px;
-    --mono: 'DM Mono', monospace; --sans: 'Syne', sans-serif;
-  }
-  * { box-sizing: border-box; margin: 0; padding: 0; }
-  body { background: var(--bg); color: var(--text); font-family: var(--sans); min-height: 100vh; padding: 0 0 60px; }
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Aprobaciones — KN Perishables</title>
+  <link href="https://fonts.googleapis.com/icon?family=Material+Icons" rel="stylesheet" />
+  <style>
+    *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
 
-  header { background: var(--kn-navy); border-bottom: 3px solid var(--kn-blue); padding: 14px 24px; position: sticky; top: 0; z-index: 100; }
-  .header-inner { max-width: 1200px; margin: 0 auto; display: flex; align-items: center; justify-content: space-between; gap: 12px; }
-  .logo { font-size: 13px; font-weight: 700; letter-spacing: 0.14em; color: rgba(255,255,255,0.9); text-transform: uppercase; display: flex; align-items: center; gap: 10px; }
-  .logo-dot { width: 8px; height: 8px; border-radius: 50%; background: var(--kn-green); display: inline-block; }
-  .manager-chip { display: flex; align-items: center; gap: 8px; background: rgba(255,255,255,0.12); border-radius: 999px; padding: 5px 14px 5px 6px; border: 1px solid rgba(255,255,255,0.2); }
-  .avatar { width: 28px; height: 28px; border-radius: 50%; background: var(--kn-green); color: var(--kn-navy); display: flex; align-items: center; justify-content: center; font-size: 11px; font-weight: 700; font-family: var(--mono); }
-  .mgr-name { font-size: 13px; font-weight: 500; color: #fff; }
+    body {
+      font-family: 'Segoe UI', system-ui, sans-serif;
+      background: #f0f2f5;
+      color: #1a1a2e;
+      min-height: 100vh;
+    }
 
-  main { max-width: 1200px; margin: 0 auto; padding: 24px 20px 0; }
-  .page-title { font-size: 22px; font-weight: 700; color: var(--kn-navy); margin-bottom: 4px; }
-  .page-subtitle { font-size: 13px; color: var(--muted); margin-bottom: 24px; font-family: var(--mono); }
+    /* ── HEADER ─────────────────────────────────── */
+    header {
+      background: #003087;
+      color: white;
+      padding: 0 24px;
+      height: 52px;
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      box-shadow: 0 2px 8px rgba(0,0,0,0.25);
+      position: sticky;
+      top: 0;
+      z-index: 20;
+    }
+    .logo {
+      font-size: 14px;
+      font-weight: 700;
+      letter-spacing: 2px;
+      text-transform: uppercase;
+      opacity: 0.95;
+    }
+    .logo em { font-style: normal; opacity: 0.55; margin: 0 6px; }
+    .jefe-chip {
+      background: rgba(255,255,255,0.12);
+      border: 1px solid rgba(255,255,255,0.2);
+      border-radius: 20px;
+      padding: 4px 14px;
+      font-size: 12px;
+      font-weight: 600;
+      letter-spacing: 0.3px;
+    }
 
-  .summary-bar { display: grid; grid-template-columns: repeat(3, 1fr); gap: 8px; margin-bottom: 28px; max-width: 480px; }
-  .stat { background: var(--surface); border: 1px solid var(--border); border-radius: var(--r); padding: 12px; border-top: 3px solid var(--kn-blue); }
-  .stat:first-child { border-top-color: var(--kn-navy); }
-  .stat:nth-child(2) { border-top-color: var(--warn-text); }
-  .stat:nth-child(3) { border-top-color: var(--kn-green); }
-  .stat-label { font-size: 11px; color: var(--muted); text-transform: uppercase; letter-spacing: 0.08em; margin-bottom: 4px; }
-  .stat-val { font-family: var(--mono); font-size: 22px; font-weight: 500; color: var(--kn-navy); }
+    /* ── WEEK NAV ───────────────────────────────── */
+    .week-nav {
+      background: white;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      gap: 20px;
+      padding: 10px 24px;
+      border-bottom: 1px solid #e2e6ea;
+      box-shadow: 0 1px 4px rgba(0,0,0,0.06);
+    }
+    .nav-btn {
+      background: none;
+      border: 1px solid #dde1e7;
+      cursor: pointer;
+      color: #003087;
+      padding: 5px;
+      border-radius: 6px;
+      display: flex;
+      align-items: center;
+      transition: all 0.15s;
+      line-height: 0;
+    }
+    .nav-btn:hover:not(:disabled) { background: #e8f0fe; border-color: #003087; }
+    .nav-btn:disabled { color: #c4c9d4; border-color: #eee; cursor: default; }
+    #weekLabel {
+      font-size: 14px;
+      font-weight: 600;
+      color: #1a1a2e;
+      min-width: 240px;
+      text-align: center;
+    }
+    .week-pendientes-count {
+      font-size: 11px;
+      font-weight: 700;
+      background: #e65100;
+      color: white;
+      border-radius: 10px;
+      padding: 2px 8px;
+      letter-spacing: 0.3px;
+    }
 
-  .empleado-block { margin-bottom: 20px; border: 1px solid var(--border); border-radius: var(--r-lg); overflow: hidden; }
-  .empleado-header { background: var(--kn-navy); padding: 12px 18px; display: flex; align-items: center; justify-content: space-between; gap: 12px; }
-  .emp-info { display: flex; align-items: center; gap: 10px; }
-  .emp-avatar { width: 32px; height: 32px; border-radius: 50%; background: var(--kn-green); color: var(--kn-navy); display: flex; align-items: center; justify-content: center; font-size: 12px; font-weight: 700; font-family: var(--mono); flex-shrink: 0; }
-  .emp-name { font-size: 14px; font-weight: 600; color: #fff; }
-  .emp-email { font-size: 11px; color: rgba(255,255,255,0.6); font-family: var(--mono); }
-  .emp-count { font-size: 12px; font-family: var(--mono); color: rgba(255,255,255,0.7); background: rgba(255,255,255,0.1); padding: 4px 10px; border-radius: 999px; white-space: nowrap; }
+    /* ── CONTENT ────────────────────────────────── */
+    .content { max-width: 1140px; margin: 0 auto; padding: 20px 16px 40px; }
 
-  .desktop-table { display: table; width: 100%; border-collapse: collapse; }
-  .desktop-table th { font-size: 11px; color: var(--muted); text-transform: uppercase; letter-spacing: 0.07em; padding: 9px 12px; background: var(--surface2); border-bottom: 1px solid var(--border); text-align: left; font-weight: 500; white-space: nowrap; }
-  .desktop-table td { padding: 11px 12px; border-bottom: 1px solid var(--border); font-size: 13px; vertical-align: middle; }
-  .desktop-table tr:last-child td { border-bottom: none; }
-  .desktop-table tr:hover td { background: #fafcff; }
-  .col-fecha   { width: 120px; }
-  .col-horario { width: 130px; }
-  .col-horas   { width: 70px; }
-  .col-tipo    { width: 160px; }
-  .col-obs     { min-width: 140px; }
-  .col-extra   { width: 90px; }
-  .col-accion  { width: 180px; white-space: nowrap; }
+    /* ── EMP CARD ───────────────────────────────── */
+    .emp-card {
+      background: white;
+      border-radius: 10px;
+      box-shadow: 0 1px 4px rgba(0,0,0,0.08);
+      margin-bottom: 20px;
+      overflow: hidden;
+      border: 1px solid #e8eaed;
+      transition: box-shadow 0.2s;
+    }
+    .emp-card.has-pending {
+      border-left: 4px solid #f57c00;
+      box-shadow: 0 2px 10px rgba(245,124,0,0.12);
+    }
+    .emp-card:not(.has-pending) { opacity: 0.88; }
 
-  .mobile-cards { display: none; }
-  .reg-card { border-top: 1px solid var(--border); padding: 14px 16px; }
-  .reg-card:last-child { border-bottom: none; }
-  .reg-card-top { display: flex; align-items: flex-start; justify-content: space-between; gap: 8px; margin-bottom: 10px; }
-  .reg-card-fecha { font-weight: 700; font-size: 14px; color: var(--kn-navy); }
-  .reg-card-meta { display: flex; flex-wrap: wrap; gap: 6px; margin-bottom: 10px; align-items: center; }
-  .reg-card-horario { font-family: var(--mono); font-size: 13px; color: var(--text); display: flex; align-items: center; gap: 4px; }
-  .icon-label { display: flex; align-items: center; gap: 4px; font-size: 12px; color: var(--muted); }
-  .reg-card-obs { font-size: 12px; color: var(--muted); font-style: italic; background: var(--surface2); padding: 7px 10px; border-radius: 6px; margin-bottom: 10px; display: flex; align-items: flex-start; gap: 6px; }
-  .reg-card-actions { display: flex; gap: 8px; align-items: center; flex-wrap: wrap; }
+    .emp-header {
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      padding: 14px 20px;
+      background: #fafbfc;
+      border-bottom: 1px solid #f0f0f0;
+    }
+    .emp-nombre {
+      font-size: 15px;
+      font-weight: 700;
+      color: #003087;
+    }
+    .emp-email {
+      font-size: 11px;
+      color: #8a93a2;
+      display: block;
+      margin-top: 2px;
+    }
+    .emp-badges { display: flex; gap: 6px; align-items: center; }
+    .badge {
+      font-size: 10px;
+      font-weight: 700;
+      padding: 3px 10px;
+      border-radius: 12px;
+      text-transform: uppercase;
+      letter-spacing: 0.6px;
+    }
+    .badge.pending { background: #fff3e0; color: #e65100; }
+    .badge.open    { background: #e8f5e9; color: #2e7d32; }
+    .badge.done    { background: #e8f5e9; color: #1b5e20; }
 
-  .time-val { font-family: var(--mono); font-size: 13px; }
-  .badge { font-size: 11px; font-weight: 500; padding: 3px 8px; border-radius: 999px; font-family: var(--mono); }
-  .badge.dominical { background: #f3e8ff; color: #6b21a8; }
-  .badge.sabado { background: var(--info-bg); color: var(--info-text); }
-  .badge.habil { background: var(--surface2); color: var(--muted); }
-  .badge.extra { background: var(--warn-bg); color: var(--warn-text); }
+    /* ── RESUMEN HORAS ──────────────────────────── */
+    .resumen-horas {
+      display: grid;
+      grid-template-columns: repeat(4, 1fr);
+      border-bottom: 1px solid #f0f0f0;
+    }
+    .hora-stat {
+      padding: 12px 20px;
+      border-right: 1px solid #f0f0f0;
+      text-align: center;
+    }
+    .hora-stat:last-child { border-right: none; }
+    .hora-val {
+      display: block;
+      font-size: 22px;
+      font-weight: 800;
+      color: #1a1a2e;
+      letter-spacing: -0.5px;
+    }
+    .hora-lbl {
+      font-size: 10px;
+      font-weight: 600;
+      color: #9aa1b0;
+      text-transform: uppercase;
+      letter-spacing: 0.7px;
+      margin-top: 2px;
+    }
+    .hora-stat.alerta .hora-val { color: #e65100; }
+    .hora-stat.ok     .hora-val { color: #2e7d32; }
 
-  .actions-cell { display: flex; gap: 6px; align-items: center; flex-wrap: wrap; }
-  .btn-decision { display: inline-flex; align-items: center; gap: 4px; padding: 6px 11px; border-radius: 8px; border: none; font-family: var(--sans); font-size: 11px; font-weight: 700; cursor: pointer; transition: all 0.15s; white-space: nowrap; letter-spacing: 0.02em; }
-  .btn-decision .material-icons-round { font-size: 16px; }
-  .btn-extra    { background: #dbeafe; color: #1d4ed8; border: 1.5px solid #93c5fd; }
-  .btn-extra:hover    { background: #1d4ed8; color: #fff; }
-  .btn-recargo  { background: #fef9c3; color: #854d0e; border: 1.5px solid #fde047; }
-  .btn-recargo:hover  { background: #854d0e; color: #fff; }
-  .btn-compensado { background: #e6faf4; color: #065f46; border: 1.5px solid #6ee7b7; }
-  .btn-compensado:hover { background: #065f46; color: #fff; }
-  .btn-rechazar { background: #fee2e2; color: #991b1b; border: 1.5px solid #fca5a5; }
-  .btn-rechazar:hover { background: #991b1b; color: #fff; }
-  .btn-decision:disabled { opacity: 0.35; cursor: not-allowed; }
+    /* ── BARRA 44H ──────────────────────────────── */
+    .barra-wrap { padding: 10px 20px 0; }
+    .barra-track {
+      height: 8px;
+      background: #edf0f4;
+      border-radius: 4px;
+      overflow: hidden;
+    }
+    .barra-fill { height: 100%; border-radius: 4px; transition: width 0.5s ease; }
+    .barra-meta {
+      display: flex;
+      justify-content: space-between;
+      font-size: 11px;
+      color: #9aa1b0;
+      padding: 4px 0 8px;
+    }
+    .barra-meta strong { color: #1a1a2e; }
 
-  .status-chip { font-size: 12px; font-family: var(--mono); padding: 5px 12px; border-radius: 999px; font-weight: 500; white-space: nowrap; }
-  .status-chip.aprobado { background: #e6faf4; color: #035c41; }
-  .status-chip.rechazado { background: var(--danger-bg); color: var(--danger-text); }
-  .status-chip.procesando { background: var(--info-bg); color: var(--info-text); }
+    /* ── TABLA REGISTROS ────────────────────────── */
+    .tabla-wrap { overflow-x: auto; }
+    .registros-tabla {
+      width: 100%;
+      border-collapse: collapse;
+      font-size: 12.5px;
+    }
+    .registros-tabla th {
+      background: #f7f8fa;
+      color: #6b7280;
+      font-weight: 600;
+      font-size: 10.5px;
+      text-transform: uppercase;
+      letter-spacing: 0.6px;
+      padding: 8px 12px;
+      text-align: left;
+      border-bottom: 1px solid #e8eaed;
+      white-space: nowrap;
+    }
+    .registros-tabla td {
+      padding: 8px 12px;
+      border-bottom: 1px solid #f5f6f8;
+      vertical-align: middle;
+    }
+    .registros-tabla tr:last-child td { border-bottom: none; }
 
-  .loading-state { text-align: center; padding: 60px 20px; color: var(--kn-blue); font-family: var(--mono); font-size: 14px; }
-  .loading-dot { animation: blink 1.2s infinite; }
-  .loading-dot:nth-child(2) { animation-delay: 0.4s; }
-  .loading-dot:nth-child(3) { animation-delay: 0.8s; }
-  @keyframes blink { 0%,80%,100%{opacity:0.2} 40%{opacity:1} }
+    .fila-pending td   { background: #fffbf2; }
+    .fila-abierta td   { background: #f0fdf4; }
+    .fila-anomala td   { background: #fff0f0; }
 
-  .empty-state { text-align: center; padding: 60px 20px; color: var(--muted); }
-  .empty-icon { font-size: 40px; margin-bottom: 12px; }
-  .empty-title { font-size: 16px; font-weight: 600; color: var(--kn-navy); margin-bottom: 6px; }
+    /* tipo dia chips */
+    .chip-dia {
+      display: inline-block;
+      padding: 2px 8px;
+      border-radius: 10px;
+      font-size: 10px;
+      font-weight: 700;
+      text-transform: uppercase;
+      letter-spacing: 0.4px;
+      white-space: nowrap;
+    }
+    .chip-habil      { background: #e8f0fe; color: #1a56db; }
+    .chip-sabado     { background: #f3e8ff; color: #7c3aed; }
+    .chip-dominical  { background: #fce4ec; color: #be185d; }
+    .chip-festivo    { background: #fff3e0; color: #c2410c; }
+    .chip-desconocido{ background: #f3f4f6; color: #6b7280; }
 
-  .toast { position: fixed; bottom: 24px; left: 50%; transform: translateX(-50%) translateY(80px); background: var(--kn-navy); color: #fff; padding: 10px 20px; border-radius: 999px; font-size: 13px; font-weight: 500; transition: transform 0.3s ease; z-index: 300; pointer-events: none; white-space: nowrap; border: 2px solid var(--kn-blue); }
-  .toast.show { transform: translateX(-50%) translateY(0); }
-  .toast.error { background: var(--danger); border-color: var(--danger); }
-  .toast.ok { background: #059669; border-color: #059669; }
+    /* ── DECISION BUTTONS ───────────────────────── */
+    .decision-btns {
+      display: flex;
+      gap: 4px;
+      align-items: center;
+      white-space: nowrap;
+    }
+    .dec-btn {
+      border: 1.5px solid #e0e0e0;
+      border-radius: 6px;
+      padding: 4px 9px;
+      cursor: pointer;
+      display: inline-flex;
+      align-items: center;
+      gap: 3px;
+      font-size: 11px;
+      font-weight: 600;
+      background: #f9fafb;
+      color: #6b7280;
+      transition: all 0.12s;
+      white-space: nowrap;
+      line-height: 1;
+    }
+    .dec-btn .material-icons { font-size: 13px; }
+    .dec-btn:hover { transform: translateY(-1px); box-shadow: 0 2px 6px rgba(0,0,0,0.12); }
 
-  .tabs { display: flex; gap: 4px; margin-bottom: 24px; border-bottom: 2px solid var(--border); }
-  .tab-btn { padding: 10px 20px; background: none; border: none; font-family: var(--sans); font-size: 13px; font-weight: 600; color: var(--muted); cursor: pointer; border-bottom: 3px solid transparent; margin-bottom: -2px; transition: all 0.15s; }
-  .tab-btn:hover { color: var(--kn-navy); }
-  .tab-btn.active { color: var(--kn-navy); border-bottom-color: var(--kn-blue); }
-  .tab-content { display: none; }
-  .tab-content.active { display: block; }
+    .dec-btn.extra:hover,      .dec-btn.extra.selected      { background: #1d4ed8; color: white; border-color: #1d4ed8; }
+    .dec-btn.recargo:hover,    .dec-btn.recargo.selected    { background: #d97706; color: white; border-color: #d97706; }
+    .dec-btn.compensado:hover, .dec-btn.compensado.selected { background: #16a34a; color: white; border-color: #16a34a; }
+    .dec-btn.rechazar:hover,   .dec-btn.rechazar.selected   { background: #dc2626; color: white; border-color: #dc2626; }
 
-  .resumen-wrap { overflow-x: auto; }
-  .resumen-table { width: 100%; border-collapse: collapse; font-size: 12px; }
-  .resumen-table th { font-size: 10px; color: var(--muted); text-transform: uppercase; letter-spacing: 0.07em; padding: 8px 10px; background: var(--surface2); border-bottom: 1px solid var(--border); text-align: right; white-space: nowrap; }
-  .resumen-table th:first-child { text-align: left; }
-  .resumen-table td { padding: 10px; border-bottom: 1px solid var(--border); text-align: right; font-family: var(--mono); }
-  .resumen-table td:first-child { text-align: left; font-family: var(--sans); font-weight: 600; color: var(--kn-navy); }
-  .resumen-table tr:last-child td { border-bottom: none; }
-  .resumen-table tr:hover td { background: #fafcff; }
-  .val-zero { color: var(--border2); font-family: var(--mono); font-size: 12px; }
-  .chip-val { display: inline-block; padding: 3px 8px; border-radius: 6px; font-family: var(--mono); font-size: 12px; font-weight: 600; }
-  .th-wrap { position: relative; cursor: default; display: inline-flex; align-items: center; gap: 3px; }
-  .th-tooltip { display: none; position: absolute; top: 100%; left: 50%; transform: translateX(-50%); background: var(--kn-navy); color: #fff; font-size: 11px; padding: 5px 10px; border-radius: 6px; white-space: nowrap; z-index: 10; margin-top: 4px; font-weight: 400; letter-spacing: 0; text-transform: none; }
-  .th-wrap:hover .th-tooltip { display: block; }
-  .resumen-table tfoot td { border-top: 2px solid var(--border2); }
-  .semana-nav { display: flex; align-items: center; gap: 0; margin-bottom: 24px; background: var(--surface); border: 1px solid var(--border2); border-radius: 12px; overflow: hidden; box-shadow: 0 2px 8px rgba(0,51,105,0.08); }
-  .semana-label { flex: 1; font-family: var(--mono); font-size: 14px; color: var(--kn-navy); font-weight: 600; text-align: center; padding: 14px 8px; letter-spacing: 0.02em; }
-  .btn-semana { width: 52px; height: 52px; border: none; background: transparent; cursor: pointer; display: flex; align-items: center; justify-content: center; color: var(--kn-navy); font-size: 18px; transition: all 0.15s; flex-shrink: 0; }
-  .btn-semana:hover:not(:disabled) { background: var(--kn-navy); color: #fff; }
-  .btn-semana:disabled { color: var(--border2); cursor: not-allowed; }
-  .btn-semana:first-child { border-right: 1px solid var(--border); }
-  .btn-semana:last-child { border-left: 1px solid var(--border); }
+    .decision-aprobada { font-size: 11.5px; color: #6b7280; }
+    .anomaly-txt { color: #dc2626; }
 
-  @media (max-width: 700px) {
-    main { padding: 16px 12px 0; }
-    .summary-bar { max-width: 100%; }
-    .desktop-table { display: none; }
-    .mobile-cards { display: block; }
-  }
-</style>
+    /* ── CARD FOOTER ────────────────────────────── */
+    .card-footer {
+      padding: 12px 20px;
+      border-top: 1px solid #f0f0f0;
+      background: #fafbfc;
+      display: flex;
+      align-items: center;
+      gap: 14px;
+    }
+    .btn-guardar {
+      display: inline-flex;
+      align-items: center;
+      gap: 6px;
+      padding: 8px 20px;
+      background: #003087;
+      color: white;
+      border: none;
+      border-radius: 7px;
+      font-size: 13px;
+      font-weight: 600;
+      cursor: pointer;
+      transition: background 0.15s, opacity 0.15s;
+      white-space: nowrap;
+    }
+    .btn-guardar:hover:not(:disabled) { background: #002166; }
+    .btn-guardar:disabled { opacity: 0.5; cursor: default; }
+    .btn-guardar .material-icons { font-size: 16px; }
+    .save-hint {
+      font-size: 12px;
+      color: #9aa1b0;
+      transition: color 0.2s;
+    }
+    .save-hint.ready { color: #16a34a; font-weight: 600; }
+
+    /* ── LOADING ────────────────────────────────── */
+    #loading {
+      display: none;
+      position: fixed;
+      inset: 0;
+      background: rgba(240,242,245,0.85);
+      z-index: 100;
+      align-items: center;
+      justify-content: center;
+      flex-direction: column;
+      gap: 14px;
+    }
+    #loading.visible { display: flex; }
+    .spinner {
+      width: 36px; height: 36px;
+      border: 3.5px solid #d1d5db;
+      border-top-color: #003087;
+      border-radius: 50%;
+      animation: spin 0.7s linear infinite;
+    }
+    @keyframes spin { to { transform: rotate(360deg); } }
+    .loading-label { font-size: 13px; color: #6b7280; }
+
+    /* ── ERROR ──────────────────────────────────── */
+    #error-box {
+      display: none;
+      background: #fef2f2;
+      border: 1px solid #fecaca;
+      color: #991b1b;
+      padding: 12px 16px;
+      border-radius: 8px;
+      margin-bottom: 16px;
+      font-size: 13px;
+    }
+
+    /* ── EMPTY ──────────────────────────────────── */
+    .empty {
+      text-align: center;
+      padding: 60px 24px;
+      color: #9aa1b0;
+      font-size: 14px;
+    }
+    .empty .material-icons { font-size: 48px; display: block; margin-bottom: 12px; color: #d1d5db; }
+
+    /* ── TOAST ──────────────────────────────────── */
+    #toast {
+      position: fixed;
+      bottom: 28px;
+      left: 50%;
+      transform: translateX(-50%) translateY(70px);
+      background: #1a1a2e;
+      color: white;
+      padding: 10px 24px;
+      border-radius: 24px;
+      font-size: 13px;
+      font-weight: 500;
+      transition: transform 0.3s cubic-bezier(0.4,0,0.2,1);
+      z-index: 300;
+      white-space: nowrap;
+      pointer-events: none;
+    }
+    #toast.show { transform: translateX(-50%) translateY(0); }
+
+    @media (max-width: 700px) {
+      .resumen-horas { grid-template-columns: repeat(2, 1fr); }
+      .dec-btn span:not(.material-icons) { display: none; }
+    }
+  </style>
 </head>
 <body>
 
+<div id="loading">
+  <div class="spinner"></div>
+  <span class="loading-label">Cargando registros del equipo...</span>
+</div>
+
+<div id="toast"></div>
+
 <header>
-  <div class="header-inner">
-    <span class="logo"><span class="logo-dot"></span> KN · Aprobaciones</span>
-    <div class="manager-chip">
-      <div class="avatar" id="avatarInitials">--</div>
-      <span class="mgr-name" id="mgrNameDisplay">Cargando...</span>
-    </div>
-  </div>
+  <span class="logo">KN <em>·</em> Perishables</span>
+  <span class="jefe-chip" id="jefeChip">—</span>
 </header>
 
-<main>
-  <div class="page-title">Registros pendientes</div>
-  <div class="page-subtitle" id="pageSubtitle">Cargando...</div>
-  <div class="summary-bar">
-    <div class="stat"><div class="stat-label">Pendientes</div><div class="stat-val" id="statTotal">—</div></div>
-    <div class="stat"><div class="stat-label">Empleados</div><div class="stat-val" id="statEmpleados">—</div></div>
-    <div class="stat"><div class="stat-label">Aprobados</div><div class="stat-val" id="statAprobados">0</div></div>
-  </div>
-  <div class="tabs">
-    <button class="tab-btn active" onclick="switchTab('pendientes', this)">📋 Pendientes <span id="tabCountPendientes"></span></button>
-    <button class="tab-btn" onclick="switchTab('resumen', this)">📊 Resumen semana</button>
-  </div>
+<div class="week-nav">
+  <button class="nav-btn" id="prevWeek" disabled>
+    <span class="material-icons">chevron_left</span>
+  </button>
+  <span id="weekLabel">—</span>
+  <span class="week-pendientes-count" id="weekPendCount" style="display:none"></span>
+  <button class="nav-btn" id="nextWeek" disabled>
+    <span class="material-icons">chevron_right</span>
+  </button>
+</div>
 
-  <div class="tab-content active" id="tab-pendientes">
-    <div id="container">
-      <div class="loading-state">Cargando pendientes<span class="loading-dot">.</span><span class="loading-dot">.</span><span class="loading-dot">.</span></div>
-    </div>
-  </div>
-
-  <div class="tab-content" id="tab-resumen">
-    <div class="semana-nav">
-      <button class="btn-semana" id="btnPrevSemana" onclick="cambiarSemana(-1)" title="Semana anterior">
-        <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><polyline points="15 18 9 12 15 6"/></svg>
-      </button>
-      <div class="semana-label" id="semanaLabel">—</div>
-      <button class="btn-semana" id="btnNextSemana" onclick="cambiarSemana(1)" title="Semana siguiente">
-        <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><polyline points="9 18 15 12 9 6"/></svg>
-      </button>
-    </div>
-    <div id="resumenContainer">
-      <div class="loading-state">Selecciona la pestaña para cargar<span class="loading-dot">.</span></div>
-    </div>
-  </div>
-</main>
-
-<div class="toast" id="toast"></div>
+<div class="content">
+  <div id="error-box"></div>
+  <div id="empList"></div>
+</div>
 
 <script>
-const FLOW_GET     = 'https://bd4a763d737defaeacf0e99a4d082f.58.environment.api.powerplatform.com:443/powerautomate/automations/direct/workflows/3fd25ad09b5449a9a614f784b10bbc72/triggers/manual/paths/invoke?api-version=1&sp=%2Ftriggers%2Fmanual%2Frun&sv=1.0&sig=oYx-w7yw0ZHA9-KETPaXHxpMvUHGEI0iUJoElGXsHvQ';
-const FLOW_APROBAR = 'https://bd4a763d737defaeacf0e99a4d082f.58.environment.api.powerplatform.com:443/powerautomate/automations/direct/workflows/cad0dc8e16a4466cb83297306976794d/triggers/manual/paths/invoke?api-version=1&sp=%2Ftriggers%2Fmanual%2Frun&sv=1.0&sig=tTGdFfz_6i4mpPo6HmbobfRSPxoGwS9V5fBi0z7L9uA';
-const FLOW_RESUMEN = 'https://bd4a763d737defaeacf0e99a4d082f.58.environment.api.powerplatform.com:443/powerautomate/automations/direct/workflows/294ad9e473794caaa408b8156dcf55a3/triggers/manual/paths/invoke?api-version=1&sp=%2Ftriggers%2Fmanual%2Frun&sv=1.0&sig=YVuu_MDyDZH8cFKPSysHz9KquwmrblYo2nhGhwNOS_w';
+// ══════════════════════════════════════════════════════════════════
+// CONSTANTES — ajusta FLOW_APROBACION con la URL real de Flow 5
+// ══════════════════════════════════════════════════════════════════
+const FLOW_EQUIPO = 'https://bd4a763d737defaeacf0e99a4d082f.58.environment.api.powerplatform.com:443/powerautomate/automations/direct/workflows/6dc19841dab7420aa93bd860ba461b94/triggers/manual/paths/invoke?api-version=1&sp=%2Ftriggers%2Fmanual%2Frun&sv=1.0&sig=f5T0mGD6vBp2h5qddS9LSx2pLVR_UCJb3vNSfQSyzfU';
 
-const params = new URLSearchParams(location.search);
-const jefeEmail  = params.get('jefe') || '';
-const nombreParam = params.get('nombre') || '';
-let registros = [], aprobadosHoy = 0;
-const MESES = ['ene','feb','mar','abr','may','jun','jul','ago','sep','oct','nov','dic'];
-const DIAS  = ['Dom','Lun','Mar','Mié','Jue','Vie','Sáb'];
+// ⚠️ REEMPLAZAR con la URL del trigger HTTP de KN-Procesar Aprobación (Flow 5)
+const FLOW_APROBACION = 'REEMPLAZAR_URL_FLOW_5';
 
-document.addEventListener('DOMContentLoaded', () => {
-  if (!jefeEmail) {
-    document.getElementById('container').innerHTML =
-      '<div class="loading-state" style="color:var(--danger)">⚠️ Falta el parámetro ?jefe= en la URL.</div>';
+// Valores de decisión que recibirá Flow 5 en el campo "decision"
+// Verifica que coincidan con lo que Flow 5 espera en triggerBody()?['decision']
+const DECISIONES = {
+  HoraExtra:  'HoraExtra',
+  Recargo:    'Recargo',
+  Compensado: 'Compensado',
+  Rechazar:   'Rechazar'
+};
+
+// ══════════════════════════════════════════════════════════════════
+// ESTADO
+// ══════════════════════════════════════════════════════════════════
+let todosRegistros = [];
+let semanas        = [];       // ['2026-06-22', '2026-06-15', ...]  newest first
+let semanaIdx      = 0;        // índice en `semanas` de la semana visible
+let decisions      = {};       // { [recordId]: 'HoraExtra'|'Recargo'|'Compensado'|'Rechazar' }
+let emailJefe      = '';
+
+// ══════════════════════════════════════════════════════════════════
+// INIT
+// ══════════════════════════════════════════════════════════════════
+async function init() {
+  const params = new URLSearchParams(window.location.search);
+  emailJefe = (params.get('email') || '').trim();
+
+  if (!emailJefe) {
+    showError('Falta parámetro email en la URL. Ejemplo: ?email=tu.nombre@kuehne-nagel.com');
     return;
   }
-  initManager();
-  loadPendientes();
-});
 
-function initManager() {
-  const display = nombreParam || jefeEmail.split('@')[0].replace('.', ' ');
-  const parts = display.split(' ');
-  document.getElementById('avatarInitials').textContent = parts.map(p=>p[0]?.toUpperCase()||'').join('').slice(0,2) || '??';
-  document.getElementById('mgrNameDisplay').textContent = display;
+  const alias = emailJefe.split('@')[0].replace(/\./g, ' ');
+  document.getElementById('jefeChip').textContent = alias;
+  await cargarRegistros();
 }
 
-async function loadPendientes() {
+// ══════════════════════════════════════════════════════════════════
+// CARGA DE DATOS
+// ══════════════════════════════════════════════════════════════════
+async function cargarRegistros() {
+  showLoading(true);
+  hideError();
   try {
-    const resp = await fetch(FLOW_GET, {
+    const res = await fetch(FLOW_EQUIPO, {
       method: 'POST',
       headers: { 'Content-Type': 'application/json' },
-      body: JSON.stringify({ jefeEmail })
+      body: JSON.stringify({ email: emailJefe })
     });
-    const data = await resp.json();
-    const raw = data?.registros?.body || data.registros || data || [];
-    registros = raw.map(r => ({
-      ...r,
-      HoraInicio: r.HoraInicio ? r.HoraInicio.substring(11,16) : null,
-      HoraFin:    r.HoraFin    ? r.HoraFin.substring(11,16)    : null,
-      TipoPago:   r.TipoPago   || 'N/A',
-    }));
-  } catch(e) { registros = []; }
-  renderPendientes();
+    if (!res.ok) throw new Error(`HTTP ${res.status} — ${res.statusText}`);
+    const data = await res.json();
+
+    // Filtrar registros sin empleado (registros de prueba/viejos)
+    todosRegistros = (data.registros || []).filter(r => r.Empleado && r.Empleado.includes('@'));
+    decisions = {};
+    procesarSemanas();
+    renderSemana();
+  } catch (err) {
+    showError('Error cargando registros: ' + err.message);
+  } finally {
+    showLoading(false);
+  }
 }
 
-function tipoBadge(tipoDia) {
-  if (tipoDia === 'Dominical') return '<span class="badge dominical">Dominical</span>';
-  if (tipoDia === 'Sabado')    return '<span class="badge sabado">Sábado</span>';
-  return '<span class="badge habil">Hábil</span>';
-}
-function tipoPagoHtml(tp) {
-  return tp && tp !== 'N/A' && tp !== 'Ordinario'
-    ? `<span class="badge extra">${tp}</span>`
-    : '<span style="color:var(--muted);font-size:12px">—</span>';
-}
-function fechaStr(r) {
-  const d = r.FechaRegistro ? new Date(r.FechaRegistro + 'T12:00:00') : null;
-  return d ? `${DIAS[d.getDay()]} ${d.getDate()} ${MESES[d.getMonth()]}` : '—';
+// ══════════════════════════════════════════════════════════════════
+// SEMANAS (lunes–domingo, hora local Colombia UTC-5)
+// ══════════════════════════════════════════════════════════════════
+function toLocalDate(isoStr) {
+  // Convierte timestamp UTC a hora Colombia (UTC-5)
+  const d = new Date(isoStr);
+  return new Date(d.getTime() - 5 * 60 * 60 * 1000);
 }
 
-function renderPendientes() {
-  const container = document.getElementById('container');
-  document.getElementById('pageSubtitle').textContent =
-    `${registros.length} registro${registros.length !== 1 ? 's' : ''} pendiente${registros.length !== 1 ? 's' : ''} de aprobación`;
-  document.getElementById('statTotal').textContent = registros.length;
-  document.getElementById('tabCountPendientes').textContent = registros.length > 0 ? `(${registros.length})` : '';
+function getWeekStart(isoStr) {
+  const local = toLocalDate(isoStr);
+  const dow = local.getUTCDay();               // 0=Dom, 1=Lun
+  const diff = dow === 0 ? -6 : 1 - dow;      // días hasta el lunes
+  const monday = new Date(local);
+  monday.setUTCDate(local.getUTCDate() + diff);
+  return monday.toISOString().split('T')[0];   // 'YYYY-MM-DD'
+}
 
-  const porEmpleado = {};
-  registros.forEach(r => {
-    if (!porEmpleado[r.CorreoEmpleado]) porEmpleado[r.CorreoEmpleado] = {
-      nombre: r.NombreEmpleado || r.CorreoEmpleado.split('@')[0],
-      email: r.CorreoEmpleado, regs: []
-    };
-    porEmpleado[r.CorreoEmpleado].regs.push(r);
+function procesarSemanas() {
+  const set = new Set(todosRegistros.map(r => getWeekStart(r.HoraInicio)));
+  semanas = Array.from(set).sort().reverse();  // más reciente primero
+
+  // Posicionar en la semana actual o la más reciente
+  const hoyStr = getWeekStart(new Date().toISOString());
+  const idx = semanas.indexOf(hoyStr);
+  semanaIdx = idx >= 0 ? idx : 0;
+}
+
+function registrosDeSemana(weekStart) {
+  return todosRegistros.filter(r => getWeekStart(r.HoraInicio) === weekStart);
+}
+
+function formatWeekLabel(weekStart) {
+  const lunes   = new Date(weekStart + 'T12:00:00Z');
+  const domingo = new Date(lunes);
+  domingo.setUTCDate(lunes.getUTCDate() + 6);
+  const fmtDate = d => d.toLocaleDateString('es-CO', { day: 'numeric', month: 'short', timeZone: 'UTC' });
+  return `${fmtDate(lunes)} – ${fmtDate(domingo)} · ${lunes.getUTCFullYear()}`;
+}
+
+// ══════════════════════════════════════════════════════════════════
+// HELPERS
+// ══════════════════════════════════════════════════════════════════
+function getVal(field) {
+  if (field === null || field === undefined) return null;
+  if (typeof field === 'string') return field.trim() || null;
+  if (typeof field === 'object' && field.Value !== undefined) return field.Value;
+  return null;
+}
+
+function formatHora(isoStr) {
+  if (!isoStr) return '—';
+  const local = toLocalDate(isoStr);
+  const h = String(local.getUTCHours()).padStart(2, '0');
+  const m = String(local.getUTCMinutes()).padStart(2, '0');
+  return `${h}:${m}`;
+}
+
+function formatFecha(isoStr) {
+  if (!isoStr) return '—';
+  const local = toLocalDate(isoStr);
+  return local.toLocaleDateString('es-CO', {
+    weekday: 'short', day: 'numeric', month: 'short', timeZone: 'UTC'
   });
-  document.getElementById('statEmpleados').textContent = Object.keys(porEmpleado).length;
+}
 
-  if (registros.length === 0) {
-    container.innerHTML = `<div class="empty-state"><div class="empty-icon">✅</div><div class="empty-title">Sin pendientes</div><div>No hay registros pendientes de aprobación.</div></div>`;
+function formatNombre(nombreCompleto) {
+  if (!nombreCompleto) return '—';
+  return nombreCompleto.split('/')[0].trim();
+}
+
+function fmtH(val) {
+  const n = parseFloat(val) || 0;
+  return n.toFixed(1) + 'h';
+}
+
+function chipTipoDia(tipoDia) {
+  const v = getVal(tipoDia);
+  if (!v) return '<span class="chip-dia chip-desconocido">Sin tipo</span>';
+  const m = {
+    'Habil': 'chip-habil',
+    'Sabado': 'chip-sabado',
+    'Dominical': 'chip-dominical',
+    'Festivo': 'chip-festivo'
+  };
+  const cls = m[v] || 'chip-desconocido';
+  return `<span class="chip-dia ${cls}">${v}</span>`;
+}
+
+function safeId(email) {
+  // genera un ID CSS-seguro a partir del email
+  return 'emp-' + email.replace(/[@.]/g, '_');
+}
+
+// ══════════════════════════════════════════════════════════════════
+// RENDER SEMANA
+// ══════════════════════════════════════════════════════════════════
+function renderSemana() {
+  const container = document.getElementById('empList');
+
+  if (semanas.length === 0) {
+    document.getElementById('weekLabel').textContent = 'Sin registros';
+    container.innerHTML = `<div class="empty">
+      <span class="material-icons">inbox</span>
+      No hay registros para este equipo.
+    </div>`;
     return;
+  }
+
+  const weekStart = semanas[semanaIdx];
+  document.getElementById('weekLabel').textContent = formatWeekLabel(weekStart);
+  document.getElementById('prevWeek').disabled = semanaIdx >= semanas.length - 1;
+  document.getElementById('nextWeek').disabled = semanaIdx <= 0;
+
+  const regs = registrosDeSemana(weekStart);
+
+  // Agrupar por empleado
+  const empMap = {};
+  regs.forEach(r => {
+    const key = r.Empleado.toLowerCase(); // normalizar email
+    if (!empMap[key]) empMap[key] = { email: r.Empleado, nombre: r.NombreEmpleado, regs: [] };
+    empMap[key].regs.push(r);
+  });
+
+  // Ordenar: pendientes primero, luego por nombre
+  const empKeys = Object.keys(empMap).sort((a, b) => {
+    const ap = empMap[a].regs.some(r => r.RequiereAprobacion) ? 1 : 0;
+    const bp = empMap[b].regs.some(r => r.RequiereAprobacion) ? 1 : 0;
+    if (bp !== ap) return bp - ap;
+    return formatNombre(empMap[a].nombre).localeCompare(formatNombre(empMap[b].nombre));
+  });
+
+  // Total pendientes de la semana
+  const totalPend = empKeys.reduce((s, k) => s + empMap[k].regs.filter(r => r.RequiereAprobacion).length, 0);
+  const countEl = document.getElementById('weekPendCount');
+  if (totalPend > 0) {
+    countEl.style.display = '';
+    countEl.textContent = `${totalPend} pendiente${totalPend !== 1 ? 's' : ''}`;
+  } else {
+    countEl.style.display = 'none';
   }
 
   container.innerHTML = '';
-  Object.values(porEmpleado).forEach(emp => {
-    const initials = (emp.nombre || emp.email).split(/[ @]/).map(p=>p[0]?.toUpperCase()||'').join('').slice(0,2);
-    const nombreCorto = (emp.nombre || emp.email.split('@')[0]).split('/')[0].trim();
-    const block = document.createElement('div');
-    block.className = 'empleado-block';
-
-    const desktopRows = emp.regs.map(r => `
-      <tr id="row-${r.ID}">
-        <td class="col-fecha"><div style="font-weight:600">${fechaStr(r)}</div><div style="margin-top:3px">${tipoBadge(r.TipoDia)}</div></td>
-        <td class="col-horario"><span class="time-val">${r.HoraInicio||'—'}</span> <span style="color:var(--muted)">→</span> <span class="time-val">${r.HoraFin||'—'}</span></td>
-        <td class="col-horas"><span class="time-val">${r.HorasOrdinarias ? parseFloat(r.HorasOrdinarias).toFixed(1)+'h' : '—'}</span></td>
-        <td class="col-tipo">${tipoPagoHtml(r.TipoPago)}</td>
-        <td class="col-extra"><span class="time-val">${r.HorasExtra ? parseFloat(r.HorasExtra).toFixed(1)+'h' : '—'}</span></td>
-        <td class="col-obs"><span style="font-size:12px;color:var(--muted);font-style:italic">${r.Observaciones||'—'}</span></td>
-        <td class="col-accion"><div class="actions-cell" id="actions-${r.ID}">
-          <button class="btn-decision btn-extra"      onclick="procesar(${r.ID},'extra')"><span class="material-icons-round">schedule</span>Hora extra</button>
-          <button class="btn-decision btn-recargo"    onclick="procesar(${r.ID},'recargo')"><span class="material-icons-round">nightlight</span>Recargo</button>
-          <button class="btn-decision btn-compensado" onclick="procesar(${r.ID},'compensado')"><span class="material-icons-round">event_available</span>Compensado</button>
-          <button class="btn-decision btn-rechazar"   onclick="procesar(${r.ID},'rechazado')"><span class="material-icons-round">block</span>Rechazar</button>
-        </div></td>
-      </tr>`).join('');
-
-    const mobileCards = emp.regs.map(r => `
-      <div class="reg-card" id="card-${r.ID}">
-        <div class="reg-card-top">
-          <div>
-            <div class="reg-card-fecha">${fechaStr(r)}</div>
-            <div style="margin-top:4px">${tipoBadge(r.TipoDia)}</div>
-          </div>
-          ${tipoPagoHtml(r.TipoPago)}
-        </div>
-        <div class="reg-card-meta">
-          <div class="icon-label">
-            <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="var(--kn-blue)" stroke-width="2"><circle cx="12" cy="12" r="10"/><polyline points="12 6 12 12 16 14"/></svg>
-            <span class="time-val">${r.HoraInicio||'—'} → ${r.HoraFin||'—'}</span>
-          </div>
-          <div class="icon-label">
-            <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="var(--kn-navy)" stroke-width="2"><rect x="3" y="4" width="18" height="18" rx="2"/><line x1="16" y1="2" x2="16" y2="6"/><line x1="8" y1="2" x2="8" y2="6"/><line x1="3" y1="10" x2="21" y2="10"/></svg>
-            <span>${r.HorasOrdinarias ? parseFloat(r.HorasOrdinarias).toFixed(1)+'h' : '—'}</span>
-          </div>
-          <div class="icon-label">
-            <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="var(--warn-text)" stroke-width="2"><circle cx="12" cy="12" r="10"/><polyline points="12 6 12 12 16 14"/></svg>
-            <span style="color:var(--warn-text)">${r.HorasExtra ? parseFloat(r.HorasExtra).toFixed(1)+'h extra' : 'Sin extra'}</span>
-          </div>
-        </div>
-        ${r.Observaciones ? `<div class="reg-card-obs">
-          <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="var(--muted)" stroke-width="2" style="flex-shrink:0;margin-top:1px"><path d="M21 15a2 2 0 0 1-2 2H7l-4 4V5a2 2 0 0 1 2-2h14a2 2 0 0 1 2 2z"/></svg>
-          <span>${r.Observaciones}</span>
-        </div>` : ''}
-        <div class="reg-card-actions">
-          <div id="actions-${r.ID}" style="display:flex;gap:8px;flex-wrap:wrap;width:100%;align-items:center;">
-            <button class="btn-decision btn-extra"      onclick="procesar(${r.ID},'extra')"><span class="material-icons-round">schedule</span>Hora extra</button>
-            <button class="btn-decision btn-recargo"    onclick="procesar(${r.ID},'recargo')"><span class="material-icons-round">nightlight</span>Recargo</button>
-            <button class="btn-decision btn-compensado" onclick="procesar(${r.ID},'compensado')"><span class="material-icons-round">event_available</span>Compensado</button>
-            <button class="btn-decision btn-rechazar"   onclick="procesar(${r.ID},'rechazado')"><span class="material-icons-round">block</span>Rechazar</button>
-          </div>
-        </div>
-      </div>`).join('');
-
-    block.innerHTML = `
-      <div class="empleado-header">
-        <div class="emp-info">
-          <div class="emp-avatar">${initials}</div>
-          <div><div class="emp-name">${nombreCorto}</div><div class="emp-email">${emp.email}</div></div>
-        </div>
-        <span class="emp-count" id="count-${emp.email.replace(/[@.]/g,'_')}">${emp.regs.length} pendiente${emp.regs.length!==1?'s':''}</span>
-      </div>
-      <table class="desktop-table">
-        <thead><tr>
-          <th class="col-fecha">Fecha</th>
-          <th class="col-horario">Horario</th>
-          <th class="col-horas">Horas</th>
-          <th class="col-tipo">Tipo pago</th>
-          <th class="col-extra">Horas extra</th>
-          <th class="col-obs">Observaciones</th>
-          <th class="col-accion">Acción</th>
-        </tr></thead>
-        <tbody>${desktopRows}</tbody>
-      </table>
-      <div class="mobile-cards">${mobileCards}</div>`;
-
-    container.appendChild(block);
-  });
-}
-
-// ── Procesar aprobación ───────────────────────────────────────────────────────
-// IMPORTANTE: se manda como POST con JSON body, no como GET con query string.
-// Power Automate ya no parsea query params con el nuevo formato de URLs.
-async function procesar(id, tipoAprobacion) {
-  const aprobado   = tipoAprobacion === 'rechazado' ? 'no' : 'si';
-  const compensado = tipoAprobacion === 'compensado' ? 'si' : 'no';
-  const actionsDiv = document.getElementById(`actions-${id}`);
-  actionsDiv.querySelectorAll('button').forEach(b => b.disabled = true);
-  actionsDiv.innerHTML = '<span class="status-chip procesando">⏳ Procesando...</span>';
-
-  try {
-    await fetch(FLOW_APROBAR, {
-      method: 'POST',
-      mode: 'no-cors',
-      headers: { 'Content-Type': 'application/json' },
-      body: JSON.stringify({
-        registro: String(id),
-        aprobado,
-        compensado,
-        tipoAprobacion
-      })
-    });
-    const labels = { extra: '✓ Hora extra', recargo: '✓ Recargo', compensado: '✓ Compensado', rechazado: '✗ Rechazado' };
-    const chipClass = tipoAprobacion === 'rechazado' ? 'rechazado' : 'aprobado';
-    actionsDiv.innerHTML = `<span class="status-chip ${chipClass}">${labels[tipoAprobacion]||'✓ OK'}</span>`;
-    aprobadosHoy++;
-    document.getElementById('statAprobados').textContent = aprobadosHoy;
-    showToast(tipoAprobacion === 'rechazado' ? '❌ Registro rechazado' : '✅ Registro aprobado', tipoAprobacion === 'rechazado' ? 'error' : 'ok');
-  } catch(e) {
-    actionsDiv.innerHTML = `
-      <button class="btn-decision btn-extra"      onclick="procesar(${id},'extra')"><span class="material-icons-round">schedule</span>Hora extra</button>
-      <button class="btn-decision btn-recargo"    onclick="procesar(${id},'recargo')"><span class="material-icons-round">nightlight</span>Recargo</button>
-      <button class="btn-decision btn-compensado" onclick="procesar(${id},'compensado')"><span class="material-icons-round">event_available</span>Compensado</button>
-      <button class="btn-decision btn-rechazar"   onclick="procesar(${id},'rechazado')"><span class="material-icons-round">block</span>Rechazar</button>`;
-    showToast('Error al procesar. Intenta de nuevo.', 'error');
-  }
-}
-
-// ── Pestañas ──────────────────────────────────────────────────────────────────
-let semanaOffset = 0;
-let resumenCargado = false;
-
-function switchTab(tab, btn) {
-  document.querySelectorAll('.tab-btn').forEach(b => b.classList.remove('active'));
-  document.querySelectorAll('.tab-content').forEach(c => c.classList.remove('active'));
-  btn.classList.add('active');
-  document.getElementById('tab-' + tab).classList.add('active');
-  if (tab === 'resumen' && !resumenCargado) {
-    renderSemanaNav();
-    loadResumen();
-    resumenCargado = true;
-  }
-}
-
-function getSemanaISO(offset) {
-  const now = new Date();
-  const monday = new Date(now);
-  monday.setDate(now.getDate() - ((now.getDay() + 6) % 7) + offset * 7);
-  return Math.ceil((((monday - new Date(monday.getFullYear(), 0, 1)) / 86400000) + 1) / 7);
-}
-
-function getSemanaLabel(offset) {
-  const now = new Date();
-  const monday = new Date(now);
-  monday.setDate(now.getDate() - ((now.getDay() + 6) % 7) + offset * 7);
-  const sunday = new Date(monday);
-  sunday.setDate(monday.getDate() + 6);
-  const MESES2 = ['ene','feb','mar','abr','may','jun','jul','ago','sep','oct','nov','dic'];
-  if (offset === 0) return 'Esta semana';
-  if (offset === -1) return 'Semana pasada';
-  return `${monday.getDate()} ${MESES2[monday.getMonth()]} – ${sunday.getDate()} ${MESES2[sunday.getMonth()]}`;
-}
-
-function renderSemanaNav() {
-  document.getElementById('semanaLabel').textContent = getSemanaLabel(semanaOffset);
-  document.getElementById('btnNextSemana').disabled = semanaOffset >= 0;
-}
-
-function cambiarSemana(dir) {
-  semanaOffset += dir;
-  renderSemanaNav();
-  resumenCargado = false;
-  loadResumen();
-  resumenCargado = true;
-}
-
-async function loadResumen() {
-  const container = document.getElementById('resumenContainer');
-  container.innerHTML = '<div class="loading-state">Cargando resumen<span class="loading-dot">.</span><span class="loading-dot">.</span><span class="loading-dot">.</span></div>';
-  const semana = getSemanaISO(semanaOffset);
-  try {
-    const resp = await fetch(FLOW_RESUMEN, {
-      method: 'POST',
-      headers: { 'Content-Type': 'application/json' },
-      body: JSON.stringify({ jefeEmail, semanaISO: semana })
-    });
-    const data = await resp.json();
-    const filas = data?.resumen?.body || data.resumen || data || [];
-    renderResumen(filas);
-  } catch(e) {
-    container.innerHTML = '<div class="loading-state" style="color:var(--danger)">Error al cargar el resumen.</div>';
-  }
-}
-
-function renderResumen(filas) {
-  const container = document.getElementById('resumenContainer');
-  if (!filas.length) {
-    container.innerHTML = '<div class="empty-state"><div class="empty-icon">📊</div><div class="empty-title">Sin datos</div><div>No hay registros de nómina para esta semana.</div></div>';
+  if (empKeys.length === 0) {
+    container.innerHTML = `<div class="empty">
+      <span class="material-icons">event_busy</span>
+      No hay registros para esta semana.
+    </div>`;
     return;
   }
 
-  const CODIGOS = [
-    { key: 'HorasOrdinarias', label: 'Base',      desc: 'Horas sin recargo ni extra',                   color: 'var(--kn-navy)' },
-    { key: 'Cod1060',         label: 'Rec.Noc',   desc: '1060 · Recargo nocturno (35%)',                color: '#6366f1' },
-    { key: 'Cod1061',         label: 'Ext.Diu',   desc: '1061 · Extra diurna (125%)',                   color: '#0099DA' },
-    { key: 'Cod1062',         label: 'Ext.Noc',   desc: '1062 · Extra nocturna (175%)',                 color: '#7c3aed' },
-    { key: 'Cod1063',         label: 'Ext.Dom.D', desc: '1063 · Extra dominical diurna (205%)',         color: '#d97706' },
-    { key: 'Cod1064',         label: 'Ext.Dom.N', desc: '1064 · Extra dominical nocturna (255%)',       color: '#b45309' },
-    { key: 'Cod1065',         label: 'Fest.Comp', desc: '1065 · Festivo/Dominical compensado (80%)',    color: '#08C792' },
-    { key: 'Cod1066',         label: 'Rec.Noc.F', desc: '1066 · Recargo nocturno festivo (215%)',      color: '#dc2626' },
-    { key: 'Cod1067',         label: 'Fest.S/C',  desc: '1067 · Festivo sin compensatorio (180%)',     color: '#9333ea' },
-  ];
+  empKeys.forEach(key => {
+    const { email, nombre, regs: empRegs } = empMap[key];
+    container.appendChild(buildEmpCard(email, nombre, empRegs));
+  });
+}
 
-  function fval(v) { return parseFloat(v) || 0; }
-  function cell(v, color) {
-    const n = fval(v);
-    return n > 0
-      ? `<td><span class="chip-val" style="background:${color}20;color:${color}">${n.toFixed(1)}h</span></td>`
-      : `<td><span class="val-zero">—</span></td>`;
-  }
+// ══════════════════════════════════════════════════════════════════
+// CARD EMPLEADO
+// ══════════════════════════════════════════════════════════════════
+function buildEmpCard(email, nombre, registros) {
+  const sorted = [...registros].sort((a, b) => new Date(a.HoraInicio) - new Date(b.HoraInicio));
 
-  const rows = filas.map(f => {
-    const nombre  = (f.NombreEmpleado || f.CorreoEmpleado || '').split('/')[0].trim();
-    const base    = fval(f['HorasOrdinarias']);
-    const extras  = CODIGOS.slice(1).reduce((s, c) => s + fval(f[c.key]), 0);
-    const total   = base + extras;
-    const initials = nombre.split(' ').map(p=>p[0]?.toUpperCase()||'').join('').slice(0,2);
-    return `<tr>
-      <td>
-        <div style="display:flex;align-items:center;gap:8px;">
-          <div style="width:28px;height:28px;border-radius:50%;background:var(--kn-navy);color:#fff;display:flex;align-items:center;justify-content:center;font-size:10px;font-weight:700;flex-shrink:0">${initials}</div>
-          <div>
-            <div style="font-weight:600;font-size:13px;color:var(--kn-navy)">${nombre}</div>
-            <div style="font-size:11px;color:var(--muted)">${f.CorreoEmpleado||''}</div>
-          </div>
-        </div>
-      </td>
-      ${CODIGOS.map(c => cell(f[c.key], c.color)).join('')}
-      <td><span style="font-family:var(--mono);font-size:12px;font-weight:700;color:var(--kn-navy)">${total.toFixed(1)}h</span></td>
-    </tr>`;
-  }).join('');
+  const cerrados   = sorted.filter(r => getVal(r.Estado) === 'Cerrado');
+  const horasOrd   = cerrados.reduce((s, r) => s + (parseFloat(r.HorasOrdinarias) || 0), 0);
+  const horasExtra = cerrados.reduce((s, r) => s + (parseFloat(r.HorasExtra)      || 0), 0);
+  const horasBrut  = cerrados.reduce((s, r) => s + (parseFloat(r.HorasBrutas)     || 0), 0);
+  const pendientes = sorted.filter(r => r.RequiereAprobacion);
+  const hayAbierto = sorted.some(r => getVal(r.Estado) === 'Abierto');
+  const restante44 = Math.max(44 - horasOrd, 0);
+  const pct44      = Math.min((horasOrd / 44) * 100, 100);
+  const barColor   = pct44 >= 100 ? '#dc2626' : pct44 >= 75 ? '#d97706' : '#16a34a';
+  const hasPend    = pendientes.length > 0;
+  const empSafeId  = safeId(email);
 
-  const totales = CODIGOS.map(c => filas.reduce((s,f) => s + fval(f[c.key]), 0));
-  const grandTotal = totales.reduce((s,v) => s+v, 0);
-  const totalesRow = `<tr style="background:var(--surface2);font-weight:700;">
-    <td style="color:var(--kn-navy);font-size:13px;">📊 Total equipo</td>
-    ${totales.map((t,i) => t > 0
-      ? `<td><span class="chip-val" style="background:${CODIGOS[i].color}20;color:${CODIGOS[i].color}">${t.toFixed(1)}h</span></td>`
-      : `<td><span class="val-zero">—</span></td>`
-    ).join('')}
-    <td><span style="font-family:var(--mono);font-size:13px;font-weight:700;color:var(--kn-navy)">${grandTotal.toFixed(1)}h</span></td>
-  </tr>`;
+  const card = document.createElement('div');
+  card.className = 'emp-card' + (hasPend ? ' has-pending' : '');
+  card.id = empSafeId;
 
-  const headers = CODIGOS.map(c =>
-    `<th><div class="th-wrap">${c.label}<span class="th-tooltip">${c.desc}</span></div></th>`
-  ).join('');
+  card.innerHTML = `
+    <div class="emp-header">
+      <div>
+        <span class="emp-nombre">${formatNombre(nombre)}</span>
+        <span class="emp-email">${email}</span>
+      </div>
+      <div class="emp-badges">
+        ${hasPend
+          ? `<span class="badge pending">${pendientes.length} pendiente${pendientes.length !== 1 ? 's' : ''}</span>`
+          : '<span class="badge done">✓ Al día</span>'}
+        ${hayAbierto ? '<span class="badge open">Turno abierto</span>' : ''}
+      </div>
+    </div>
 
-  container.innerHTML = `
-    <div class="resumen-wrap">
-      <table class="resumen-table">
+    <div class="resumen-horas">
+      <div class="hora-stat">
+        <span class="hora-val">${fmtH(horasBrut)}</span>
+        <span class="hora-lbl">Horas brutas</span>
+      </div>
+      <div class="hora-stat ${horasOrd >= 44 ? 'ok' : ''}">
+        <span class="hora-val">${fmtH(horasOrd)}</span>
+        <span class="hora-lbl">Ordinarias</span>
+      </div>
+      <div class="hora-stat ${horasExtra > 0 ? 'alerta' : ''}">
+        <span class="hora-val">${fmtH(horasExtra)}</span>
+        <span class="hora-lbl">Extralaborales</span>
+      </div>
+      <div class="hora-stat ${restante44 === 0 ? 'ok' : 'alerta'}">
+        <span class="hora-val">${restante44 === 0 ? '—' : fmtH(restante44)}</span>
+        <span class="hora-lbl">${restante44 === 0 ? 'Tope 44h ✓' : 'Faltan p/44h'}</span>
+      </div>
+    </div>
+
+    <div class="barra-wrap">
+      <div class="barra-track">
+        <div class="barra-fill" style="width:${pct44}%;background:${barColor}"></div>
+      </div>
+      <div class="barra-meta">
+        <span>${fmtH(horasOrd)} <strong>ordinarias</strong> de 44h semanales</span>
+        <span>${Math.round(pct44)}%</span>
+      </div>
+    </div>
+
+    <div class="tabla-wrap">
+      <table class="registros-tabla">
         <thead>
           <tr>
-            <th style="text-align:left;min-width:200px;">Empleado</th>
-            ${headers}
-            <th>Total</th>
+            <th>Fecha</th>
+            <th>Entrada</th>
+            <th>Salida</th>
+            <th>Brutas</th>
+            <th>Ord.</th>
+            <th>Extra</th>
+            <th>Tipo día</th>
+            <th>Franja</th>
+            <th>Observaciones</th>
+            <th>Estado / Decisión</th>
           </tr>
         </thead>
-        <tbody>${rows}</tbody>
-        <tfoot>${totalesRow}</tfoot>
+        <tbody>
+          ${sorted.map(r => buildFila(r)).join('')}
+        </tbody>
       </table>
-    </div>`;
+    </div>
+
+    ${hasPend ? `
+      <div class="card-footer">
+        <button class="btn-guardar" data-email="${email}" data-nombre="${formatNombre(nombre)}" disabled>
+          <span class="material-icons">save</span>
+          Guardar decisiones
+        </button>
+        <span class="save-hint" id="hint-${empSafeId}">
+          Define ${pendientes.length} decisión${pendientes.length !== 1 ? 'es' : ''} para guardar
+        </span>
+      </div>
+    ` : ''}
+  `;
+
+  // Listener en botón guardar
+  const btn = card.querySelector('.btn-guardar');
+  if (btn) {
+    btn.addEventListener('click', () => {
+      guardarDecisiones(email, formatNombre(nombre), pendientes);
+    });
+  }
+
+  return card;
 }
 
-// ── Toast ─────────────────────────────────────────────────────────────────────
-function showToast(msg, type='') {
+// ══════════════════════════════════════════════════════════════════
+// FILA DE REGISTRO
+// ══════════════════════════════════════════════════════════════════
+function buildFila(r) {
+  const estado   = getVal(r.Estado);
+  const tipoPago = getVal(r.TipoPago);
+  const franja   = getVal(r.FranjaInicio);
+  const obs      = (r.Observaciones || '').trim();
+
+  const isAbierto = estado === 'Abierto';
+  const isPending = r.RequiereAprobacion;
+  const isAnomalo = (parseFloat(r.HorasBrutas) || 0) > 24;
+
+  let rowClass = '';
+  if (isAnomalo)  rowClass = 'fila-anomala';
+  else if (isPending)  rowClass = 'fila-pending';
+  else if (isAbierto)  rowClass = 'fila-abierta';
+
+  const dec = decisions[r.ID];
+
+  let decisionCell;
+  if (isAbierto) {
+    decisionCell = `<td><em style="color:#16a34a;font-size:11px">En curso</em></td>`;
+  } else if (isPending) {
+    decisionCell = `
+      <td>
+        <div class="decision-btns" data-id="${r.ID}">
+          <button class="dec-btn extra      ${dec === 'HoraExtra'  ? 'selected' : ''}" data-id="${r.ID}" data-dec="HoraExtra"  title="Hora extra">
+            <span class="material-icons">trending_up</span><span>Extra</span>
+          </button>
+          <button class="dec-btn recargo    ${dec === 'Recargo'    ? 'selected' : ''}" data-id="${r.ID}" data-dec="Recargo"    title="Recargo">
+            <span class="material-icons">attach_money</span><span>Recargo</span>
+          </button>
+          <button class="dec-btn compensado ${dec === 'Compensado' ? 'selected' : ''}" data-id="${r.ID}" data-dec="Compensado" title="Compensado">
+            <span class="material-icons">event_available</span><span>Comp.</span>
+          </button>
+          <button class="dec-btn rechazar   ${dec === 'Rechazar'   ? 'selected' : ''}" data-id="${r.ID}" data-dec="Rechazar"   title="Rechazar">
+            <span class="material-icons">close</span><span>Rechazar</span>
+          </button>
+        </div>
+      </td>`;
+  } else {
+    decisionCell = `
+      <td class="decision-aprobada">
+        ${tipoPago || '—'}
+        ${isAnomalo ? ' <span class="material-icons anomaly-icon" style="font-size:13px;color:#d97706;vertical-align:middle" title="HorasBrutas anómalas (posible error de registro)">warning</span>' : ''}
+      </td>`;
+  }
+
+  const horasBrut = parseFloat(r.HorasBrutas) || 0;
+
+  return `
+    <tr class="${rowClass}">
+      <td style="white-space:nowrap">${formatFecha(r.HoraInicio)}</td>
+      <td style="font-variant-numeric:tabular-nums">${formatHora(r.HoraInicio)}</td>
+      <td style="font-variant-numeric:tabular-nums">${isAbierto ? '—' : formatHora(r.HoraFin)}</td>
+      <td class="${isAnomalo ? 'anomaly-txt' : ''}">${isAnomalo ? '⚠️ ' : ''}${fmtH(horasBrut)}</td>
+      <td>${fmtH(r.HorasOrdinarias)}</td>
+      <td>${fmtH(r.HorasExtra)}</td>
+      <td>${chipTipoDia(r.TipoDia)}</td>
+      <td style="font-size:11px;color:#6b7280">${franja ? franja.split('(')[0].trim() : '—'}</td>
+      <td style="font-size:11px;color:#6b7280;max-width:220px;overflow:hidden;text-overflow:ellipsis;white-space:nowrap" title="${obs}">${obs || '—'}</td>
+      ${decisionCell}
+    </tr>`;
+}
+
+// ══════════════════════════════════════════════════════════════════
+// EVENTO: CLICK EN BOTÓN DE DECISIÓN
+// ══════════════════════════════════════════════════════════════════
+document.addEventListener('click', e => {
+  const btn = e.target.closest('.dec-btn[data-dec]');
+  if (!btn) return;
+
+  const id  = parseInt(btn.dataset.id);
+  const dec = btn.dataset.dec;
+
+  decisions[id] = dec;
+
+  // Actualizar visual del grupo de botones
+  const group = document.querySelector(`.decision-btns[data-id="${id}"]`);
+  if (group) {
+    group.querySelectorAll('.dec-btn').forEach(b => b.classList.remove('selected'));
+    btn.classList.add('selected');
+  }
+
+  // Actualizar hint y estado del botón guardar del card
+  const card = btn.closest('.emp-card');
+  if (!card) return;
+
+  const emailCard  = card.querySelector('.btn-guardar')?.dataset.email;
+  if (!emailCard) return;
+
+  const weekStart  = semanas[semanaIdx];
+  const regs       = registrosDeSemana(weekStart);
+  const pendientes = regs.filter(r => r.Empleado.toLowerCase() === emailCard.toLowerCase() && r.RequiereAprobacion);
+  const sinDec     = pendientes.filter(r => !decisions[r.ID]).length;
+
+  const hint    = document.getElementById('hint-' + safeId(emailCard));
+  const guardar = card.querySelector('.btn-guardar');
+
+  if (hint) {
+    if (sinDec === 0) {
+      hint.textContent = '✓ Listo para guardar';
+      hint.className = 'save-hint ready';
+    } else {
+      hint.textContent = `Faltan ${sinDec} decisión${sinDec !== 1 ? 'es' : ''}`;
+      hint.className = 'save-hint';
+    }
+  }
+  if (guardar) guardar.disabled = sinDec > 0;
+});
+
+// ══════════════════════════════════════════════════════════════════
+// GUARDAR DECISIONES
+// ══════════════════════════════════════════════════════════════════
+async function guardarDecisiones(email, nombreCorto, pendientes) {
+  const sinDec = pendientes.filter(r => !decisions[r.ID]);
+  if (sinDec.length > 0) {
+    showToast(`Faltan ${sinDec.length} decisión${sinDec.length !== 1 ? 'es' : ''} por definir`);
+    return;
+  }
+
+  const card    = document.getElementById(safeId(email));
+  const btn     = card ? card.querySelector('.btn-guardar') : null;
+  if (btn) { btn.disabled = true; btn.innerHTML = '<span class="material-icons">hourglass_empty</span> Guardando...'; }
+
+  try {
+    // Flow 5 (KN-Procesar Aprobación) — un call por registro pendiente
+    // Ajusta los nombres de campo si Flow 5 usa nombres distintos
+    await Promise.all(pendientes.map(r =>
+      fetch(FLOW_APROBACION, {
+        method: 'POST',
+        mode: 'no-cors',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({
+          id:        r.ID,
+          decision:  decisions[r.ID],
+          emailJefe: emailJefe
+        })
+      })
+    ));
+
+    // Limpiar decisiones de estos registros
+    pendientes.forEach(r => delete decisions[r.ID]);
+
+    showToast(`Decisiones de ${nombreCorto} enviadas`);
+    // Recargar datos después de que Flow 5 procese
+    setTimeout(() => cargarRegistros(), 2000);
+  } catch (err) {
+    showToast('Error al guardar: ' + err.message);
+    if (btn) {
+      btn.disabled = false;
+      btn.innerHTML = '<span class="material-icons">save</span> Guardar decisiones';
+    }
+  }
+}
+
+// ══════════════════════════════════════════════════════════════════
+// NAVEGACIÓN SEMANAS
+// ══════════════════════════════════════════════════════════════════
+document.getElementById('prevWeek').addEventListener('click', () => {
+  if (semanaIdx < semanas.length - 1) { semanaIdx++; renderSemana(); }
+});
+document.getElementById('nextWeek').addEventListener('click', () => {
+  if (semanaIdx > 0) { semanaIdx--; renderSemana(); }
+});
+
+// ══════════════════════════════════════════════════════════════════
+// UI HELPERS
+// ══════════════════════════════════════════════════════════════════
+function showLoading(v) {
+  document.getElementById('loading').classList.toggle('visible', v);
+}
+function showError(msg) {
+  const el = document.getElementById('error-box');
+  el.textContent = msg;
+  el.style.display = 'block';
+}
+function hideError() {
+  document.getElementById('error-box').style.display = 'none';
+}
+function showToast(msg) {
   const t = document.getElementById('toast');
   t.textContent = msg;
-  t.className = 'toast' + (type ? ' '+type : '');
-  requestAnimationFrame(() => requestAnimationFrame(() => t.classList.add('show')));
-  setTimeout(() => t.classList.remove('show'), 3500);
+  t.classList.add('show');
+  setTimeout(() => t.classList.remove('show'), 3200);
 }
+
+// ══════════════════════════════════════════════════════════════════
+init();
 </script>
 </body>
 </html>
