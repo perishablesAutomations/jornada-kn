@@ -756,15 +756,13 @@ async function deleteRegistro(id) {
     email,
     accion: 'eliminar',
     ID: parseInt(id),
-    // El backend exige FechaRegistro, HoraInicio y evalúa HoraFin para decidir
-    // la rama del flujo (Tiene_HoraFin). Si HoraFin viaja vacío/null, el flujo
-    // entra por la rama de "check-in nuevo" en vez de la de eliminar, creando
-    // un registro abierto fantasma. Por eso se manda siempre con un valor,
-    // usando el HoraFin real si existe o un valor de respaldo si el registro
-    // estaba abierto.
+    // El backend exige FechaRegistro y HoraInicio en el schema del trigger;
+    // se mandan tal cual están en el registro. HoraFin se manda con su valor
+    // real (o null si el registro estaba abierto) — Flow 4 ya maneja
+    // accion='eliminar' correctamente sin importar si HoraFin viene vacío.
     FechaRegistro: reg.FechaRegistro,
     HoraInicio: reg.HoraInicio || '00:00',
-    HoraFin: reg.HoraFin || '00:01'
+    HoraFin: reg.HoraFin || null
   };
 
   try {
