@@ -569,6 +569,11 @@ function renderDias() {
 
     totalRegs += regsDelDia.length;
     regsDelDia.forEach(r => {
+      // Registros con aprobación pendiente (RequiereAprobacion=true y
+      // AprobadoJefe=false) no suman a los totales hasta que el jefe los
+      // apruebe — ni a Horas norm. ni a Horas extra.
+      const estaPendiente = r.RequiereAprobacion === true && r.AprobadoJefe === false;
+      if (estaPendiente) return;
       if (r.HorasOrdinarias) totalOrd += parseFloat(r.HorasOrdinarias || 0);
       if (r.HorasExtra) totalExtra += parseFloat(r.HorasExtra || 0);
     });
@@ -588,6 +593,8 @@ function renderDias() {
 
     let totalHorasDia = 0;
     regsDelDia.forEach(r => {
+      const estaPendiente = r.RequiereAprobacion === true && r.AprobadoJefe === false;
+      if (estaPendiente) return;
       if (r.HorasOrdinarias) totalHorasDia += parseFloat(r.HorasOrdinarias || 0);
     });
     const horasStr = regsDelDia.length > 0 && totalHorasDia > 0 ? `${totalHorasDia.toFixed(1)}h` : '';
