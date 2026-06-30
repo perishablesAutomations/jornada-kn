@@ -408,16 +408,14 @@
 // ══════════════════════════════════════════════════════════════════
 const FLOW_EQUIPO = 'https://bd4a763d737defaeacf0e99a4d082f.58.environment.api.powerplatform.com:443/powerautomate/automations/direct/workflows/6dc19841dab7420aa93bd860ba461b94/triggers/manual/paths/invoke?api-version=1&sp=%2Ftriggers%2Fmanual%2Frun&sv=1.0&sig=f5T0mGD6vBp2h5qddS9LSx2pLVR_UCJb3vNSfQSyzfU';
 
-// ⚠️ REEMPLAZAR con la URL del trigger HTTP de KN-Procesar Aprobación (Flow 5)
-const FLOW_APROBACION = 'REEMPLAZAR_URL_FLOW_5';
+const FLOW_APROBACION = 'https://bd4a763d737defaeacf0e99a4d082f.58.environment.api.powerplatform.com:443/powerautomate/automations/direct/workflows/cad0dc8e16a4466cb83297306976794d/triggers/manual/paths/invoke?api-version=1&sp=%2Ftriggers%2Fmanual%2Frun&sv=1.0&sig=tTGdFfz_6i4mpPo6HmbobfRSPxoGwS9V5fBi0z7L9uA';
 
-// Valores de decisión que recibirá Flow 5 en el campo "decision"
-// Verifica que coincidan con lo que Flow 5 espera en triggerBody()?['decision']
+// Mapeo de decisión UI → valor tipoAprobacion que espera Flow 5
 const DECISIONES = {
-  HoraExtra:  'HoraExtra',
-  Recargo:    'Recargo',
-  Compensado: 'Compensado',
-  Rechazar:   'Rechazar'
+  HoraExtra:  'extra',
+  Recargo:    'recargo',
+  Compensado: 'compensado',
+  Rechazar:   'rechazado'
 };
 
 // ══════════════════════════════════════════════════════════════════
@@ -869,16 +867,15 @@ async function guardarDecisiones(email, nombreCorto, pendientes) {
 
   try {
     // Flow 5 (KN-Procesar Aprobación) — un call por registro pendiente
-    // Ajusta los nombres de campo si Flow 5 usa nombres distintos
     await Promise.all(pendientes.map(r =>
       fetch(FLOW_APROBACION, {
         method: 'POST',
         mode: 'no-cors',
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({
-          id:        r.ID,
-          decision:  decisions[r.ID],
-          emailJefe: emailJefe
+          registro:       String(r.ID),
+          tipoAprobacion: DECISIONES[decisions[r.ID]],
+          aprobado:       decisions[r.ID] === 'Rechazar' ? 'no' : 'si'
         })
       })
     ));
