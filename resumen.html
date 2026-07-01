@@ -32,6 +32,9 @@
     --info-text: #003369;
     --gray-bg: #f0f6ff;
     --gray-text: #4a6080;
+    --festivo: #7c3aed;
+    --festivo-bg: #ede9fe;
+    --festivo-text: #4c1d95;
     --r: 10px;
     --r-lg: 16px;
     --mono: 'DM Mono', monospace;
@@ -134,7 +137,7 @@
   .badge.danger { background: var(--danger-bg); color: var(--danger-text); }
   .badge.info { background: var(--info-bg); color: var(--info-text); }
   .badge.gray { background: var(--gray-bg); color: var(--gray-text); }
-  .badge.danger { background: var(--danger-bg); color: var(--danger-text); }
+  .badge.festivo { background: var(--festivo-bg); color: var(--festivo-text); }
   .chevron { font-size: 14px; color: var(--muted); transition: transform 0.2s; }
   .chevron.open { transform: rotate(180deg); }
 
@@ -145,6 +148,15 @@
     border-left: 4px solid var(--kn-blue);
   }
   .day-body.open { display: block; }
+
+  /* Días festivos — borde violeta */
+  .day-festivo .day-header { border-left-color: var(--festivo); background: var(--festivo-bg); }
+  .day-festivo .day-body   { border-left-color: var(--festivo); }
+  .day-festivo .day-name   { color: var(--festivo); }
+
+  /* Días domingo */
+  .day-domingo .day-header { border-left-color: #be185d; }
+  .day-domingo .day-body   { border-left-color: #be185d; }
 
   .registro-row {
     display: grid;
@@ -337,8 +349,6 @@
   <div class="header-inner">
     <span class="logo"><span class="logo-dot"></span> KN · Jornadas</span>
     <div id="headerChip">
-      <!-- En modo normal: chip con avatar y nombre -->
-      <!-- En modo admin: se reemplaza por selector de empleados via loadEmpleados() -->
       <div class="employee-chip">
         <div class="avatar" id="avatarInitials">--</div>
         <span class="emp-name" id="empNameDisplay">Cargando...</span>
@@ -424,42 +434,63 @@ const FLOW_SAVE_REGISTRO  = 'https://bd4a763d737defaeacf0e99a4d082f.58.environme
 const FLOW_GET_EMPLEADOS  = 'https://bd4a763d737defaeacf0e99a4d082f.58.environment.api.powerplatform.com:443/powerautomate/automations/direct/workflows/53acc2d4431d48989ebd3e8f29795b36/triggers/manual/paths/invoke?api-version=1&sp=%2Ftriggers%2Fmanual%2Frun&sv=1.0&sig=QLp9vMhI-hHAsBuABkjx9m6kNYBWBqX3EzuHtolSb5M';
 // ─────────────────────────────────────────────────────────────────────────────
 
-const params  = new URLSearchParams(location.search);
-const email   = params.get('email') || '';
+const params    = new URLSearchParams(location.search);
+const email     = params.get('email') || '';
 const nameParam = params.get('nombre') || '';
 
-// ── Admin mode ────────────────────────────────────────────────────────────────
-// Si la URL incluye ?adminToken=<token>, se activa el modo admin:
-// el usuario puede editar/eliminar/agregar registros en cualquier semana
-// pasada, no solo la semana actual. Sin este token, todo funciona igual
-// que para un usuario normal.
 const ADMIN_TOKEN = 'kn-perish-2026-adm-X7mQ9p';
 const isAdmin = params.get('adminToken') === ADMIN_TOKEN;
-// ─────────────────────────────────────────────────────────────────────────────
 
-let registros   = [];
-let weekOffset  = 0;
-let editingId   = null;
-let originalExtras = null;
-// En modo admin, emailActivo puede ser distinto al email de la URL
-// (el admin puede cambiar qué empleado está viendo).
-let emailActivo = email;
-// Total de horas ordinarias acumuladas en la semana actualmente mostrada.
-// Se actualiza cada vez que se renderiza la semana (renderDias) y se usa
-// al guardar un registro de sábado/domingo para prorratear el tope de 44h.
+let registros          = [];
+let weekOffset         = 0;
+let editingId          = null;
+let originalExtras     = null;
+let emailActivo        = email;
 let weekHorasOrdinarias = 0;
 
-const DIAS_ES = ['Domingo','Lunes','Martes','Miércoles','Jueves','Viernes','Sábado'];
+// ── FESTIVOS COLOMBIA ─────────────────────────────────────────────────────────
+let festivosCO = new Set(); // 'YYYY-MM-DD'
+
+async function cargarFestivosCO() {
+  const anios = [
+    new Date().getFullYear() - 1,
+    new Date().getFullYear(),
+    new Date().getFullYear() + 1
+  ];
+  try {
+    const resultados = await Promise.all(
+      anios.map(y =>
+        fetch(`https://date.nager.at/api/v3/PublicHolidays/${y}/CO`)
+          .then(r => r.ok ? r.json() : [])
+          .catch(() => [])
+      )
+    );
+    resultados.flat().forEach(f => festivosCO.add(f.date));
+  } catch {
+    // Si falla la API, continuar sin festivos
+  }
+}
+
+function esFestivo(dateStr) {
+  // dateStr: 'YYYY-MM-DD'
+  return festivosCO.has(dateStr);
+}
+// ─────────────────────────────────────────────────────────────────────────────
+
+const DIAS_ES    = ['Domingo','Lunes','Martes','Miércoles','Jueves','Viernes','Sábado'];
 const DIAS_SHORT = ['dom','lun','mar','mié','jue','vie','sáb'];
-const MESES = ['ene','feb','mar','abr','may','jun','jul','ago','sep','oct','nov','dic'];
+const MESES      = ['ene','feb','mar','abr','may','jun','jul','ago','sep','oct','nov','dic'];
 
 // ── Init ──────────────────────────────────────────────────────────────────────
-document.addEventListener('DOMContentLoaded', () => {
+document.addEventListener('DOMContentLoaded', async () => {
   if (!email) {
     document.getElementById('diasContainer').innerHTML =
       '<div class="loading-state" style="color:var(--danger)">⚠️ No se encontró el correo en la URL.<br>El enlace debe incluir ?email=tu@correo.com</div>';
     return;
   }
+  // Cargar festivos antes de renderizar para que los días queden bien clasificados
+  await cargarFestivosCO();
+
   initEmployee();
   renderWeekNav();
   loadRegistros();
@@ -477,7 +508,7 @@ function initEmployee() {
   document.getElementById('empNameDisplay').textContent = display;
 }
 
-// ── Admin: carga lista de empleados y arma el selector en el header ───────────
+// ── Admin ─────────────────────────────────────────────────────────────────────
 async function loadEmpleados() {
   try {
     const resp = await fetch(FLOW_GET_EMPLEADOS, {
@@ -488,16 +519,11 @@ async function loadEmpleados() {
     const data = await resp.json();
     const lista = data?.empleados || data || [];
     if (!lista.length) return;
-
-    // Ordenar alfabéticamente por nombre
     lista.sort((a, b) => (a.nombre || '').localeCompare(b.nombre || ''));
-
-    // Construir el selector reemplazando el chip del header
     const options = lista.map(e => {
       const selected = (e.email || '').toLowerCase() === emailActivo.toLowerCase() ? 'selected' : '';
       return `<option value="${e.email}" ${selected}>${e.nombre || e.email}</option>`;
     }).join('');
-
     document.getElementById('headerChip').innerHTML = `
       <div class="admin-select-wrap">
         <span class="admin-badge">🔑 ADMIN</span>
@@ -506,7 +532,6 @@ async function loadEmpleados() {
         </select>
       </div>`;
   } catch(e) {
-    // Si falla, el chip normal sigue visible sin interrumpir la experiencia
     console.warn('No se pudo cargar la lista de empleados:', e);
   }
 }
@@ -572,15 +597,15 @@ async function loadRegistros() {
   document.getElementById('diasContainer').innerHTML =
     '<div class="loading-state">Cargando jornadas<span class="loading-dot">.</span><span class="loading-dot">.</span><span class="loading-dot">.</span></div>';
   try {
-const resp = await fetch(FLOW_GET_REGISTROS, {
-  method: 'POST',
-  headers: { 'Content-Type': 'application/json' },
-  body: JSON.stringify({
+    const resp = await fetch(FLOW_GET_REGISTROS, {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({
         email: emailActivo,
         fechaInicio: formatDate(monday),
         fechaFin: formatDate(sunday)
       })
-});
+    });
     const data = await resp.json();
     const raw = data?.registros?.body || data.registros || data.value || data || [];
     registros = raw.map(r => ({
@@ -593,7 +618,6 @@ const resp = await fetch(FLOW_GET_REGISTROS, {
       HorasExtra: r.HorasExtra || 0,
     }));
   } catch(e) {
-    // Demo: datos de prueba si el flow no está configurado
     registros = getDemoData();
   }
   renderDias();
@@ -642,41 +666,51 @@ function renderDias() {
   for (let i = 0; i < 7; i++) {
     const dia = new Date(monday);
     dia.setDate(monday.getDate() + i);
-    const diaStr = formatDate(dia);
+    const diaStr    = formatDate(dia);
+    const diaDow    = dia.getDay(); // 0=Dom, 6=Sáb
+    const esFestivoDia = esFestivo(diaStr);
+    const esDomingoDia = diaDow === 0;
+    const esSabadoDia  = diaDow === 6;
+
     const regsDelDia = registros.filter(r => r.FechaRegistro === diaStr);
-    const isPast = dia < today;
-    const isToday = formatDate(dia) === formatDate(today);
-    const isFuture = dia > today;
-    const sinRegistro = regsDelDia.length === 0 && isPast && dia.getDay() !== 0 && dia.getDay() !== 6;
-    const tieneAbierto = regsDelDia.some(r => r.Estado === 'Abierto');
-    const tieneExtras = regsDelDia.some(r => r.TipoHoraExtra !== 'N/A' || r.Recargo !== 'N/A');
+    const isPast    = dia < today;
+    const isToday   = diaStr === formatDate(today);
+    const isFuture  = dia > today;
+
+    // NO marcar como "sin registro" si es domingo, sábado o festivo
+    const esDiaNoLaboral = esDomingoDia || esSabadoDia || esFestivoDia;
+    const sinRegistro    = regsDelDia.length === 0 && isPast && !esDiaNoLaboral;
+
+    const tieneAbierto        = regsDelDia.some(r => r.Estado === 'Abierto');
+    const tieneExtras         = regsDelDia.some(r => r.TipoHoraExtra !== 'N/A' || r.Recargo !== 'N/A');
     const pendienteAprobacion = regsDelDia.some(r =>
       r.RequiereAprobacion === true && r.AprobadoJefe === false
     );
 
     totalRegs += regsDelDia.length;
     regsDelDia.forEach(r => {
-      // Registros con aprobación pendiente (RequiereAprobacion=true y
-      // AprobadoJefe=false) no suman a los totales hasta que el jefe los
-      // apruebe — ni a Horas norm. ni a Horas extra.
       const estaPendiente = r.RequiereAprobacion === true && r.AprobadoJefe === false;
       if (estaPendiente) return;
-      if (r.HorasOrdinarias) totalOrd += parseFloat(r.HorasOrdinarias || 0);
-      if (r.HorasExtra) totalExtra += parseFloat(r.HorasExtra || 0);
+      if (r.HorasOrdinarias) totalOrd  += parseFloat(r.HorasOrdinarias || 0);
+      if (r.HorasExtra)      totalExtra += parseFloat(r.HorasExtra || 0);
     });
     if (pendienteAprobacion || sinRegistro || tieneAbierto) totalPending++;
 
     const block = document.createElement('div');
     block.className = 'day-block';
-    if (sinRegistro) block.classList.add('day-missing');
+    if (sinRegistro)  block.classList.add('day-missing');
+    if (esFestivoDia) block.classList.add('day-festivo');
+    if (esDomingoDia && !esFestivoDia) block.classList.add('day-domingo');
 
     const badges = [];
-    if (sinRegistro) badges.push('<span class="badge danger">Sin registro</span>');
-    else if (tieneAbierto) badges.push('<span class="badge warn">Check-out pendiente</span>');
+    if (sinRegistro)          badges.push('<span class="badge danger">Sin registro</span>');
+    else if (tieneAbierto)    badges.push('<span class="badge warn">Check-out pendiente</span>');
     else if (regsDelDia.length > 0) badges.push('<span class="badge ok">Completo</span>');
-    if (tieneExtras) badges.push('<span class="badge info">Horas extra</span>');
-    if (pendienteAprobacion) badges.push('<span class="badge warn">Aprob. pendiente</span>');
-    if (isFuture) badges.push('<span class="badge gray">Futuro</span>');
+    if (esFestivoDia)         badges.push('<span class="badge festivo">Festivo</span>');
+    else if (esDomingoDia)    badges.push('<span class="badge gray">Domingo</span>');
+    if (tieneExtras)          badges.push('<span class="badge info">Horas extra</span>');
+    if (pendienteAprobacion)  badges.push('<span class="badge warn">Aprob. pendiente</span>');
+    if (isFuture)             badges.push('<span class="badge gray">Futuro</span>');
 
     let totalHorasDia = 0;
     regsDelDia.forEach(r => {
@@ -690,7 +724,7 @@ function renderDias() {
 
     block.innerHTML = `
       <div class="day-header ${expanded ? 'expanded' : ''}" data-dia="${diaStr}">
-        <span class="day-name">${DIAS_ES[dia.getDay()]}</span>
+        <span class="day-name">${DIAS_ES[diaDow]}</span>
         <span class="day-date">${formatDateShort(dia)}</span>
         <div class="day-status-badges">${badges.join('')}</div>
         ${horasStr ? `<span class="day-hours">${horasStr}</span>` : ''}
@@ -711,16 +745,13 @@ function renderDias() {
     container.appendChild(block);
   }
 
-  // Guardamos el acumulado de horas ordinarias de la semana mostrada en una
-  // variable global. Se usa al guardar un registro de sábado/domingo para
-  // prorratear el tope semanal de 44h (ver saveRegistro()).
   weekHorasOrdinarias = totalOrd;
 
   document.getElementById('statTotal').textContent = totalRegs;
-  document.getElementById('statOrd').textContent = totalOrd.toFixed(1) + 'h';
+  document.getElementById('statOrd').textContent   = totalOrd.toFixed(1) + 'h';
   document.getElementById('statExtra').textContent = regsConExtras() + ' regs';
   document.getElementById('statTotalExtra').textContent = totalExtra.toFixed(1) + 'h';
-  document.getElementById('statPending').textContent = totalPending;
+  document.getElementById('statPending').textContent    = totalPending;
 }
 
 function regsConExtras() {
@@ -735,11 +766,11 @@ function renderDayBody(regs, diaStr, isFuture) {
       <span>Tipo extra</span><span>Aprobado</span><span></span>
     </div>`;
     regs.forEach(r => {
-      const horasOrd = r.HorasOrdinarias ? parseFloat(r.HorasOrdinarias).toFixed(1) + 'h' : '—';
+      const horasOrd   = r.HorasOrdinarias ? parseFloat(r.HorasOrdinarias).toFixed(1) + 'h' : '—';
       const horasExtra = r.HorasExtra && parseFloat(r.HorasExtra) > 0
         ? `<div style="font-size:11px;color:var(--warn-text);font-weight:600;margin-top:2px;">+${parseFloat(r.HorasExtra).toFixed(1)}h extra</div>`
         : '';
-      const horas = `<div>${horasOrd}</div>${horasExtra}`;
+      const horas   = `<div>${horasOrd}</div>${horasExtra}`;
       const aprobado = r.AprobadoJefe === true
         ? '<span class="badge ok">✓ Aprobado</span>'
         : r.RequiereAprobacion === true && r.AprobadoJefe === false
@@ -820,13 +851,10 @@ function closeModal() {
   editingId = null;
 }
 
-// ── Eliminar registro ────────────────────────────────────────────────────────
-// Solo disponible para registros de la semana actual (weekOffset === 0),
-// igual que agregar/editar. Pide confirmación antes de llamar al backend.
+// ── Eliminar ──────────────────────────────────────────────────────────────────
 async function deleteRegistro(id) {
   const reg = registros.find(r => r.ID == id);
   if (!reg) return;
-
   const horaTxt = reg.HoraInicio ? `${reg.HoraInicio}${reg.HoraFin ? ' - ' + reg.HoraFin : ''}` : '';
   const confirmado = confirm(`¿Eliminar el registro del ${reg.FechaRegistro} (${horaTxt})? Esta acción no se puede deshacer.`);
   if (!confirmado) return;
@@ -835,10 +863,6 @@ async function deleteRegistro(id) {
     email,
     accion: 'eliminar',
     ID: parseInt(id),
-    // El backend exige FechaRegistro y HoraInicio en el schema del trigger;
-    // se mandan tal cual están en el registro. HoraFin se manda con su valor
-    // real (o null si el registro estaba abierto) — Flow 4 ya maneja
-    // accion='eliminar' correctamente sin importar si HoraFin viene vacío.
     FechaRegistro: reg.FechaRegistro,
     HoraInicio: reg.HoraInicio || '00:00',
     HoraFin: reg.HoraFin || null
@@ -862,16 +886,13 @@ async function deleteRegistro(id) {
   }
 }
 
-function onFormChange() {
-  checkOverlap();
-}
+function onFormChange() { checkOverlap(); }
 
 function checkOverlap() {
-  const fecha = document.getElementById('fFecha').value;
-  const ini = document.getElementById('fHoraInicio').value;
-  const fin = document.getElementById('fHoraFin').value;
+  const fecha  = document.getElementById('fFecha').value;
+  const ini    = document.getElementById('fHoraInicio').value;
+  const fin    = document.getElementById('fHoraFin').value;
   if (!fecha || !ini || !fin) return;
-
   const iniMin = timeToMins(ini);
   const finMin = timeToMins(fin);
   const regsDelDia = registros.filter(r => r.FechaRegistro === fecha && r.ID != editingId);
@@ -885,35 +906,19 @@ function checkOverlap() {
   document.getElementById('btnSaveModal').disabled = overlap;
 }
 
-function checkApprovalWarning() {
-  const tipoExtra = document.getElementById('fTipoHoraExtra').value;
-  const recargo = document.getElementById('fRecargo').value;
-  const hasExtras = tipoExtra !== 'N/A' || recargo !== 'N/A';
-
-  if (!editingId) {
-    document.getElementById('infoAprobacion').classList.toggle('show', hasExtras);
-    document.getElementById('approvalNote').classList.remove('show');
-  } else if (originalExtras) {
-    const changed = tipoExtra !== originalExtras.tipo || recargo !== originalExtras.recargo;
-    const showNote = hasExtras && changed;
-    document.getElementById('approvalNote').classList.toggle('show', showNote);
-    document.getElementById('infoAprobacion').classList.remove('show');
-  }
-}
-
+// ── Guardar ───────────────────────────────────────────────────────────────────
 async function saveRegistro() {
   const fecha = document.getElementById('fFecha').value;
-  const ini = document.getElementById('fHoraInicio').value;
-  const fin = document.getElementById('fHoraFin').value;
+  const ini   = document.getElementById('fHoraInicio').value;
+  const fin   = document.getElementById('fHoraFin').value;
   let valid = true;
 
   if (!fecha) { document.getElementById('errFecha').classList.add('show'); valid = false; }
   else document.getElementById('errFecha').classList.remove('show');
-  if (!ini) { document.getElementById('errHoraInicio').classList.add('show'); valid = false; }
+  if (!ini)   { document.getElementById('errHoraInicio').classList.add('show'); valid = false; }
   else document.getElementById('errHoraInicio').classList.remove('show');
   if (!valid) return;
 
-  // Validaciones solo si hay hora fin
   if (fin) {
     if (timeToMins(fin) <= timeToMins(ini)) {
       showToast('La hora de salida debe ser mayor a la de entrada', true);
@@ -925,14 +930,12 @@ async function saveRegistro() {
       showToast('La hora de salida no puede ser mayor a la hora actual', true);
       return;
     }
-    // Validar mínimo 30 minutos
     let diffMins = timeToMins(fin) - timeToMins(ini);
     if (diffMins < 0) diffMins += 24 * 60;
     if (diffMins < 30) {
       showToast('El registro mínimo es de 30 minutos', true);
       return;
     }
-    // Validar que el total de minutos sea múltiplo de 30
     if (diffMins % 30 !== 0) {
       const redondeado = Math.floor(diffMins / 30) * 30;
       const horasSugeridas = timeToMins(ini) + redondeado;
@@ -944,11 +947,7 @@ async function saveRegistro() {
     }
   }
 
-  // Si el registro cae en sábado (6) o domingo (0), mandamos el acumulado de
-  // horas ordinarias de la semana mostrada, para que el backend (Flow 4)
-  // pueda prorratear el tope semanal de 44h. Para días entre semana no se
-  // envía este campo y el cálculo sigue igual que hoy (tope diario de 8h).
-  const fechaObj = parseDate(fecha);
+  const fechaObj     = parseDate(fecha);
   const esFinDeSemana = fechaObj.getDay() === 0 || fechaObj.getDay() === 6;
 
   const payload = {
