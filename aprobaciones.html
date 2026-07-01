@@ -635,10 +635,10 @@ function renderSemana() {
 function buildEmpCard(email, nombre, registros) {
   const sorted = [...registros].sort((a, b) => new Date(a.HoraInicio) - new Date(b.HoraInicio));
 
-  const cerrados   = sorted.filter(r => getVal(r.Estado) === 'Cerrado');
-  const horasOrd   = cerrados.reduce((s, r) => s + (parseFloat(r.HorasOrdinarias) || 0), 0);
-  const horasExtra = cerrados.reduce((s, r) => s + (parseFloat(r.HorasExtra)      || 0), 0);
-  const horasBrut  = cerrados.reduce((s, r) => s + (parseFloat(r.HorasBrutas)     || 0), 0);
+  const cerrados      = sorted.filter(r => getVal(r.Estado) === 'Cerrado');
+  const horasOrd      = cerrados.reduce((s, r) => s + (parseFloat(r.HorasOrdinarias) || 0), 0);
+  const horasExtra    = cerrados.reduce((s, r) => s + (parseFloat(r.HorasExtra)      || 0), 0);
+  const horasLaboradas = horasOrd + horasExtra;
   const pendientes = sorted.filter(r => r.RequiereAprobacion);
   const hayAbierto = sorted.some(r => getVal(r.Estado) === 'Abierto');
   const restante44 = Math.max(44 - horasOrd, 0);
@@ -667,8 +667,8 @@ function buildEmpCard(email, nombre, registros) {
 
     <div class="resumen-horas">
       <div class="hora-stat">
-        <span class="hora-val">${fmtH(horasBrut)}</span>
-        <span class="hora-lbl">Horas brutas</span>
+        <span class="hora-val">${fmtH(horasLaboradas)}</span>
+        <span class="hora-lbl">Horas laboradas</span>
       </div>
       <div class="hora-stat ${horasOrd >= 44 ? 'ok' : ''}">
         <span class="hora-val">${fmtH(horasOrd)}</span>
@@ -701,8 +701,7 @@ function buildEmpCard(email, nombre, registros) {
             <th>Fecha</th>
             <th>Entrada</th>
             <th>Salida</th>
-            <th>Brutas</th>
-            <th>Ord.</th>
+            <th>Ordinarias</th>
             <th>Extra</th>
             <th>Tipo día</th>
             <th>Franja</th>
@@ -789,15 +788,12 @@ function buildFila(r) {
       </td>`;
   }
 
-  const horasBrut = parseFloat(r.HorasBrutas) || 0;
-
   return `
     <tr class="${rowClass}">
       <td style="white-space:nowrap">${formatFecha(r.HoraInicio)}</td>
       <td style="font-variant-numeric:tabular-nums">${formatHora(r.HoraInicio)}</td>
       <td style="font-variant-numeric:tabular-nums">${isAbierto ? '—' : formatHora(r.HoraFin)}</td>
-      <td class="${isAnomalo ? 'anomaly-txt' : ''}">${isAnomalo ? '⚠️ ' : ''}${fmtH(horasBrut)}</td>
-      <td>${fmtH(r.HorasOrdinarias)}</td>
+      <td>${fmtH(r.HorasOrdinarias)}${isAnomalo ? ' <span class="material-icons" style="font-size:12px;color:#d97706;vertical-align:middle" title="Brutas: ' + (parseFloat(r.HorasBrutas)||0).toFixed(1) + 'h — revisar registro">warning</span>' : ''}</td>
       <td>${fmtH(r.HorasExtra)}</td>
       <td>${chipTipoDia(r.TipoDia)}</td>
       <td style="font-size:11px;color:#6b7280">${franja ? franja.split('(')[0].trim() : '—'}</td>
