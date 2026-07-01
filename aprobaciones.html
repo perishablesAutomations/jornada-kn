@@ -963,7 +963,23 @@ async function guardarDecisiones(email, nombreCorto, pendientes) {
         body: JSON.stringify({
           registro:       String(r.ID),
           tipoAprobacion: DECISIONES[decisions[r.ID]],
-          aprobado:       decisions[r.ID] === 'Rechazar' ? 'no' : 'si'
+          aprobado:       decisions[r.ID] === 'Rechazar' ? 'no' : 'si',
+          // Prorateo semanal: solo para sábados y domingos
+          ...(['Sabado','Dominical'].includes(getVal(r.TipoDia)) ? {
+            HorasOrdinariasAcumuladasSemana: (() => {
+              // Sumar HorasOrdinarias de todos los registros cerrados
+              // de la semana del empleado, excluyendo el registro actual
+              const weekStart = semanas[semanaIdx];
+              return registrosDeSemana(weekStart)
+                .filter(x =>
+                  x.Empleado.toLowerCase() === r.Empleado.toLowerCase() &&
+                  x.ID !== r.ID &&
+                  getVal(x.Estado) === 'Cerrado'
+                )
+                .reduce((s, x) => s + (parseFloat(x.HorasOrdinarias) || 0), 0);
+            })(),
+            HorasSemanales: CONFIG.horasSemanales
+          } : {})
         })
       })
     ));
