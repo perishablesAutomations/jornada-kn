@@ -1070,7 +1070,10 @@ async function saveRegistro() {
     HoraInicio: ini,
     HoraFin: fin || null,
     Observaciones: document.getElementById('fObservaciones').value,
-    ...(esFinDeSemana ? { HorasOrdinariasAcumuladasSemana: weekHorasOrdinarias } : {})
+    ...(esFinDeSemana ? {
+      HorasOrdinariasAcumuladasSemana: weekHorasOrdinarias,
+      HorasSemanales: CONFIG.horasSemanales
+    } : {})
   };
 
   const btn = document.getElementById('btnSaveModal');
