@@ -803,14 +803,16 @@ function renderDias() {
 
   weekHorasOrdinarias = totalOrd;
 
-  // ── Base ajustada por festivos L-V ──────────────────────────────────────
+  // ── Base ajustada por festivos L-S ──────────────────────────────────────
   let countFestivosLaborales = 0;
-  for (let i = 0; i < 5; i++) {
+  for (let i = 0; i < 6; i++) {         // Lun–Sáb (jornada L-S)
     const diaCheck = new Date(monday);
     diaCheck.setDate(monday.getDate() + i);
     if (esFestivo(formatDate(diaCheck))) countFestivosLaborales++;
   }
-  const baseAjustada   = +(44 - countFestivosLaborales * 8.8).toFixed(1);
+  // 44h / 6 días laborales = 7.333h por día
+  const hPorDia        = +(44 / 6).toFixed(4);
+  const baseAjustada   = +(44 - countFestivosLaborales * hPorDia).toFixed(1);
   const horasLaboradas = +(totalOrd + totalExtra).toFixed(1);
   const pct            = baseAjustada > 0
     ? Math.min((horasLaboradas / baseAjustada) * 100, 100) : 100;
