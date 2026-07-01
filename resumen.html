@@ -490,6 +490,24 @@ const FLOW_SAVE_REGISTRO  = 'https://bd4a763d737defaeacf0e99a4d082f.58.environme
 const FLOW_GET_EMPLEADOS  = 'https://bd4a763d737defaeacf0e99a4d082f.58.environment.api.powerplatform.com:443/powerautomate/automations/direct/workflows/53acc2d4431d48989ebd3e8f29795b36/triggers/manual/paths/invoke?api-version=1&sp=%2Ftriggers%2Fmanual%2Frun&sv=1.0&sig=QLp9vMhI-hHAsBuABkjx9m6kNYBWBqX3EzuHtolSb5M';
 // ─────────────────────────────────────────────────────────────────────────────
 
+// ── CONFIG ───────────────────────────────────────────────────────────────────
+// Valores por defecto — se sobreescriben al cargar config.json
+let CONFIG = {
+  horasSemanales: 44,
+  diasLaboralesSemana: 6,
+  semanasHabilitadasEdicion: 1
+};
+
+async function cargarConfig() {
+  try {
+    const r = await fetch('config.json?v=' + Date.now());
+    if (r.ok) Object.assign(CONFIG, await r.json());
+  } catch {
+    // Si falla, usar valores por defecto
+  }
+}
+// ─────────────────────────────────────────────────────────────────────────────
+
 const params    = new URLSearchParams(location.search);
 const email     = params.get('email') || '';
 const nameParam = params.get('nombre') || '';
@@ -545,6 +563,7 @@ document.addEventListener('DOMContentLoaded', async () => {
     return;
   }
   // Cargar festivos antes de renderizar para que los días queden bien clasificados
+  await cargarConfig();
   await cargarFestivosCO();
 
   initEmployee();
@@ -645,6 +664,7 @@ function renderWeekNav() {
   document.getElementById('weekLabel').textContent = label + (isAdmin ? ' 🔑' : '');
   document.getElementById('btnNextWeek').disabled = weekOffset >= 0;
   document.getElementById('btnNextWeek').style.opacity = weekOffset >= 0 ? '0.35' : '1';
+  document.getElementById('btnPrevWeek').disabled = weekOffset <= -(52);  // hasta 1 año atrás
 }
 
 // ── Load data ─────────────────────────────────────────────────────────────────
@@ -806,14 +826,14 @@ function renderDias() {
 
   // ── Base ajustada por festivos L-S ──────────────────────────────────────
   let countFestivosLaborales = 0;
-  for (let i = 0; i < 6; i++) {         // Lun–Sáb (jornada L-S)
+  for (let i = 0; i < CONFIG.diasLaboralesSemana; i++) {
     const diaCheck = new Date(monday);
     diaCheck.setDate(monday.getDate() + i);
     if (esFestivo(formatDate(diaCheck))) countFestivosLaborales++;
   }
   // 44h / 6 días laborales = 7.333h por día
-  const hPorDia        = +(44 / 6).toFixed(4);
-  const baseAjustada   = +(44 - countFestivosLaborales * hPorDia).toFixed(1);
+  const hPorDia      = +(CONFIG.horasSemanales / CONFIG.diasLaboralesSemana).toFixed(4);
+  const baseAjustada = +(CONFIG.horasSemanales - countFestivosLaborales * hPorDia).toFixed(1);
   const horasLaboradas = +(totalOrd + totalExtra).toFixed(1);
   const pct            = baseAjustada > 0
     ? Math.min((horasLaboradas / baseAjustada) * 100, 100) : 100;
@@ -881,14 +901,14 @@ function renderDayBody(regs, diaStr, isFuture) {
         <span class="time-val">${horas}</span>
         <span>${extra}</span>
         <span>${aprobado}</span>
-        ${weekOffset === 0 || isAdmin ? `<button class="btn-edit" title="Editar" onclick="openEdit(${r.ID})">✏️</button>` : ''}
-        ${weekOffset === 0 || isAdmin ? `<button class="btn-delete" title="Eliminar" onclick="deleteRegistro(${r.ID})">🗑️</button>` : ''}
+        ${(weekOffset >= -(CONFIG.semanasHabilitadasEdicion - 1)) || isAdmin ? `<button class="btn-edit" title="Editar" onclick="openEdit(${r.ID})">✏️</button>` : ''}
+        ${(weekOffset >= -(CONFIG.semanasHabilitadasEdicion - 1)) || isAdmin ? `<button class="btn-delete" title="Eliminar" onclick="deleteRegistro(${r.ID})">🗑️</button>` : ''}
       </div>`;
     });
   } else {
     html += `<div class="empty-day">Sin registros para este día.</div>`;
   }
-  if (!isFuture && (weekOffset === 0 || isAdmin)) {
+  if (!isFuture && ((weekOffset >= -(CONFIG.semanasHabilitadasEdicion - 1)) || isAdmin)) {
     html += `<button class="btn-add-reg add-registro-btn" onclick="openNew('${diaStr}')">
       + Agregar registro
     </button>`;
