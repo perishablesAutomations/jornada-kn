@@ -612,8 +612,8 @@ async function loadRegistros() {
       ...r,
       HoraInicio: r.HoraInicio ? r.HoraInicio.substring(11, 16) : null,
       HoraFin:    r.HoraFin    ? r.HoraFin.substring(11, 16)    : null,
-      TipoHoraExtra: r.TipoHoraExtra || 'N/A',
-      Recargo:       r.Recargo       || 'N/A',
+      TipoHoraExtra: (r.TipoHoraExtra || 'N/A').trim(),
+      Recargo:       (r.Recargo       || 'N/A').trim(),
       FechaAprobacion: r.FechaAprobacion || null,
       HorasExtra: r.HorasExtra || 0,
     }));
@@ -682,7 +682,7 @@ function renderDias() {
     const sinRegistro    = regsDelDia.length === 0 && isPast && !esDiaNoLaboral;
 
     const tieneAbierto        = regsDelDia.some(r => r.Estado === 'Abierto');
-    const tieneExtras         = regsDelDia.some(r => r.TipoHoraExtra !== 'N/A' || r.Recargo !== 'N/A');
+    const tieneExtras         = regsDelDia.some(r => parseFloat(r.HorasExtra || 0) > 0);
     const pendienteAprobacion = regsDelDia.some(r =>
       r.RequiereAprobacion === true && r.AprobadoJefe === false
     );
@@ -755,7 +755,7 @@ function renderDias() {
 }
 
 function regsConExtras() {
-  return registros.filter(r => r.TipoHoraExtra !== 'N/A' || r.Recargo !== 'N/A').length;
+  return registros.filter(r => parseFloat(r.HorasExtra || 0) > 0).length;
 }
 
 function renderDayBody(regs, diaStr, isFuture) {
