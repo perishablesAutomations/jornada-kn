@@ -745,10 +745,10 @@ function renderDias() {
 
     totalRegs += regsDelDia.length;
     regsDelDia.forEach(r => {
-      const estaPendiente = r.RequiereAprobacion === true && r.AprobadoJefe === false;
-      if (estaPendiente) return;
-      if (r.HorasOrdinarias) totalOrd  += parseFloat(r.HorasOrdinarias || 0);
-      if (r.HorasExtra)      totalExtra += parseFloat(r.HorasExtra || 0);
+      // Contar todas las horas de registros cerrados, estén aprobadas o no
+      if (r.Estado === 'Abierto') return;
+      totalOrd   += parseFloat(r.HorasOrdinarias || 0);
+      totalExtra += parseFloat(r.HorasExtra      || 0);
     });
     if (pendienteAprobacion || sinRegistro || tieneAbierto) totalPending++;
 
@@ -770,9 +770,10 @@ function renderDias() {
 
     let totalHorasDia = 0;
     regsDelDia.forEach(r => {
-      const estaPendiente = r.RequiereAprobacion === true && r.AprobadoJefe === false;
-      if (estaPendiente) return;
-      if (r.HorasOrdinarias) totalHorasDia += parseFloat(r.HorasOrdinarias || 0);
+      // Mostrar todas las horas laboradas del día, aprobadas o no
+      if (r.Estado === 'Abierto') return;
+      totalHorasDia += parseFloat(r.HorasOrdinarias || 0);
+      totalHorasDia += parseFloat(r.HorasExtra      || 0);
     });
     const horasStr = regsDelDia.length > 0 && totalHorasDia > 0 ? `${totalHorasDia.toFixed(1)}h` : '';
 
