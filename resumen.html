@@ -972,7 +972,7 @@ async function deleteRegistro(id) {
   if (!confirmado) return;
 
   const payload = {
-    email,
+    email: emailActivo,   // en modo admin usa el empleado activo, no el de la URL
     accion: 'eliminar',
     ID: parseInt(id),
     FechaRegistro: reg.FechaRegistro,
@@ -1063,7 +1063,7 @@ async function saveRegistro() {
   const esFinDeSemana = fechaObj.getDay() === 0 || fechaObj.getDay() === 6;
 
   const payload = {
-    email,
+    email: emailActivo,   // en modo admin usa el empleado activo, no el de la URL
     accion: editingId ? 'editar' : 'nuevo',
     ...(editingId ? { ID: parseInt(editingId) } : {}),
     FechaRegistro: fecha,
