@@ -641,8 +641,8 @@ function buildEmpCard(email, nombre, registros) {
   const horasLaboradas = horasOrd + horasExtra;
   const pendientes = sorted.filter(r => r.RequiereAprobacion);
   const hayAbierto = sorted.some(r => getVal(r.Estado) === 'Abierto');
-  const restante44 = Math.max(44 - horasOrd, 0);
-  const pct44      = Math.min((horasOrd / 44) * 100, 100);
+  const restante44 = Math.max(44 - horasLaboradas, 0);
+  const pct44      = Math.min((horasLaboradas / 44) * 100, 100);
   const barColor   = pct44 >= 100 ? '#dc2626' : pct44 >= 88 ? '#d97706' : '#2563eb';
   const hasPend    = pendientes.length > 0;
   const empSafeId  = safeId(email);
@@ -679,8 +679,8 @@ function buildEmpCard(email, nombre, registros) {
         <span class="hora-lbl">Extralaborales</span>
       </div>
       <div class="hora-stat ${restante44 === 0 ? 'ok' : 'alerta'}">
-        <span class="hora-val">${restante44 === 0 ? '—' : fmtH(restante44)}</span>
-        <span class="hora-lbl">${restante44 === 0 ? 'Tope 44h ✓' : 'Faltan p/44h'}</span>
+        <span class="hora-val">${restante44 === 0 ? '✓' : fmtH(restante44)}</span>
+        <span class="hora-lbl">${restante44 === 0 ? 'Tope 44h completo' : 'Faltan p/44h'}</span>
       </div>
     </div>
 
@@ -689,7 +689,7 @@ function buildEmpCard(email, nombre, registros) {
         <div class="barra-fill" style="width:${pct44}%;background:${barColor}"></div>
       </div>
       <div class="barra-meta">
-        <span>${fmtH(horasOrd)} <strong>ordinarias</strong> de 44h semanales</span>
+        <span>${fmtH(horasLaboradas)} <strong>laboradas</strong> de 44h semanales</span>
         <span>${Math.round(pct44)}%</span>
       </div>
     </div>
