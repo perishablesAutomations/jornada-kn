@@ -426,6 +426,7 @@ let semanas        = [];       // ['2026-06-22', '2026-06-15', ...]  newest firs
 let semanaIdx      = 0;        // índice en `semanas` de la semana visible
 let decisions      = {};       // { [recordId]: 'HoraExtra'|'Recargo'|'Compensado'|'Rechazar' }
 let emailJefe      = '';
+let festivosCO     = new Set(); // Set de fechas 'YYYY-MM-DD' de festivos Colombia
 
 // ══════════════════════════════════════════════════════════════════
 // INIT
@@ -441,7 +442,55 @@ async function init() {
 
   const alias = emailJefe.split('@')[0].replace(/\./g, ' ');
   document.getElementById('jefeChip').textContent = alias;
+
+  // Cargar festivos Colombia para el año actual y el anterior
+  await cargarFestivosCO();
   await cargarRegistros();
+}
+
+// ══════════════════════════════════════════════════════════════════
+// FESTIVOS COLOMBIA
+// ══════════════════════════════════════════════════════════════════
+async function cargarFestivosCO() {
+  const anios = [new Date().getUTCFullYear() - 1, new Date().getUTCFullYear(), new Date().getUTCFullYear() + 1];
+  try {
+    const resultados = await Promise.all(
+      anios.map(y =>
+        fetch(`https://date.nager.at/api/v3/PublicHolidays/${y}/CO`)
+          .then(r => r.ok ? r.json() : [])
+          .catch(() => [])
+      )
+    );
+    resultados.flat().forEach(f => festivosCO.add(f.date)); // 'YYYY-MM-DD'
+  } catch {
+    // Si falla la API de festivos, continuar sin ellos
+  }
+}
+
+function esFestivo(isoStr) {
+  if (!isoStr) return false;
+  const d = new Date(isoStr);
+  const fecha = `${d.getUTCFullYear()}-${String(d.getUTCMonth()+1).padStart(2,'0')}-${String(d.getUTCDate()).padStart(2,'0')}`;
+  return festivosCO.has(fecha);
+}
+
+function esDomingo(isoStr) {
+  return new Date(isoStr).getUTCDay() === 0;
+}
+
+function esSabado(isoStr) {
+  return new Date(isoStr).getUTCDay() === 6;
+}
+
+// Devuelve el tipo de día correcto según fecha, ignorando lo que diga el campo almacenado
+function getTipoDiaEfectivo(r) {
+  const almacenado = getVal(r.TipoDia);
+  const iso = r.HoraInicio;
+  if (!iso) return almacenado || 'Habil';
+  if (esFestivo(iso))  return 'Festivo';
+  if (esDomingo(iso))  return 'Dominical';
+  if (esSabado(iso))   return 'Sabado';
+  return almacenado || 'Habil';
 }
 
 // ══════════════════════════════════════════════════════════════════
@@ -548,17 +597,21 @@ function fmtH(val) {
   return n.toFixed(1) + 'h';
 }
 
-function chipTipoDia(tipoDia) {
-  const v = getVal(tipoDia);
-  if (!v) return '<span class="chip-dia chip-desconocido">Sin tipo</span>';
+function chipTipoDia(r) {
+  // Usa getTipoDiaEfectivo para corregir festivos/domingos mal clasificados
+  const v = getTipoDiaEfectivo(r);
+  const almacenado = getVal(r.TipoDia);
   const m = {
-    'Habil': 'chip-habil',
-    'Sabado': 'chip-sabado',
+    'Habil':     'chip-habil',
+    'Sabado':    'chip-sabado',
     'Dominical': 'chip-dominical',
-    'Festivo': 'chip-festivo'
+    'Festivo':   'chip-festivo'
   };
   const cls = m[v] || 'chip-desconocido';
-  return `<span class="chip-dia ${cls}">${v}</span>`;
+  const diferente = almacenado && almacenado !== v;
+  const tooltip = diferente ? ` title="Almacenado como '${almacenado}' — corregido por festivos CO"` : '';
+  const icono = diferente ? ' 📅' : '';
+  return `<span class="chip-dia ${cls}"${tooltip}>${v}${icono}</span>`;
 }
 
 function safeId(email) {
@@ -795,7 +848,7 @@ function buildFila(r) {
       <td style="font-variant-numeric:tabular-nums">${isAbierto ? '—' : formatHora(r.HoraFin)}</td>
       <td>${fmtH(r.HorasOrdinarias)}${isAnomalo ? ' <span class="material-icons" style="font-size:12px;color:#d97706;vertical-align:middle" title="Brutas: ' + (parseFloat(r.HorasBrutas)||0).toFixed(1) + 'h — revisar registro">warning</span>' : ''}</td>
       <td>${fmtH(r.HorasExtra)}</td>
-      <td>${chipTipoDia(r.TipoDia)}</td>
+      <td>${chipTipoDia(r)}</td>
       <td style="font-size:11px;color:#6b7280">${franja ? franja.split('(')[0].trim() : '—'}</td>
       <td style="font-size:11px;color:#6b7280;max-width:220px;overflow:hidden;text-overflow:ellipsis;white-space:nowrap" title="${obs}">${obs || '—'}</td>
       ${decisionCell}
