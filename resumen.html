@@ -314,6 +314,50 @@
   }
   .approval-note.show { display: block; }
 
+  /* ── BARRA PROGRESO SEMANAL ──────────────────────── */
+  .week-progress {
+    background: var(--surface);
+    border: 1px solid var(--border);
+    border-radius: var(--r);
+    padding: 12px 16px;
+    margin-bottom: 20px;
+  }
+  .progress-track {
+    height: 10px;
+    background: #e8f0fb;
+    border-radius: 5px;
+    overflow: hidden;
+    margin-bottom: 8px;
+  }
+  .progress-fill {
+    height: 100%;
+    border-radius: 5px;
+    transition: width 0.5s ease, background 0.3s;
+  }
+  .progress-meta {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    font-size: 12px;
+    color: var(--muted);
+    gap: 8px;
+  }
+  .progress-meta strong { color: var(--kn-navy); }
+  .progress-meta .festivo-note {
+    font-size: 11px;
+    background: var(--festivo-bg);
+    color: var(--festivo-text);
+    padding: 2px 8px;
+    border-radius: 999px;
+    font-family: var(--mono);
+  }
+  .progress-meta .pct-badge {
+    font-family: var(--mono);
+    font-weight: 600;
+    font-size: 13px;
+    color: var(--kn-navy);
+  }
+
   @media (max-width: 500px) {
     .registro-row {
       grid-template-columns: 1fr 1fr 70px 80px 80px 32px;
@@ -366,10 +410,22 @@
 
   <div class="summary-bar" id="summaryBar">
     <div class="stat"><div class="stat-label">Registros</div><div class="stat-val" id="statTotal">—</div></div>
-    <div class="stat"><div class="stat-label">Horas norm.</div><div class="stat-val ok" id="statOrd">—</div></div>
-    <div class="stat"><div class="stat-label">Horas extra</div><div class="stat-val info" id="statExtra">—</div></div>
-    <div class="stat"><div class="stat-label">Total extras</div><div class="stat-val warn" id="statTotalExtra">—</div></div>
+    <div class="stat"><div class="stat-label">Laboradas</div><div class="stat-val ok" id="statLaboradas">—</div></div>
+    <div class="stat"><div class="stat-label">Ordinarias</div><div class="stat-val info" id="statOrd">—</div></div>
+    <div class="stat"><div class="stat-label">Extralaborales</div><div class="stat-val warn" id="statTotalExtra">—</div></div>
     <div class="stat"><div class="stat-label">Pendientes</div><div class="stat-val danger" id="statPending">—</div></div>
+  </div>
+
+  <!-- Barra de progreso semanal con base ajustada por festivos -->
+  <div class="week-progress" id="weekProgressWrap">
+    <div class="progress-track">
+      <div class="progress-fill" id="progressFill" style="width:0%"></div>
+    </div>
+    <div class="progress-meta">
+      <span id="progressLabel">—</span>
+      <span id="festivoNote" class="festivo-note" style="display:none"></span>
+      <span class="pct-badge" id="progressPct">—</span>
+    </div>
   </div>
 
   <div id="diasContainer">
@@ -747,11 +803,44 @@ function renderDias() {
 
   weekHorasOrdinarias = totalOrd;
 
-  document.getElementById('statTotal').textContent = totalRegs;
-  document.getElementById('statOrd').textContent   = totalOrd.toFixed(1) + 'h';
-  document.getElementById('statExtra').textContent = regsConExtras() + ' regs';
+  // ── Base ajustada por festivos L-V ──────────────────────────────────────
+  let countFestivosLaborales = 0;
+  for (let i = 0; i < 5; i++) {
+    const diaCheck = new Date(monday);
+    diaCheck.setDate(monday.getDate() + i);
+    if (esFestivo(formatDate(diaCheck))) countFestivosLaborales++;
+  }
+  const baseAjustada   = +(44 - countFestivosLaborales * 8.8).toFixed(1);
+  const horasLaboradas = +(totalOrd + totalExtra).toFixed(1);
+  const pct            = baseAjustada > 0
+    ? Math.min((horasLaboradas / baseAjustada) * 100, 100) : 100;
+  const faltan         = Math.max(baseAjustada - horasLaboradas, 0).toFixed(1);
+  const barColor       = pct >= 100 ? '#dc2626' : pct >= 88 ? '#d97706' : '#2563eb';
+
+  // ── Stats ────────────────────────────────────────────────────────────────
+  document.getElementById('statTotal').textContent      = totalRegs;
+  document.getElementById('statLaboradas').textContent  = horasLaboradas + 'h';
+  document.getElementById('statOrd').textContent        = totalOrd.toFixed(1) + 'h';
   document.getElementById('statTotalExtra').textContent = totalExtra.toFixed(1) + 'h';
   document.getElementById('statPending').textContent    = totalPending;
+
+  // ── Barra progreso ───────────────────────────────────────────────────────
+  document.getElementById('progressFill').style.width      = pct.toFixed(1) + '%';
+  document.getElementById('progressFill').style.background = barColor;
+
+  const faltanTxt = parseFloat(faltan) === 0
+    ? '<strong>Semana completa ✓</strong>'
+    : `<strong>${horasLaboradas}h</strong> laboradas · faltan <strong>${faltan}h</strong> de ${baseAjustada}h`;
+  document.getElementById('progressLabel').innerHTML = faltanTxt;
+  document.getElementById('progressPct').textContent = Math.round(pct) + '%';
+
+  const festNota = document.getElementById('festivoNote');
+  if (countFestivosLaborales > 0) {
+    festNota.style.display = '';
+    festNota.textContent = `📅 ${countFestivosLaborales} festivo${countFestivosLaborales > 1 ? 's' : ''} · base ${baseAjustada}h`;
+  } else {
+    festNota.style.display = 'none';
+  }
 }
 
 function regsConExtras() {
