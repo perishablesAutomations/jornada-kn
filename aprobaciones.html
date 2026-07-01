@@ -867,7 +867,6 @@ async function guardarDecisiones(email, nombreCorto, pendientes) {
     await Promise.all(pendientes.map(r =>
       fetch(FLOW_APROBACION, {
         method: 'POST',
-        mode: 'no-cors',
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({
           registro:       String(r.ID),
