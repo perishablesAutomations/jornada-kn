@@ -1071,7 +1071,18 @@ async function saveRegistro() {
     HoraFin: fin || null,
     Observaciones: document.getElementById('fObservaciones').value,
     ...(esFinDeSemana ? {
-      HorasOrdinariasAcumuladasSemana: weekHorasOrdinarias,
+      // Excluir el registro actual del acumulado si es una edición —
+      // de lo contrario sus propias ordinarias inflan el total y el tope queda en 0
+      HorasOrdinariasAcumuladasSemana: (() => {
+        let acum = weekHorasOrdinarias;
+        if (editingId) {
+          const regActual = registros.find(r => r.ID == editingId);
+          if (regActual && regActual.Estado !== 'Abierto') {
+            acum -= parseFloat(regActual.HorasOrdinarias || 0);
+          }
+        }
+        return Math.max(acum, 0);
+      })(),
       HorasSemanales: CONFIG.horasSemanales
     } : {})
   };
