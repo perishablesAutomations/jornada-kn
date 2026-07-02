@@ -928,27 +928,33 @@ document.addEventListener('click', e => {
   const hint    = document.getElementById('hint-' + safeId(emailCard));
   const guardar = card.querySelector('.btn-guardar');
 
+  const conDec = pendientes.filter(r => decisions[r.ID]).length;
   if (hint) {
     if (sinDec === 0) {
-      hint.textContent = '✓ Listo para guardar';
+      hint.textContent = '✓ Todos listos para guardar';
+      hint.className = 'save-hint ready';
+    } else if (conDec > 0) {
+      hint.textContent = `${conDec} listo${conDec !== 1 ? 's' : ''} · faltan ${sinDec}`;
       hint.className = 'save-hint ready';
     } else {
-      hint.textContent = `Faltan ${sinDec} decisión${sinDec !== 1 ? 'es' : ''}`;
+      hint.textContent = `Define al menos 1 decisión para guardar`;
       hint.className = 'save-hint';
     }
   }
-  if (guardar) guardar.disabled = sinDec > 0;
+  if (guardar) guardar.disabled = conDec === 0;
 });
 
 // ══════════════════════════════════════════════════════════════════
 // GUARDAR DECISIONES
 // ══════════════════════════════════════════════════════════════════
 async function guardarDecisiones(email, nombreCorto, pendientes) {
-  const sinDec = pendientes.filter(r => !decisions[r.ID]);
-  if (sinDec.length > 0) {
-    showToast(`Faltan ${sinDec.length} decisión${sinDec.length !== 1 ? 'es' : ''} por definir`);
+  // Solo guardar los registros que tienen decisión asignada
+  const conDecision = pendientes.filter(r => decisions[r.ID]);
+  if (conDecision.length === 0) {
+    showToast('Define al menos una decisión antes de guardar');
     return;
   }
+  const sinDec = pendientes.filter(r => !decisions[r.ID]);
 
   const card    = document.getElementById(safeId(email));
   const btn     = card ? card.querySelector('.btn-guardar') : null;
@@ -956,7 +962,7 @@ async function guardarDecisiones(email, nombreCorto, pendientes) {
 
   try {
     // Flow 5 (KN-Procesar Aprobación) — un call por registro pendiente
-    await Promise.all(pendientes.map(r =>
+    await Promise.all(conDecision.map(r =>
       fetch(FLOW_APROBACION, {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
@@ -985,7 +991,7 @@ async function guardarDecisiones(email, nombreCorto, pendientes) {
     ));
 
     // Limpiar decisiones de estos registros
-    pendientes.forEach(r => delete decisions[r.ID]);
+    conDecision.forEach(r => delete decisions[r.ID]);
 
     showToast(`Decisiones de ${nombreCorto} enviadas`);
     // Recargar datos después de que Flow 5 procese
