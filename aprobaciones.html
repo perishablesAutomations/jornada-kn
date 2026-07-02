@@ -807,7 +807,7 @@ function buildEmpCard(email, nombre, registros) {
           </tr>
         </thead>
         <tbody>
-          ${sorted.map(r => buildFila(r)).join('')}
+          ${sorted.map(r => buildFila(r, horasLaboradas, base44)).join('')}
         </tbody>
       </table>
     </div>
@@ -839,7 +839,7 @@ function buildEmpCard(email, nombre, registros) {
 // ══════════════════════════════════════════════════════════════════
 // FILA DE REGISTRO
 // ══════════════════════════════════════════════════════════════════
-function buildFila(r) {
+function buildFila(r, horasLaboradas = 0, base44 = 44) {
   const estado   = getVal(r.Estado);
   const tipoPago = getVal(r.TipoPago);
   const franja   = getVal(r.FranjaInicio);
@@ -848,6 +848,15 @@ function buildFila(r) {
   const isAbierto = estado === 'Abierto';
   const isPending = r.RequiereAprobacion;
   const isAnomalo = (parseFloat(r.HorasBrutas) || 0) > 24;
+
+  // Sugerencia de tipo basada en acumulado semanal
+  const tipoDiaEfec = getTipoDiaEfectivo(r);
+  const esDominical = tipoDiaEfec === 'Dominical' || tipoDiaEfec === 'Festivo';
+  const sugerencia  = esDominical
+    ? { label: 'Recargo dominical', color: '#d97706', bg: '#fef3c7', icon: 'attach_money' }
+    : horasLaboradas >= base44
+      ? { label: 'Hora extra', color: '#1d4ed8', bg: '#dbeafe', icon: 'trending_up' }
+      : { label: 'Recargo', color: '#d97706', bg: '#fef3c7', icon: 'attach_money' };
 
   let rowClass = '';
   if (isAnomalo)  rowClass = 'fila-anomala';
@@ -862,6 +871,17 @@ function buildFila(r) {
   } else if (isPending) {
     decisionCell = `
       <td>
+        <div style="margin-bottom:5px">
+          <span style="
+            display:inline-flex;align-items:center;gap:3px;
+            background:${sugerencia.bg};color:${sugerencia.color};
+            font-size:10px;font-weight:700;padding:2px 8px;border-radius:10px;
+            letter-spacing:0.3px;
+          ">
+            <span class="material-icons" style="font-size:11px">${sugerencia.icon}</span>
+            Sugerido: ${sugerencia.label}
+          </span>
+        </div>
         <div class="decision-btns" data-id="${r.ID}">
           <button class="dec-btn extra      ${dec === 'HoraExtra'  ? 'selected' : ''}" data-id="${r.ID}" data-dec="HoraExtra"  title="Hora extra">
             <span class="material-icons">trending_up</span><span>Extra</span>
