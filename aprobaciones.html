@@ -527,7 +527,7 @@ function getTipoDiaEfectivo(r) {
 // ══════════════════════════════════════════════════════════════════
 // CARGA DE DATOS
 // ══════════════════════════════════════════════════════════════════
-async function cargarRegistros() {
+async function cargarRegistros(semanaARestaurar = null) {
   showLoading(true);
   hideError();
   try {
@@ -543,6 +543,11 @@ async function cargarRegistros() {
     todosRegistros = (data.registros || []).filter(r => r.Empleado && r.Empleado.includes('@'));
     decisions = {};
     procesarSemanas();
+    // Restaurar la semana en la que estaba el jefe antes de recargar
+    if (semanaARestaurar) {
+      const idx = semanas.indexOf(semanaARestaurar);
+      if (idx !== -1) semanaIdx = idx;
+    }
     renderSemana();
   } catch (err) {
     showError('Error cargando registros: ' + err.message);
@@ -994,8 +999,9 @@ async function guardarDecisiones(email, nombreCorto, pendientes) {
     conDecision.forEach(r => delete decisions[r.ID]);
 
     showToast(`Decisiones de ${nombreCorto} enviadas`);
-    // Recargar datos después de que Flow 5 procese
-    setTimeout(() => cargarRegistros(), 2000);
+    // Guardar la semana actual antes de recargar para no perder la posición
+    const semanaActual = semanas[semanaIdx];
+    setTimeout(() => cargarRegistros(semanaActual), 2000);
   } catch (err) {
     showToast('Error al guardar: ' + err.message);
     if (btn) {
