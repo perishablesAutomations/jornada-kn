@@ -758,7 +758,10 @@ function renderDias() {
     const sinRegistro    = regsDelDia.length === 0 && isPast && !esDiaNoLaboral;
 
     const tieneAbierto        = regsDelDia.some(r => r.Estado === 'Abierto');
-    const tieneExtras         = regsDelDia.some(r => parseFloat(r.HorasExtra || 0) > 0);
+    // Extralaboral = horas extra O recargos (nocturno, dominical) que requieren aprobación
+    const tieneExtras         = regsDelDia.some(r =>
+      parseFloat(r.HorasExtra || 0) > 0 || r.RequiereAprobacion === true
+    );
     const pendienteAprobacion = regsDelDia.some(r =>
       r.RequiereAprobacion === true && r.AprobadoJefe === false
     );
