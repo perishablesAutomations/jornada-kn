@@ -1481,8 +1481,15 @@ async function descargarExcel() {
     let sheetXml = await zip.file('xl/worksheets/sheet1.xml').async('string');
 
     // 4. Construir filas XML — preserva todos los estilos del template
-    const round = n => Math.round((parseFloat(n)||0) * 100) / 100;
-    const n2s   = n => round(n) === 0 ? null : String(round(n));
+    const round  = n => Math.round((parseFloat(n)||0) * 100) / 100;
+    const n2s    = n => round(n) === 0 ? null : String(round(n));
+    // Escapar caracteres especiales XML (tildes, ñ, &, etc.)
+    const escXml = s => String(s)
+      .replace(/&/g, '&amp;')
+      .replace(/</g, '&lt;')
+      .replace(/>/g, '&gt;')
+      .replace(/"/g, '&quot;')
+      .replace(/'/g, '&apos;');
     const START_ROW = 6;
 
     const rowsXml = empleados.map((e, i) => {
@@ -1497,7 +1504,7 @@ async function descargarExcel() {
         : `<c r="${col}${row}"><v>${val}</v></c>`;
       // Celda string inline
       const cs = (col, val) => val
-        ? `<c r="${col}${row}" t="inlineStr"><is><t>${val}</t></is></c>`
+        ? `<c r="${col}${row}" t="inlineStr"><is><t>${escXml(val)}</t></is></c>`
         : '';
 
       return `<row r="${row}">`
