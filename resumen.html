@@ -487,13 +487,13 @@
 // ── VERIFICACIÓN DE SESIÓN ──────────────────────────────────────────────────
 (function checkSesion() {
   const raw = sessionStorage.getItem('kn_sesion');
-  if (!raw) { window.location.href = 'login.html'; return; }
+  if (!raw) { window.location.href = 'home.html'; return; }
   try {
     const s = JSON.parse(raw);
     if (!s.token || !s.email) throw new Error();
   } catch {
     sessionStorage.removeItem('kn_sesion');
-    window.location.href = 'login.html';
+    window.location.href = 'home.html';
   }
 })();
 // ─────────────────────────────────────────────────────────────────────────────
