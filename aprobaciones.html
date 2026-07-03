@@ -1456,68 +1456,88 @@ async function descargarExcel() {
   btn.innerHTML = '<span class="material-icons">hourglass_empty</span> Generando...';
 
   try {
-    const empleados  = reporteData.empleados || [];
-    const desde      = reporteData.fechaDesde || '';
-    const hasta      = reporteData.fechaHasta || '';
+    const empleados = reporteData.empleados || [];
+    const desde     = reporteData.fechaDesde || '';
+    const hasta     = reporteData.fechaHasta || '';
 
-    // 1. Cargar template desde GitHub Pages
+    // 1. Cargar JSZip dinámicamente si no está disponible
+    if (!window.JSZip) {
+      await new Promise((res, rej) => {
+        const s = document.createElement('script');
+        s.src = 'https://cdnjs.cloudflare.com/ajax/libs/jszip/3.10.1/jszip.min.js';
+        s.onload = res; s.onerror = rej;
+        document.head.appendChild(s);
+      });
+    }
+
+    // 2. Cargar template como binario
     const templateUrl = 'https://perishablesautomations.github.io/jornada-kn/template_horas_extras.xlsx';
     const res = await fetch(templateUrl);
     if (!res.ok) throw new Error('No se pudo cargar el template');
     const arrayBuffer = await res.arrayBuffer();
 
-    // 2. Leer con SheetJS preservando estilos
-    const wb = XLSX.read(arrayBuffer, { type: 'array', cellStyles: true, bookVBA: true });
-    const ws = wb.Sheets[wb.SheetNames[0]];
+    // 3. Abrir el ZIP del .xlsx
+    const zip = await JSZip.loadAsync(arrayBuffer);
+    let sheetXml = await zip.file('xl/worksheets/sheet1.xml').async('string');
 
+    // 4. Construir filas XML — preserva todos los estilos del template
     const round = n => Math.round((parseFloat(n)||0) * 100) / 100;
-    const v = n => round(n) === 0 ? '' : round(n);
-
-    // 3. Llenar datos desde fila 6
+    const n2s   = n => round(n) === 0 ? null : String(round(n));
     const START_ROW = 6;
-    empleados.forEach((e, i) => {
+
+    const rowsXml = empleados.map((e, i) => {
       const row    = START_ROW + i;
       const nombre = (e.nombre || e.email || '').split('/')[0].trim().toUpperCase();
       const tE     = round(e.cod1061 + e.cod1062 + e.cod1063 + e.cod1064);
       const tR     = round(e.cod1060 + e.cod1066 + e.cod1065);
       const tT     = round(tE + tR + e.cod1067);
 
-      [
-        ['A', ''],
-        ['B', nombre],
-        ['C', ''],
-        ['D', v(e.cod1061)],
-        ['E', v(e.cod1062)],
-        ['F', v(e.cod1063)],
-        ['G', v(e.cod1064)],
-        ['H', v(tE)],
-        ['I', v(e.cod1060)],
-        ['J', v(e.cod1066)],
-        ['K', v(e.cod1065)],
-        ['L', v(tR)],
-        ['M', v(e.cod1067)],
-        ['N', v(tT)],
-        ['O', EMPRESA],
-        ['P', AREA],
-        ['Q', SUCURSAL],
-      ].forEach(([col, val]) => {
-        const ref = `${col}${row}`;
-        if (!ws[ref]) ws[ref] = {};
-        ws[ref].v = val;
-        ws[ref].t = typeof val === 'number' ? 'n' : 's';
-      });
+      // Celda numérica
+      const cn = (col, val) => val === null ? ''
+        : `<c r="${col}${row}"><v>${val}</v></c>`;
+      // Celda string inline
+      const cs = (col, val) => val
+        ? `<c r="${col}${row}" t="inlineStr"><is><t>${val}</t></is></c>`
+        : '';
+
+      return `<row r="${row}">`
+        + cs('B', nombre)
+        + cn('D', n2s(e.cod1061))
+        + cn('E', n2s(e.cod1062))
+        + cn('F', n2s(e.cod1063))
+        + cn('G', n2s(e.cod1064))
+        + cn('H', n2s(tE))
+        + cn('I', n2s(e.cod1060))
+        + cn('J', n2s(e.cod1066))
+        + cn('K', n2s(e.cod1065))
+        + cn('L', n2s(tR))
+        + cn('M', n2s(e.cod1067))
+        + cn('N', n2s(tT))
+        + cs('O', EMPRESA)
+        + cs('P', AREA)
+        + cs('Q', SUCURSAL)
+        + '</row>';
+    }).join('');
+
+    // 5. Insertar filas antes del cierre de sheetData
+    sheetXml = sheetXml.replace('</sheetData>', rowsXml + '</sheetData>');
+
+    // Actualizar dimension
+    const lastRow = START_ROW + empleados.length - 1;
+    sheetXml = sheetXml.replace(/<dimension ref="[^"]*"/, `<dimension ref="A1:Q${lastRow}"`);
+
+    // 6. Actualizar el ZIP con el XML modificado
+    zip.file('xl/worksheets/sheet1.xml', sheetXml);
+
+    // 7. Generar blob y descargar
+    const blob = await zip.generateAsync({
+      type: 'blob',
+      mimeType: 'application/vnd.openxmlformats-officedocument.spreadsheetml.sheet'
     });
-
-    // Actualizar rango
-    ws['!ref'] = `A1:Q${START_ROW + Math.max(empleados.length - 1, 0)}`;
-
-    // 4. Generar y descargar
-    const wbout = XLSX.write(wb, { type: 'array', bookType: 'xlsx', cellStyles: true });
-    const blob  = new Blob([wbout], { type: 'application/vnd.openxmlformats-officedocument.spreadsheetml.sheet' });
-    const url   = URL.createObjectURL(blob);
-    const a     = document.createElement('a');
-    a.href      = url;
-    a.download  = `HorasExtra_${desde}_${hasta}.xlsx`;
+    const url = URL.createObjectURL(blob);
+    const a   = document.createElement('a');
+    a.href    = url;
+    a.download = `HorasExtra_${desde}_${hasta}.xlsx`;
     a.click();
     setTimeout(() => URL.revokeObjectURL(url), 1000);
 
