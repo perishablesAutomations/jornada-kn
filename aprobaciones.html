@@ -1480,16 +1480,21 @@ async function descargarExcel() {
     const zip = await JSZip.loadAsync(arrayBuffer);
     let sheetXml = await zip.file('xl/worksheets/sheet1.xml').async('string');
 
-    // 4. Construir filas XML — preserva todos los estilos del template
-    const round  = n => Math.round((parseFloat(n)||0) * 100) / 100;
-    const n2s    = n => round(n) === 0 ? null : String(round(n));
-    // Escapar caracteres especiales XML (tildes, ñ, &, etc.)
-    const escXml = s => String(s)
-      .replace(/&/g, '&amp;')
-      .replace(/</g, '&lt;')
-      .replace(/>/g, '&gt;')
-      .replace(/"/g, '&quot;')
-      .replace(/'/g, '&apos;');
+    // 4. Leer y actualizar shared strings para usar t="s" (igual que el template)
+    let ssXml = await zip.file('xl/sharedStrings.xml').async('string');
+    const ssMatches = [...ssXml.matchAll(/<si><t[^>]*>([^<]*)<\/t><\/si>/g)];
+    const strings = ssMatches.map(m => m[1]);
+    const esc   = s => String(s).replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;');
+    const getOrAdd = str => {
+      const e = esc(str);
+      let idx = strings.indexOf(e);
+      if (idx === -1) { strings.push(e); idx = strings.length - 1; }
+      return idx;
+    };
+
+    // 5. Construir filas XML con shared strings y atributos correctos
+    const round = n => Math.round((parseFloat(n)||0) * 100) / 100;
+    const n2s   = n => round(n) === 0 ? null : String(round(n));
     const START_ROW = 6;
 
     const rowsXml = empleados.map((e, i) => {
@@ -1498,43 +1503,30 @@ async function descargarExcel() {
       const tE     = round(e.cod1061 + e.cod1062 + e.cod1063 + e.cod1064);
       const tR     = round(e.cod1060 + e.cod1066 + e.cod1065);
       const tT     = round(tE + tR + e.cod1067);
-
-      // Celda numérica
-      const cn = (col, val) => val === null ? ''
-        : `<c r="${col}${row}"><v>${val}</v></c>`;
-      // Celda string inline
-      const cs = (col, val) => val
-        ? `<c r="${col}${row}" t="inlineStr"><is><t>${escXml(val)}</t></is></c>`
-        : '';
-
-      return `<row r="${row}">`
-        + cs('B', nombre)
-        + cn('D', n2s(e.cod1061))
-        + cn('E', n2s(e.cod1062))
-        + cn('F', n2s(e.cod1063))
-        + cn('G', n2s(e.cod1064))
-        + cn('H', n2s(tE))
-        + cn('I', n2s(e.cod1060))
-        + cn('J', n2s(e.cod1066))
-        + cn('K', n2s(e.cod1065))
-        + cn('L', n2s(tR))
-        + cn('M', n2s(e.cod1067))
-        + cn('N', n2s(tT))
-        + cs('O', EMPRESA)
-        + cs('P', AREA)
-        + cs('Q', SUCURSAL)
+      const cn = (col, val) => val === null ? '' : `<c r="${col}${row}"><v>${val}</v></c>`;
+      const cs = (col, val) => val ? `<c r="${col}${row}" t="s"><v>${getOrAdd(val)}</v></c>` : '';
+      return `<row r="${row}" spans="1:17" x14ac:dyDescent="0.25">`
+        + cs('B', nombre) + cn('D', n2s(e.cod1061)) + cn('E', n2s(e.cod1062))
+        + cn('F', n2s(e.cod1063)) + cn('G', n2s(e.cod1064)) + cn('H', n2s(tE))
+        + cn('I', n2s(e.cod1060)) + cn('J', n2s(e.cod1066)) + cn('K', n2s(e.cod1065))
+        + cn('L', n2s(tR)) + cn('M', n2s(e.cod1067)) + cn('N', n2s(tT))
+        + cs('O', EMPRESA) + cs('P', AREA) + cs('Q', SUCURSAL)
         + '</row>';
     }).join('');
 
-    // 5. Insertar filas antes del cierre de sheetData
+    // 6. Insertar filas y actualizar dimension en sheet XML
     sheetXml = sheetXml.replace('</sheetData>', rowsXml + '</sheetData>');
-
-    // Actualizar dimension
     const lastRow = START_ROW + empleados.length - 1;
     sheetXml = sheetXml.replace(/<dimension ref="[^"]*"/, `<dimension ref="A1:Q${lastRow}"`);
 
-    // 6. Actualizar el ZIP con el XML modificado
+    // Actualizar shared strings XML
+    const newSsXml = '<?xml version="1.0" encoding="UTF-8" standalone="yes"?>\r\n'
+      + `<sst xmlns="http://schemas.openxmlformats.org/spreadsheetml/2006/main" count="${strings.length}" uniqueCount="${strings.length}">`
+      + strings.map(s => `<si><t>${s}</t></si>`).join('')
+      + '</sst>';
+
     zip.file('xl/worksheets/sheet1.xml', sheetXml);
+    zip.file('xl/sharedStrings.xml', newSsXml);
 
     // 7. Generar blob y descargar
     const blob = await zip.generateAsync({
