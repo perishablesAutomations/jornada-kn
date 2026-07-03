@@ -370,6 +370,181 @@
       .resumen-horas { grid-template-columns: repeat(2, 1fr); }
       .dec-btn span:not(.material-icons) { display: none; }
     }
+
+    /* ── TABS ───────────────────────────────────────── */
+    .tabs {
+      background: white;
+      border-bottom: 1px solid #e2e6ea;
+      display: flex;
+      gap: 0;
+      padding: 0 24px;
+    }
+    .tab-btn {
+      padding: 12px 20px;
+      border: none;
+      background: none;
+      font-size: 13px;
+      font-weight: 600;
+      color: #9aa1b0;
+      cursor: pointer;
+      border-bottom: 3px solid transparent;
+      transition: all 0.15s;
+      display: flex;
+      align-items: center;
+      gap: 6px;
+    }
+    .tab-btn:hover { color: #003087; }
+    .tab-btn.active { color: #003087; border-bottom-color: #003087; }
+    .tab-btn .material-icons { font-size: 16px; }
+
+    /* ── REPORTE ─────────────────────────────────────── */
+    .reporte-wrap { max-width: 1140px; margin: 0 auto; padding: 20px 16px 40px; }
+
+    .periodo-selector {
+      background: white;
+      border: 1px solid #e8eaed;
+      border-radius: 10px;
+      padding: 16px 20px;
+      display: flex;
+      align-items: center;
+      gap: 16px;
+      flex-wrap: wrap;
+      margin-bottom: 20px;
+    }
+    .periodo-selector label {
+      font-size: 12px;
+      font-weight: 600;
+      color: #6b7280;
+      text-transform: uppercase;
+      letter-spacing: 0.5px;
+    }
+    .periodo-selector input[type=date] {
+      border: 1px solid #e2e6ea;
+      border-radius: 6px;
+      padding: 7px 12px;
+      font-size: 13px;
+      color: #1a1a2e;
+      font-family: 'Segoe UI', sans-serif;
+      cursor: pointer;
+    }
+    .btn-generar {
+      padding: 8px 20px;
+      background: #003087;
+      color: white;
+      border: none;
+      border-radius: 7px;
+      font-size: 13px;
+      font-weight: 600;
+      cursor: pointer;
+      display: inline-flex;
+      align-items: center;
+      gap: 6px;
+      transition: background 0.15s;
+    }
+    .btn-generar:hover { background: #002166; }
+    .btn-generar:disabled { opacity: 0.5; cursor: default; }
+    .btn-generar .material-icons { font-size: 16px; }
+
+    .btn-excel {
+      padding: 8px 20px;
+      background: #16a34a;
+      color: white;
+      border: none;
+      border-radius: 7px;
+      font-size: 13px;
+      font-weight: 600;
+      cursor: pointer;
+      display: inline-flex;
+      align-items: center;
+      gap: 6px;
+      transition: background 0.15s;
+      margin-left: auto;
+    }
+    .btn-excel:hover { background: #15803d; }
+    .btn-excel:disabled { opacity: 0.5; cursor: default; }
+    .btn-excel .material-icons { font-size: 16px; }
+
+    .reporte-header-bar {
+      display: flex;
+      align-items: center;
+      margin-bottom: 12px;
+      gap: 12px;
+    }
+    .reporte-title {
+      font-size: 14px;
+      font-weight: 700;
+      color: #1a1a2e;
+    }
+    .reporte-periodo-chip {
+      font-size: 11px;
+      background: #e8f0fe;
+      color: #003087;
+      padding: 3px 10px;
+      border-radius: 10px;
+      font-weight: 600;
+    }
+
+    .reporte-tabla-wrap { overflow-x: auto; }
+    .reporte-tabla {
+      width: 100%;
+      border-collapse: collapse;
+      font-size: 12px;
+      background: white;
+      border-radius: 10px;
+      overflow: hidden;
+      border: 1px solid #e8eaed;
+    }
+    .reporte-tabla th {
+      background: #003087;
+      color: white;
+      font-size: 10px;
+      font-weight: 700;
+      text-transform: uppercase;
+      letter-spacing: 0.5px;
+      padding: 8px 10px;
+      text-align: center;
+      white-space: nowrap;
+    }
+    .reporte-tabla th.left { text-align: left; }
+    .reporte-tabla th.grupo-extra { background: #1d4ed8; }
+    .reporte-tabla th.grupo-recargo { background: #d97706; }
+    .reporte-tabla th.grupo-dom { background: #be185d; }
+    .reporte-tabla th.grupo-total { background: #1a1a2e; }
+    .reporte-tabla td {
+      padding: 8px 10px;
+      border-bottom: 1px solid #f5f6f8;
+      text-align: center;
+      color: #1a1a2e;
+    }
+    .reporte-tabla td.left { text-align: left; }
+    .reporte-tabla tr:last-child td { border-bottom: none; }
+    .reporte-tabla tr:hover td { background: #f9fafb; }
+    .reporte-tabla .total-row td {
+      background: #f0f6ff;
+      font-weight: 700;
+      border-top: 2px solid #003087;
+    }
+    .reporte-tabla .cero { color: #d1d5db; }
+
+    [data-tooltip] {
+      position: relative;
+      cursor: help;
+    }
+    [data-tooltip]:hover::after {
+      content: attr(data-tooltip);
+      position: absolute;
+      bottom: 125%;
+      left: 50%;
+      transform: translateX(-50%);
+      background: #1a1a2e;
+      color: white;
+      padding: 5px 10px;
+      border-radius: 6px;
+      font-size: 11px;
+      white-space: nowrap;
+      z-index: 100;
+      pointer-events: none;
+    }
   </style>
 </head>
 <body>
@@ -379,6 +554,35 @@
   <span class="loading-label">Cargando registros del equipo...</span>
 </div>
 
+</div><!-- /vistaAprobaciones -->
+
+<!-- ── VISTA REPORTE ──────────────────────────────────────── -->
+<div id="vistaReporte" style="display:none">
+  <div class="reporte-wrap">
+
+    <div class="periodo-selector">
+      <div style="display:flex;align-items:center;gap:8px">
+        <label>Desde</label>
+        <input type="date" id="fechaDesde" />
+      </div>
+      <div style="display:flex;align-items:center;gap:8px">
+        <label>Hasta</label>
+        <input type="date" id="fechaHasta" />
+      </div>
+      <button class="btn-generar" id="btnGenerar" onclick="generarReporte()">
+        <span class="material-icons">play_arrow</span>
+        Generar
+      </button>
+      <button class="btn-excel" id="btnExcel" onclick="descargarExcel()" style="display:none">
+        <span class="material-icons">download</span>
+        Descargar Excel
+      </button>
+    </div>
+
+    <div id="reporteResultado"></div>
+  </div>
+</div>
+
 <div id="toast"></div>
 
 <header>
@@ -386,6 +590,18 @@
   <span class="jefe-chip" id="jefeChip">—</span>
 </header>
 
+<div class="tabs">
+  <button class="tab-btn active" id="tabAprobaciones" onclick="switchTab('aprobaciones')">
+    <span class="material-icons">check_circle</span>
+    Aprobaciones
+  </button>
+  <button class="tab-btn" id="tabReporte" onclick="switchTab('reporte')">
+    <span class="material-icons">assessment</span>
+    Reporte de nómina
+  </button>
+</div>
+
+<div id="vistaAprobaciones">
 <div class="week-nav">
   <button class="nav-btn" id="prevWeek" disabled>
     <span class="material-icons">chevron_left</span>
@@ -1061,6 +1277,216 @@ function showToast(msg) {
   t.classList.add('show');
   setTimeout(() => t.classList.remove('show'), 3200);
 }
+
+// ══════════════════════════════════════════════════════════════════
+// TABS
+// ══════════════════════════════════════════════════════════════════
+function switchTab(tab) {
+  const esAprobaciones = tab === 'aprobaciones';
+  document.getElementById('vistaAprobaciones').style.display = esAprobaciones ? '' : 'none';
+  document.getElementById('vistaReporte').style.display      = esAprobaciones ? 'none' : '';
+  document.getElementById('tabAprobaciones').classList.toggle('active',  esAprobaciones);
+  document.getElementById('tabReporte').classList.toggle('active', !esAprobaciones);
+}
+
+// ══════════════════════════════════════════════════════════════════
+// REPORTE DE NÓMINA
+// ══════════════════════════════════════════════════════════════════
+const N8N_REPORTE    = 'https://n8n-production-fbb1.up.railway.app/webhook/kn-semana-hora';
+const N8N_EXCEL      = 'https://n8n-production-fbb1.up.railway.app/webhook/kn-reporte-excel';
+
+const EMPRESA  = 'KUEHNE + NAGEL S A S';
+const AREA     = 'AIR LOGISTICS PERISHABLE';
+const SUCURSAL = 'BOGOTA';
+
+let reporteData = null; // guarda el último resultado para el Excel
+
+async function generarReporte() {
+  const desde = document.getElementById('fechaDesde').value;
+  const hasta = document.getElementById('fechaHasta').value;
+  if (!desde || !hasta) { showToast('Selecciona fecha desde y hasta'); return; }
+  if (desde > hasta)    { showToast('La fecha desde debe ser anterior a hasta'); return; }
+
+  const btn = document.getElementById('btnGenerar');
+  btn.disabled = true;
+  btn.innerHTML = '<span class="material-icons">hourglass_empty</span> Generando...';
+  document.getElementById('reporteResultado').innerHTML = '';
+  document.getElementById('btnExcel').style.display = 'none';
+
+  try {
+    const res = await fetch(N8N_REPORTE, {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({
+        registros:   todosRegistros,
+        fechaDesde:  desde,
+        fechaHasta:  hasta
+      })
+    });
+    const data = await res.json();
+    reporteData = { ...data, fechaDesde: desde, fechaHasta: hasta };
+    renderReporte(data, desde, hasta);
+    document.getElementById('btnExcel').style.display = '';
+  } catch(e) {
+    document.getElementById('reporteResultado').innerHTML =
+      `<div style="color:#dc2626;padding:20px">Error generando reporte: ${e.message}</div>`;
+  } finally {
+    btn.disabled = false;
+    btn.innerHTML = '<span class="material-icons">play_arrow</span> Generar';
+  }
+}
+
+function fmtH(v) {
+  const n = parseFloat(v) || 0;
+  return n === 0 ? '<span class="cero">—</span>' : n.toFixed(1) + 'h';
+}
+
+function renderReporte(data, desde, hasta) {
+  const empleados = data.empleados || [];
+  const container = document.getElementById('reporteResultado');
+
+  if (!empleados.length) {
+    container.innerHTML = '<div style="text-align:center;padding:40px;color:#9aa1b0">Sin registros aprobados en el período seleccionado.</div>';
+    return;
+  }
+
+  // Totales
+  const tot = empleados.reduce((acc, e) => {
+    acc.cod1061 += e.cod1061; acc.cod1062 += e.cod1062;
+    acc.cod1063 += e.cod1063; acc.cod1064 += e.cod1064;
+    acc.cod1060 += e.cod1060; acc.cod1066 += e.cod1066;
+    acc.cod1065 += e.cod1065; acc.cod1067 += e.cod1067;
+    acc.total   += e.total;
+    return acc;
+  }, {cod1060:0,cod1061:0,cod1062:0,cod1063:0,cod1064:0,cod1065:0,cod1066:0,cod1067:0,total:0});
+
+  const round = n => Math.round(n * 100) / 100;
+  const fmtTotal = v => (parseFloat(v)||0) === 0 ? '<span class="cero">—</span>' : (parseFloat(v)||0).toFixed(1) + 'h';
+
+  const fmtFecha = s => {
+    const d = new Date(s + 'T12:00:00');
+    return d.toLocaleDateString('es-CO', { day: 'numeric', month: 'short', year: 'numeric', timeZone: 'UTC' });
+  };
+
+  const filas = empleados.map(e => {
+    const totalExtras   = round(e.cod1061 + e.cod1062 + e.cod1063 + e.cod1064);
+    const totalRecargos = round(e.cod1060 + e.cod1066 + e.cod1065);
+    const nombre = formatNombre(e.nombre);
+    return `<tr>
+      <td class="left" style="font-weight:600">${nombre}</td>
+      <td class="left" style="font-size:11px;color:#6b7280">${e.email}</td>
+      <td>${fmtH(e.cod1061)}</td>
+      <td>${fmtH(e.cod1062)}</td>
+      <td>${fmtH(e.cod1063)}</td>
+      <td>${fmtH(e.cod1064)}</td>
+      <td style="font-weight:700">${fmtTotal(totalExtras)}</td>
+      <td>${fmtH(e.cod1060)}</td>
+      <td>${fmtH(e.cod1066)}</td>
+      <td>${fmtH(e.cod1065)}</td>
+      <td style="font-weight:700">${fmtTotal(totalRecargos)}</td>
+      <td>${fmtH(e.cod1067)}</td>
+      <td style="font-weight:700;color:#003087">${fmtTotal(e.total)}</td>
+    </tr>`;
+  }).join('');
+
+  const totExtras   = round(tot.cod1061 + tot.cod1062 + tot.cod1063 + tot.cod1064);
+  const totRecargos = round(tot.cod1060 + tot.cod1066 + tot.cod1065);
+
+  container.innerHTML = `
+    <div class="reporte-header-bar">
+      <span class="reporte-title">Resumen período</span>
+      <span class="reporte-periodo-chip">${fmtFecha(desde)} → ${fmtFecha(hasta)}</span>
+      <span style="font-size:12px;color:#9aa1b0">${empleados.length} empleado${empleados.length!==1?'s':''}</span>
+    </div>
+    <div class="reporte-tabla-wrap">
+      <table class="reporte-tabla">
+        <thead>
+          <tr>
+            <th class="left" rowspan="2">Nombre</th>
+            <th class="left" rowspan="2">Correo</th>
+            <th class="grupo-extra" colspan="4">Horas Extra</th>
+            <th class="grupo-total" rowspan="2">Total<br>Extras</th>
+            <th class="grupo-recargo" colspan="3">Recargos</th>
+            <th class="grupo-total" rowspan="2">Total<br>Recargos</th>
+            <th class="grupo-dom" rowspan="2" data-tooltip="001067 — Festivo/Dominical sin compensatorio">Dom.<br>S/Comp.</th>
+            <th class="grupo-total" rowspan="2">TOTAL</th>
+          </tr>
+          <tr>
+            <th class="grupo-extra" data-tooltip="001061 — Horas Extras Diurnas">Ext.<br>Diurna</th>
+            <th class="grupo-extra" data-tooltip="001062 — Horas Extras Nocturnas">Ext.<br>Noct.</th>
+            <th class="grupo-extra" data-tooltip="001063 — Extra Dominical/Festiva Diurna">Ext.<br>Dom.D.</th>
+            <th class="grupo-extra" data-tooltip="001064 — Extra Dominical/Festiva Nocturna">Ext.<br>Dom.N.</th>
+            <th class="grupo-recargo" data-tooltip="001060 — Recargo Nocturno">Rec.<br>Noct.</th>
+            <th class="grupo-recargo" data-tooltip="001066 — Recargo Nocturno Festivo">Rec.N.<br>Fest.</th>
+            <th class="grupo-recargo" data-tooltip="001065 — Festivo/Dominical Compensado">Dom.<br>Comp.</th>
+          </tr>
+        </thead>
+        <tbody>
+          ${filas}
+          <tr class="total-row">
+            <td class="left" colspan="2">TOTALES</td>
+            <td>${fmtTotal(tot.cod1061)}</td>
+            <td>${fmtTotal(tot.cod1062)}</td>
+            <td>${fmtTotal(tot.cod1063)}</td>
+            <td>${fmtTotal(tot.cod1064)}</td>
+            <td>${fmtTotal(totExtras)}</td>
+            <td>${fmtTotal(tot.cod1060)}</td>
+            <td>${fmtTotal(tot.cod1066)}</td>
+            <td>${fmtTotal(tot.cod1065)}</td>
+            <td>${fmtTotal(totRecargos)}</td>
+            <td>${fmtTotal(tot.cod1067)}</td>
+            <td>${fmtTotal(tot.total)}</td>
+          </tr>
+        </tbody>
+      </table>
+    </div>`;
+}
+
+async function descargarExcel() {
+  if (!reporteData) return;
+  const btn = document.getElementById('btnExcel');
+  btn.disabled = true;
+  btn.innerHTML = '<span class="material-icons">hourglass_empty</span> Generando...';
+
+  try {
+    const res = await fetch(N8N_EXCEL, {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({
+        ...reporteData,
+        empresa:  EMPRESA,
+        area:     AREA,
+        sucursal: SUCURSAL
+      })
+    });
+
+    const blob = await res.blob();
+    const url  = URL.createObjectURL(blob);
+    const a    = document.createElement('a');
+    a.href     = url;
+    a.download = `HorasExtra_${reporteData.fechaDesde}_${reporteData.fechaHasta}.xlsx`;
+    a.click();
+    URL.revokeObjectURL(url);
+  } catch(e) {
+    showToast('Error generando Excel: ' + e.message);
+  } finally {
+    btn.disabled = false;
+    btn.innerHTML = '<span class="material-icons">download</span> Descargar Excel';
+  }
+}
+
+// Inicializar fechas por defecto: primer día del mes actual → hoy
+(function initFechas() {
+  const hoy = new Date();
+  const primerDia = new Date(hoy.getFullYear(), hoy.getMonth(), 1);
+  const fmt = d => d.toISOString().split('T')[0];
+  document.addEventListener('DOMContentLoaded', () => {
+    const fd = document.getElementById('fechaDesde');
+    const fh = document.getElementById('fechaHasta');
+    if (fd) fd.value = fmt(primerDia);
+    if (fh) fh.value = fmt(hoy);
+  });
+})();
 
 // ══════════════════════════════════════════════════════════════════
 init();
