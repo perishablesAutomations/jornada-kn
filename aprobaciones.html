@@ -534,6 +534,35 @@
     }
     .reporte-tabla .cero { color: #d1d5db; }
 
+    /* Input editable de horas extra */
+    .extra-input-wrap {
+      display: flex;
+      align-items: center;
+      gap: 4px;
+      margin-bottom: 5px;
+    }
+    .extra-input-label {
+      font-size: 10px;
+      color: #9aa1b0;
+      text-transform: uppercase;
+      letter-spacing: 0.4px;
+      white-space: nowrap;
+    }
+    .extra-input {
+      width: 60px;
+      padding: 3px 6px;
+      border: 1.5px solid #e2e6ea;
+      border-radius: 5px;
+      font-size: 12px;
+      font-family: 'DM Mono', monospace;
+      color: #1a1a2e;
+      text-align: center;
+      outline: none;
+      transition: border-color 0.15s;
+    }
+    .extra-input:focus { border-color: #1d4ed8; }
+    .extra-input-unit { font-size: 11px; color: #9aa1b0; }
+
     [data-tooltip] {
       position: relative;
       cursor: help;
@@ -1104,6 +1133,7 @@ function buildFila(r, horasLaboradas = 0, base44 = 44) {
   if (isAbierto) {
     decisionCell = `<td><em style="color:#16a34a;font-size:11px">En curso</em></td>`;
   } else if (isPending) {
+    const horasExtraActual = parseFloat(r.HorasExtra || 0).toFixed(1);
     decisionCell = `
       <td>
         <div style="margin-bottom:5px">
@@ -1116,6 +1146,20 @@ function buildFila(r, horasLaboradas = 0, base44 = 44) {
             <span class="material-icons" style="font-size:11px">${sugerencia.icon}</span>
             Sugerido: ${sugerencia.label}
           </span>
+        </div>
+        <div class="extra-input-wrap">
+          <span class="extra-input-label">H. Extra:</span>
+          <input
+            class="extra-input"
+            type="number"
+            min="0"
+            step="0.5"
+            value="${horasExtraActual}"
+            data-record-id="${r.ID}"
+            id="extra-input-${r.ID}"
+            title="Horas extra a aprobar (editable)"
+          />
+          <span class="extra-input-unit">h</span>
         </div>
         <div class="decision-btns" data-id="${r.ID}">
           <button class="dec-btn extra      ${dec === 'HoraExtra'  ? 'selected' : ''}" data-id="${r.ID}" data-dec="HoraExtra"  title="Hora extra">
@@ -1227,9 +1271,18 @@ async function guardarDecisiones(email, nombreCorto, pendientes) {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({
-          registro:       String(r.ID),
-          tipoAprobacion: DECISIONES[decisions[r.ID]],
-          aprobado:       decisions[r.ID] === 'Rechazar' ? 'no' : 'si',
+          registro:         String(r.ID),
+          tipoAprobacion:   DECISIONES[decisions[r.ID]],
+          aprobado:         decisions[r.ID] === 'Rechazar' ? 'no' : 'si',
+          // Horas extra ajustadas por el jefe (si difieren del valor calculado)
+          horasExtraAjustadas: (() => {
+            const input = document.getElementById('extra-input-' + r.ID);
+            if (!input) return null;
+            const val = parseFloat(input.value);
+            const original = parseFloat(r.HorasExtra || 0);
+            // Solo enviar si el jefe modificó el valor
+            return !isNaN(val) ? val : null;
+          })(),
           // Prorateo semanal: solo para sábados y domingos
           ...(['Sabado','Dominical'].includes(getVal(r.TipoDia)) ? {
             HorasOrdinariasAcumuladasSemana: (() => {
