@@ -556,41 +556,12 @@
 </head>
 <body>
 
+<div id="toast"></div>
+
 <div id="loading">
   <div class="spinner"></div>
   <span class="loading-label">Cargando registros del equipo...</span>
 </div>
-
-</div><!-- /vistaAprobaciones -->
-
-<!-- ── VISTA REPORTE ──────────────────────────────────────── -->
-<div id="vistaReporte" style="display:none">
-  <div class="reporte-wrap">
-
-    <div class="periodo-selector">
-      <div style="display:flex;align-items:center;gap:8px">
-        <label>Desde</label>
-        <input type="date" id="fechaDesde" />
-      </div>
-      <div style="display:flex;align-items:center;gap:8px">
-        <label>Hasta</label>
-        <input type="date" id="fechaHasta" />
-      </div>
-      <button class="btn-generar" id="btnGenerar" onclick="generarReporte()">
-        <span class="material-icons">play_arrow</span>
-        Generar
-      </button>
-      <button class="btn-excel" id="btnExcel" onclick="descargarExcel()" style="display:none">
-        <span class="material-icons">download</span>
-        Descargar Excel
-      </button>
-    </div>
-
-    <div id="reporteResultado"></div>
-  </div>
-</div>
-
-<div id="toast"></div>
 
 <header>
   <span class="logo">KN <em>·</em> Aprobaciones</span>
@@ -623,6 +594,33 @@
 <div class="content">
   <div id="error-box"></div>
   <div id="empList"></div>
+</div>
+</div><!-- /vistaAprobaciones -->
+
+<div id="vistaReporte" style="display:none">
+  <div class="reporte-wrap">
+
+    <div class="periodo-selector">
+      <div style="display:flex;align-items:center;gap:8px">
+        <label>Desde</label>
+        <input type="date" id="fechaDesde" />
+      </div>
+      <div style="display:flex;align-items:center;gap:8px">
+        <label>Hasta</label>
+        <input type="date" id="fechaHasta" />
+      </div>
+      <button class="btn-generar" id="btnGenerar" onclick="generarReporte()">
+        <span class="material-icons">play_arrow</span>
+        Generar
+      </button>
+      <button class="btn-excel" id="btnExcel" onclick="descargarExcel()" style="display:none">
+        <span class="material-icons">download</span>
+        Descargar Excel
+      </button>
+    </div>
+
+    <div id="reporteResultado"></div>
+  </div>
 </div>
 
 <script>
