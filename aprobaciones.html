@@ -1495,7 +1495,7 @@ async function descargarExcel() {
     // 5. Construir filas XML con shared strings y atributos correctos
     const round = n => Math.round((parseFloat(n)||0) * 100) / 100;
     const n2s   = n => round(n) === 0 ? null : String(round(n));
-    const START_ROW = 6;
+    const START_ROW = 3;  // datos desde fila 3 (después de las 2 filas de cabecera)
 
     const rowsXml = empleados.map((e, i) => {
       const row    = START_ROW + i;
@@ -1514,7 +1514,12 @@ async function descargarExcel() {
         + '</row>';
     }).join('');
 
-    // 6. Insertar filas y actualizar dimension en sheet XML
+    // 6. Eliminar filas de datos existentes (filas > 2) para evitar duplicados
+    sheetXml = sheetXml.replace(/<row r="([^"]+)"[^>]*>[\s\S]*?<\/row>/g, (match, rNum) => {
+      return parseInt(rNum) <= 2 ? match : '';
+    });
+
+    // Insertar nuevas filas y actualizar dimension
     sheetXml = sheetXml.replace('</sheetData>', rowsXml + '</sheetData>');
     const lastRow = START_ROW + empleados.length - 1;
     sheetXml = sheetXml.replace(/<dimension ref="[^"]*"/, `<dimension ref="A1:Q${lastRow}"`);
