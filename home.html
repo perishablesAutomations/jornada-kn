@@ -1,0 +1,631 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>KN · Jornadas</title>
+  <link href="https://fonts.googleapis.com/css2?family=DM+Mono:wght@400;500&family=Syne:wght@600;700;800&family=Inter:wght@400;500;600&display=swap" rel="stylesheet" />
+  <style>
+    *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+
+    :root {
+      --navy:   #003087;
+      --blue:   #0099DA;
+      --green:  #08C792;
+      --white:  #ffffff;
+      --off:    #f4f7fb;
+      --border: rgba(0,48,135,0.12);
+      --muted:  #6b7a99;
+      --text:   #0d1b38;
+      --error:  #dc2626;
+      --warn:   #d97706;
+    }
+
+    body {
+      font-family: 'Inter', sans-serif;
+      background: var(--off);
+      min-height: 100vh;
+      color: var(--text);
+    }
+
+    /* ── PANTALLA LOGIN ──────────────────────────────────── */
+    #screenLogin {
+      min-height: 100vh;
+      display: grid;
+      place-items: center;
+      padding: 20px;
+    }
+
+    .login-card {
+      background: var(--white);
+      border-radius: 16px;
+      box-shadow: 0 4px 32px rgba(0,48,135,0.10);
+      width: 100%;
+      max-width: 400px;
+      overflow: hidden;
+    }
+    .login-header {
+      background: var(--navy);
+      padding: 28px 32px 24px;
+      position: relative;
+    }
+    .login-header::after {
+      content: '';
+      position: absolute;
+      bottom: 0; left: 0; right: 0;
+      height: 3px;
+      background: linear-gradient(90deg, var(--blue), var(--green));
+    }
+    .logo-row {
+      display: flex;
+      align-items: center;
+      gap: 10px;
+      margin-bottom: 14px;
+    }
+    .logo-dot {
+      width: 8px; height: 8px;
+      border-radius: 50%;
+      background: var(--green);
+    }
+    .logo-text {
+      font-family: 'Syne', sans-serif;
+      font-size: 12px;
+      font-weight: 700;
+      letter-spacing: 2px;
+      text-transform: uppercase;
+      color: rgba(255,255,255,0.8);
+    }
+    .login-title {
+      font-family: 'Syne', sans-serif;
+      font-size: 22px;
+      font-weight: 700;
+      color: var(--white);
+    }
+    .login-sub {
+      font-size: 12px;
+      color: rgba(255,255,255,0.5);
+      margin-top: 3px;
+    }
+    .login-body { padding: 24px 32px 28px; }
+    .field { margin-bottom: 16px; }
+    label {
+      display: block;
+      font-size: 11px;
+      font-weight: 600;
+      text-transform: uppercase;
+      letter-spacing: 0.7px;
+      color: var(--navy);
+      margin-bottom: 5px;
+    }
+    input {
+      width: 100%;
+      padding: 10px 14px;
+      border: 1.5px solid var(--border);
+      border-radius: 8px;
+      font-family: 'Inter', sans-serif;
+      font-size: 14px;
+      color: var(--text);
+      background: var(--off);
+      outline: none;
+      transition: border-color 0.15s, background 0.15s;
+    }
+    input:focus {
+      border-color: var(--blue);
+      background: var(--white);
+      box-shadow: 0 0 0 3px rgba(0,153,218,0.12);
+    }
+    input::placeholder { color: #b0bac8; }
+    .btn-login {
+      width: 100%;
+      padding: 12px;
+      background: var(--navy);
+      color: var(--white);
+      border: none;
+      border-radius: 8px;
+      font-family: 'Syne', sans-serif;
+      font-size: 15px;
+      font-weight: 700;
+      cursor: pointer;
+      transition: background 0.15s;
+      margin-top: 6px;
+    }
+    .btn-login:hover:not(:disabled) { background: #002166; }
+    .btn-login:disabled { opacity: 0.55; cursor: default; }
+    .login-footer {
+      padding: 0 32px 18px;
+      font-size: 11px;
+      color: var(--muted);
+      text-align: center;
+    }
+    .error-box {
+      display: none;
+      background: #fef2f2;
+      border: 1px solid #fecaca;
+      border-radius: 8px;
+      padding: 9px 13px;
+      font-size: 13px;
+      color: var(--error);
+      margin-bottom: 14px;
+    }
+    .error-box.show { display: block; }
+    .spinner {
+      display: inline-block;
+      width: 14px; height: 14px;
+      border: 2px solid rgba(255,255,255,0.3);
+      border-top-color: white;
+      border-radius: 50%;
+      animation: spin 0.7s linear infinite;
+      vertical-align: middle;
+      margin-right: 6px;
+    }
+    @keyframes spin { to { transform: rotate(360deg); } }
+
+    /* ── PANTALLA HOME ───────────────────────────────────── */
+    #screenHome { display: none; }
+
+    .home-header {
+      background: var(--navy);
+      padding: 0 24px;
+      height: 52px;
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      position: sticky;
+      top: 0;
+      z-index: 10;
+      box-shadow: 0 2px 8px rgba(0,0,0,0.2);
+    }
+    .home-logo {
+      font-family: 'Syne', sans-serif;
+      font-size: 13px;
+      font-weight: 700;
+      letter-spacing: 1.5px;
+      text-transform: uppercase;
+      color: rgba(255,255,255,0.9);
+      display: flex;
+      align-items: center;
+      gap: 8px;
+    }
+    .home-logo .dot {
+      width: 7px; height: 7px;
+      border-radius: 50%;
+      background: var(--green);
+    }
+    .btn-logout {
+      background: rgba(255,255,255,0.1);
+      border: 1px solid rgba(255,255,255,0.2);
+      color: rgba(255,255,255,0.8);
+      border-radius: 6px;
+      padding: 5px 12px;
+      font-size: 12px;
+      font-weight: 600;
+      cursor: pointer;
+      font-family: 'Inter', sans-serif;
+      transition: background 0.15s;
+    }
+    .btn-logout:hover { background: rgba(255,255,255,0.18); }
+
+    .home-main {
+      max-width: 600px;
+      margin: 0 auto;
+      padding: 28px 16px 48px;
+    }
+
+    /* Saludo */
+    .greeting {
+      margin-bottom: 28px;
+    }
+    .greeting-name {
+      font-family: 'Syne', sans-serif;
+      font-size: 24px;
+      font-weight: 800;
+      color: var(--navy);
+      line-height: 1.1;
+    }
+    .greeting-sub {
+      font-size: 13px;
+      color: var(--muted);
+      margin-top: 4px;
+    }
+    .greeting-date {
+      font-family: 'DM Mono', monospace;
+      font-size: 12px;
+      color: var(--blue);
+      margin-top: 2px;
+    }
+
+    /* Check-in/out rápido */
+    .checkinout-card {
+      background: var(--white);
+      border-radius: 12px;
+      border: 1px solid var(--border);
+      padding: 18px 20px;
+      margin-bottom: 24px;
+      box-shadow: 0 1px 4px rgba(0,48,135,0.06);
+    }
+    .checkinout-title {
+      font-size: 11px;
+      font-weight: 600;
+      text-transform: uppercase;
+      letter-spacing: 0.7px;
+      color: var(--muted);
+      margin-bottom: 12px;
+    }
+    .checkinout-btns {
+      display: grid;
+      grid-template-columns: 1fr 1fr;
+      gap: 10px;
+    }
+    .btn-checkin {
+      padding: 12px;
+      border: none;
+      border-radius: 8px;
+      font-family: 'Syne', sans-serif;
+      font-size: 14px;
+      font-weight: 700;
+      cursor: pointer;
+      transition: all 0.15s;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      gap: 7px;
+    }
+    .btn-checkin.in {
+      background: #dcfce7;
+      color: #15803d;
+    }
+    .btn-checkin.in:hover { background: #16a34a; color: white; }
+    .btn-checkin.out {
+      background: #fee2e2;
+      color: #b91c1c;
+    }
+    .btn-checkin.out:hover { background: #dc2626; color: white; }
+    .btn-checkin:disabled { opacity: 0.45; cursor: default; }
+    .btn-checkin .icon { font-size: 16px; }
+
+    .checkinout-msg {
+      margin-top: 12px;
+      font-size: 13px;
+      text-align: center;
+      min-height: 20px;
+      color: var(--muted);
+      display: none;
+    }
+    .checkinout-msg.show { display: block; }
+    .checkinout-msg.ok   { color: #15803d; font-weight: 600; }
+    .checkinout-msg.err  { color: var(--error); }
+    .checkinout-msg.warn { color: var(--warn); }
+
+    /* Sección de opciones */
+    .section-label {
+      font-size: 11px;
+      font-weight: 600;
+      text-transform: uppercase;
+      letter-spacing: 0.7px;
+      color: var(--muted);
+      margin-bottom: 12px;
+    }
+    .options-grid {
+      display: grid;
+      grid-template-columns: 1fr 1fr;
+      gap: 12px;
+    }
+    .option-card {
+      background: var(--white);
+      border: 1px solid var(--border);
+      border-radius: 12px;
+      padding: 20px 18px;
+      cursor: pointer;
+      transition: all 0.15s;
+      text-decoration: none;
+      display: block;
+      box-shadow: 0 1px 4px rgba(0,48,135,0.06);
+      border-top: 3px solid var(--border);
+    }
+    .option-card:hover {
+      box-shadow: 0 4px 16px rgba(0,48,135,0.12);
+      transform: translateY(-2px);
+    }
+    .option-card.blue  { border-top-color: var(--blue); }
+    .option-card.green { border-top-color: var(--green); }
+    .option-card.navy  { border-top-color: var(--navy); }
+    .option-card.warn  { border-top-color: var(--warn); }
+
+    .option-icon {
+      font-size: 28px;
+      margin-bottom: 10px;
+      display: block;
+    }
+    .option-name {
+      font-family: 'Syne', sans-serif;
+      font-size: 14px;
+      font-weight: 700;
+      color: var(--navy);
+      margin-bottom: 4px;
+    }
+    .option-desc {
+      font-size: 11px;
+      color: var(--muted);
+      line-height: 1.4;
+    }
+  </style>
+</head>
+<body>
+
+<!-- ══ PANTALLA LOGIN ══════════════════════════════════════════ -->
+<div id="screenLogin">
+  <div class="login-card">
+    <div class="login-header">
+      <div class="logo-row">
+        <span class="logo-dot"></span>
+        <span class="logo-text">KN · Jornadas</span>
+      </div>
+      <div class="login-title">Bienvenido</div>
+      <div class="login-sub">Air Logistics Perishables · Bogotá</div>
+    </div>
+    <div class="login-body">
+      <div class="error-box" id="errorBox"></div>
+      <div class="field">
+        <label for="username">Usuario</label>
+        <input type="text" id="username" placeholder="tu.usuario" autocomplete="username" />
+      </div>
+      <div class="field">
+        <label for="password">Contraseña</label>
+        <input type="password" id="password" placeholder="••••••••" autocomplete="current-password" />
+      </div>
+      <button class="btn-login" id="btnLogin">Ingresar</button>
+    </div>
+    <div class="login-footer">Acceso restringido al equipo KN Perishables</div>
+  </div>
+</div>
+
+<!-- ══ PANTALLA HOME ═══════════════════════════════════════════ -->
+<div id="screenHome">
+  <header class="home-header">
+    <div class="home-logo">
+      <span class="dot"></span>
+      KN · Jornadas
+    </div>
+    <button class="btn-logout" onclick="cerrarSesion()">Cerrar sesión</button>
+  </header>
+
+  <main class="home-main">
+    <!-- Saludo -->
+    <div class="greeting">
+      <div class="greeting-name" id="greetingName">—</div>
+      <div class="greeting-sub" id="greetingRole">—</div>
+      <div class="greeting-date" id="greetingDate">—</div>
+    </div>
+
+    <!-- Check-in / Check-out -->
+    <div class="checkinout-card">
+      <div class="checkinout-title">Registro de jornada rápido</div>
+      <div class="checkinout-btns">
+        <button class="btn-checkin in" id="btnCheckin" onclick="procesarCheckin()">
+          <span class="icon">🟢</span> Check In
+        </button>
+        <button class="btn-checkin out" id="btnCheckout" onclick="procesarCheckout()">
+          <span class="icon">🔴</span> Check Out
+        </button>
+      </div>
+      <div class="checkinout-msg" id="checkinMsg"></div>
+    </div>
+
+    <!-- Opciones por rol -->
+    <div class="section-label">Mis herramientas</div>
+    <div class="options-grid" id="optionsGrid"></div>
+  </main>
+</div>
+
+<script>
+// ── CONSTANTES ────────────────────────────────────────────────
+const FLOW_LOGIN      = 'https://bd4a763d737defaeacf0e99a4d082f.58.environment.api.powerplatform.com:443/powerautomate/automations/direct/cu/27/workflows/aefaa172a6f5448bb4ee41ff7266acc0/triggers/manual/paths/invoke?api-version=1&sp=%2Ftriggers%2Fmanual%2Frun&sv=1.0&sig=YQas8-PtNRiA60nFWxitLmlsPxosGw93OpenmIfHNqA';
+const FLOW_CHECKINOUT = 'https://bd4a763d737defaeacf0e99a4d082f.58.environment.api.powerplatform.com:443/powerautomate/automations/direct/cu/12/workflows/b2fe41514358434ebfd8d0c3ac7d93bf/triggers/manual/paths/invoke?api-version=1&sp=%2Ftriggers%2Fmanual%2Frun&sv=1.0&sig=xraaWVMOl8mvVYae3WXNM_G9RTaBhuKB5pHja5eU5rQ';
+const ADMIN_TOKEN     = 'kn-perish-2026-adm-X7mQ9p';
+const BASE_URL        = window.location.origin + window.location.pathname.replace('index.html', '');
+
+// ── SESIÓN ────────────────────────────────────────────────────
+let sesion = null;
+
+function getSesion() {
+  try { return JSON.parse(sessionStorage.getItem('kn_sesion')); } catch { return null; }
+}
+function setSesion(data) {
+  sessionStorage.setItem('kn_sesion', JSON.stringify(data));
+  sesion = data;
+}
+function cerrarSesion() {
+  sessionStorage.removeItem('kn_sesion');
+  sesion = null;
+  mostrarLogin();
+}
+
+// ── PANTALLAS ─────────────────────────────────────────────────
+function mostrarLogin() {
+  document.getElementById('screenLogin').style.display = '';
+  document.getElementById('screenHome').style.display  = 'none';
+  document.getElementById('username').value = '';
+  document.getElementById('password').value = '';
+  document.getElementById('errorBox').classList.remove('show');
+}
+
+function mostrarHome() {
+  document.getElementById('screenLogin').style.display = 'none';
+  document.getElementById('screenHome').style.display  = '';
+  renderHome();
+}
+
+// ── RENDER HOME ───────────────────────────────────────────────
+function renderHome() {
+  const nombre = sesion.nombre.split(' ')[0];
+  const cargo  = sesion.cargo;
+  const ahora  = new Date();
+  const dias   = ['Domingo','Lunes','Martes','Miércoles','Jueves','Viernes','Sábado'];
+  const meses  = ['ene','feb','mar','abr','may','jun','jul','ago','sep','oct','nov','dic'];
+
+  document.getElementById('greetingName').textContent =
+    `Buenos días, ${nombre} 👋`;
+  document.getElementById('greetingRole').textContent =
+    cargo === 'Admin' ? 'Administrador del sistema' :
+    cargo === 'Manager' ? 'Jefe de equipo' : 'Colaborador';
+  document.getElementById('greetingDate').textContent =
+    `${dias[ahora.getDay()]}, ${ahora.getDate()} de ${meses[ahora.getMonth()]} de ${ahora.getFullYear()}`;
+
+  // Opciones según rol
+  const opciones = [
+    {
+      href: `resumen.html?email=${encodeURIComponent(sesion.email)}${cargo === 'Admin' ? '&adminToken=' + ADMIN_TOKEN : ''}`,
+      icon: '📋',
+      name: 'Mi jornada',
+      desc: 'Consulta y edita tus registros semanales',
+      color: 'blue',
+      roles: ['Empleado', 'Manager', 'Admin']
+    },
+    {
+      href: `aprobaciones.html?email=${encodeURIComponent(sesion.email)}`,
+      icon: '✅',
+      name: 'Aprobaciones',
+      desc: 'Revisa y aprueba las horas de tu equipo',
+      color: 'green',
+      roles: ['Manager', 'Admin']
+    },
+    {
+      href: `resumen.html?email=${encodeURIComponent(sesion.email)}&adminToken=${ADMIN_TOKEN}`,
+      icon: '🔑',
+      name: 'Admin · Jornada',
+      desc: 'Acceso a registros de cualquier empleado',
+      color: 'navy',
+      roles: ['Admin']
+    },
+  ].filter(o => o.roles.includes(cargo));
+
+  const grid = document.getElementById('optionsGrid');
+  grid.innerHTML = opciones.map(o => `
+    <a class="option-card ${o.color}" href="${o.href}">
+      <span class="option-icon">${o.icon}</span>
+      <div class="option-name">${o.name}</div>
+      <div class="option-desc">${o.desc}</div>
+    </a>
+  `).join('');
+}
+
+// ── LOGIN ─────────────────────────────────────────────────────
+async function login() {
+  const username = document.getElementById('username').value.trim();
+  const password = document.getElementById('password').value;
+  const errorBox = document.getElementById('errorBox');
+  const btn      = document.getElementById('btnLogin');
+
+  errorBox.classList.remove('show');
+  if (!username || !password) {
+    errorBox.textContent = 'Ingresa tu usuario y contraseña.';
+    errorBox.classList.add('show');
+    return;
+  }
+
+  btn.disabled = true;
+  btn.innerHTML = '<span class="spinner"></span> Verificando...';
+
+  try {
+    const res  = await fetch(FLOW_LOGIN, {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({ username, password })
+    });
+
+    if (res.status === 401) {
+      errorBox.textContent = 'Usuario o contraseña incorrectos.';
+      errorBox.classList.add('show');
+      return;
+    }
+
+    const data = await res.json();
+    if (!data.success) {
+      errorBox.textContent = data.mensaje || 'Error al iniciar sesión.';
+      errorBox.classList.add('show');
+      return;
+    }
+
+    setSesion({
+      token:  data.token,
+      email:  data.email,
+      nombre: data.nombre,
+      cargo:  data.cargo
+    });
+    mostrarHome();
+
+  } catch (e) {
+    errorBox.textContent = 'Error de conexión. Intenta de nuevo.';
+    errorBox.classList.add('show');
+  } finally {
+    btn.disabled = false;
+    btn.innerHTML = 'Ingresar';
+  }
+}
+
+// ── CHECK IN / OUT ────────────────────────────────────────────
+function setMsg(tipo, texto) {
+  const el = document.getElementById('checkinMsg');
+  el.textContent = texto;
+  el.className   = `checkinout-msg show ${tipo}`;
+}
+
+async function procesarCheckin() {
+  const btn = document.getElementById('btnCheckin');
+  btn.disabled = true;
+  setMsg('', '⏳ Procesando...');
+  try {
+    await fetch(FLOW_CHECKINOUT, {
+      method: 'POST',
+      mode:   'no-cors',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({ email: sesion.email, accion: 'checkin' })
+    });
+    setMsg('ok', '✓ Check In registrado correctamente');
+    setTimeout(() => document.getElementById('checkinMsg').classList.remove('show'), 4000);
+  } catch {
+    setMsg('err', 'Error al registrar. Intenta de nuevo.');
+  } finally {
+    btn.disabled = false;
+  }
+}
+
+async function procesarCheckout() {
+  const btn = document.getElementById('btnCheckout');
+  btn.disabled = true;
+  setMsg('', '⏳ Procesando...');
+  try {
+    await fetch(FLOW_CHECKINOUT, {
+      method: 'POST',
+      mode:   'no-cors',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({ email: sesion.email, accion: 'checkout' })
+    });
+    setMsg('ok', '✓ Check Out registrado correctamente');
+    setTimeout(() => document.getElementById('checkinMsg').classList.remove('show'), 4000);
+  } catch {
+    setMsg('err', 'Error al registrar. Intenta de nuevo.');
+  } finally {
+    btn.disabled = false;
+  }
+}
+
+// ── TECLADO ───────────────────────────────────────────────────
+document.getElementById('username').addEventListener('keydown', e => {
+  if (e.key === 'Enter') document.getElementById('password').focus();
+});
+document.getElementById('password').addEventListener('keydown', e => {
+  if (e.key === 'Enter') login();
+});
+document.getElementById('btnLogin').addEventListener('click', login);
+
+// ── ARRANQUE ──────────────────────────────────────────────────
+sesion = getSesion();
+if (sesion && sesion.token && sesion.email) {
+  mostrarHome();
+} else {
+  mostrarLogin();
+}
+</script>
+</body>
+</html>
