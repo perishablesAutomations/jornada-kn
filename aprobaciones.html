@@ -5,6 +5,7 @@
   <meta name="viewport" content="width=device-width, initial-scale=1.0" />
   <title>Aprobaciones — KN Perishables</title>
   <link href="https://fonts.googleapis.com/icon?family=Material+Icons" rel="stylesheet" />
+  <script src="https://cdn.sheetjs.com/xlsx-0.20.3/package/dist/xlsx.full.min.js"></script>
   <style>
     *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
 
@@ -1455,24 +1456,71 @@ async function descargarExcel() {
   btn.innerHTML = '<span class="material-icons">hourglass_empty</span> Generando...';
 
   try {
-    const res = await fetch(N8N_EXCEL, {
-      method: 'POST',
-      headers: { 'Content-Type': 'application/json' },
-      body: JSON.stringify({
-        ...reporteData,
-        empresa:  EMPRESA,
-        area:     AREA,
-        sucursal: SUCURSAL
-      })
+    const empleados  = reporteData.empleados || [];
+    const desde      = reporteData.fechaDesde || '';
+    const hasta      = reporteData.fechaHasta || '';
+
+    // 1. Cargar template desde GitHub Pages
+    const templateUrl = 'https://perishablesautomations.github.io/jornada-kn/template_horas_extras.xlsx';
+    const res = await fetch(templateUrl);
+    if (!res.ok) throw new Error('No se pudo cargar el template');
+    const arrayBuffer = await res.arrayBuffer();
+
+    // 2. Leer con SheetJS preservando estilos
+    const wb = XLSX.read(arrayBuffer, { type: 'array', cellStyles: true, bookVBA: true });
+    const ws = wb.Sheets[wb.SheetNames[0]];
+
+    const round = n => Math.round((parseFloat(n)||0) * 100) / 100;
+    const v = n => round(n) === 0 ? '' : round(n);
+
+    // 3. Llenar datos desde fila 6
+    const START_ROW = 6;
+    empleados.forEach((e, i) => {
+      const row    = START_ROW + i;
+      const nombre = (e.nombre || e.email || '').split('/')[0].trim().toUpperCase();
+      const tE     = round(e.cod1061 + e.cod1062 + e.cod1063 + e.cod1064);
+      const tR     = round(e.cod1060 + e.cod1066 + e.cod1065);
+      const tT     = round(tE + tR + e.cod1067);
+
+      [
+        ['A', ''],
+        ['B', nombre],
+        ['C', ''],
+        ['D', v(e.cod1061)],
+        ['E', v(e.cod1062)],
+        ['F', v(e.cod1063)],
+        ['G', v(e.cod1064)],
+        ['H', v(tE)],
+        ['I', v(e.cod1060)],
+        ['J', v(e.cod1066)],
+        ['K', v(e.cod1065)],
+        ['L', v(tR)],
+        ['M', v(e.cod1067)],
+        ['N', v(tT)],
+        ['O', EMPRESA],
+        ['P', AREA],
+        ['Q', SUCURSAL],
+      ].forEach(([col, val]) => {
+        const ref = `${col}${row}`;
+        if (!ws[ref]) ws[ref] = {};
+        ws[ref].v = val;
+        ws[ref].t = typeof val === 'number' ? 'n' : 's';
+      });
     });
 
-    const blob = await res.blob();
-    const url  = URL.createObjectURL(blob);
-    const a    = document.createElement('a');
-    a.href     = url;
-    a.download = `HorasExtra_${reporteData.fechaDesde}_${reporteData.fechaHasta}.xlsx`;
+    // Actualizar rango
+    ws['!ref'] = `A1:Q${START_ROW + Math.max(empleados.length - 1, 0)}`;
+
+    // 4. Generar y descargar
+    const wbout = XLSX.write(wb, { type: 'array', bookType: 'xlsx', cellStyles: true });
+    const blob  = new Blob([wbout], { type: 'application/vnd.openxmlformats-officedocument.spreadsheetml.sheet' });
+    const url   = URL.createObjectURL(blob);
+    const a     = document.createElement('a');
+    a.href      = url;
+    a.download  = `HorasExtra_${desde}_${hasta}.xlsx`;
     a.click();
-    URL.revokeObjectURL(url);
+    setTimeout(() => URL.revokeObjectURL(url), 1000);
+
   } catch(e) {
     showToast('Error generando Excel: ' + e.message);
   } finally {
