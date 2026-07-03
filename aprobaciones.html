@@ -57,6 +57,9 @@
       padding: 10px 24px;
       border-bottom: 1px solid #e2e6ea;
       box-shadow: 0 1px 4px rgba(0,0,0,0.06);
+      position: sticky;
+      top: 94px;  /* header(52) + tabs(42) */
+      z-index: 10;
     }
     .nav-btn {
       background: none;
@@ -378,6 +381,10 @@
       display: flex;
       gap: 0;
       padding: 0 24px;
+      position: sticky;
+      top: 52px;   /* altura del header */
+      z-index: 15;
+      box-shadow: 0 1px 4px rgba(0,0,0,0.06);
     }
     .tab-btn {
       padding: 12px 20px;
@@ -398,7 +405,7 @@
     .tab-btn .material-icons { font-size: 16px; }
 
     /* ── REPORTE ─────────────────────────────────────── */
-    .reporte-wrap { max-width: 1140px; margin: 0 auto; padding: 20px 16px 40px; }
+    .reporte-wrap { max-width: 1140px; margin: 0 auto; padding: 24px 16px 40px; }
 
     .periodo-selector {
       background: white;
@@ -1282,6 +1289,7 @@ function showToast(msg) {
 // TABS
 // ══════════════════════════════════════════════════════════════════
 function switchTab(tab) {
+  window.scrollTo(0, 0);
   const esAprobaciones = tab === 'aprobaciones';
   document.getElementById('vistaAprobaciones').style.display = esAprobaciones ? '' : 'none';
   document.getElementById('vistaReporte').style.display      = esAprobaciones ? 'none' : '';
