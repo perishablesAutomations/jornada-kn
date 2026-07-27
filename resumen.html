@@ -466,6 +466,7 @@
       <div class="field full">
         <label for="fObservaciones">Observaciones</label>
         <textarea id="fObservaciones" placeholder="Notas opcionales..."></textarea>
+        <span class="field-error" id="errObservaciones">Las observaciones son obligatorias porque este registro requiere aprobación (nocturno, fin de semana o festivo)</span>
       </div>
     </div>
 
@@ -564,6 +565,17 @@ function esFestivo(dateStr) {
   return festivosCO.has(dateStr);
 }
 // ─────────────────────────────────────────────────────────────────────────────
+
+// ── Estimación de si el registro requerirá aprobación ─────────────────────────
+// Refleja la regla de Flow 5: los extras diurnos entre semana quedan excluidos
+// de aprobación; todo lo demás (nocturno, fin de semana, festivo) sí la requiere.
+function requiereAprobacionProbable(fecha, ini, fin) {
+  if (!fecha) return false;
+  const fechaObj = parseDate(fecha);
+  const esFinDeSemana = fechaObj.getDay() === 0 || fechaObj.getDay() === 6;
+  const esNocturno = (ini && ini < '06:00') || (fin && fin > '19:00');
+  return esFinDeSemana || esFestivo(fecha) || esNocturno;
+}
 
 const DIAS_ES    = ['Domingo','Lunes','Martes','Miércoles','Jueves','Viernes','Sábado'];
 const DIAS_SHORT = ['dom','lun','mar','mié','jue','vie','sáb'];
@@ -944,6 +956,11 @@ function bindModal() {
   ['fHoraInicio','fHoraFin'].forEach(id => {
     document.getElementById(id).addEventListener('change', onFormChange);
   });
+  document.getElementById('fObservaciones').addEventListener('input', () => {
+    if (document.getElementById('fObservaciones').value.trim()) {
+      document.getElementById('errObservaciones').classList.remove('show');
+    }
+  });
 }
 
 function openNew(fecha) {
@@ -973,7 +990,7 @@ function openEdit(id) {
 
 function resetForm() {
   ['fFecha','fHoraInicio','fHoraFin','fObservaciones'].forEach(id => document.getElementById(id).value = '');
-  ['errFecha','errHoraInicio'].forEach(id => document.getElementById(id).classList.remove('show'));
+  ['errFecha','errHoraInicio','errObservaciones'].forEach(id => document.getElementById(id).classList.remove('show'));
 }
 
 function closeModal() {
@@ -1047,6 +1064,15 @@ async function saveRegistro() {
   else document.getElementById('errFecha').classList.remove('show');
   if (!ini)   { document.getElementById('errHoraInicio').classList.add('show'); valid = false; }
   else document.getElementById('errHoraInicio').classList.remove('show');
+
+  const observaciones = document.getElementById('fObservaciones').value.trim();
+  if (requiereAprobacionProbable(fecha, ini, fin) && !observaciones) {
+    document.getElementById('errObservaciones').classList.add('show');
+    valid = false;
+  } else {
+    document.getElementById('errObservaciones').classList.remove('show');
+  }
+
   if (!valid) return;
 
   if (fin) {
@@ -1062,17 +1088,17 @@ async function saveRegistro() {
     }
     let diffMins = timeToMins(fin) - timeToMins(ini);
     if (diffMins < 0) diffMins += 24 * 60;
-    if (diffMins < 30) {
-      showToast('El registro mínimo es de 30 minutos', true);
+    if (diffMins < 15) {
+      showToast('El registro mínimo es de 15 minutos', true);
       return;
     }
-    if (diffMins % 30 !== 0) {
-      const redondeado = Math.floor(diffMins / 30) * 30;
+    if (diffMins % 15 !== 0) {
+      const redondeado = Math.floor(diffMins / 15) * 15;
       const horasSugeridas = timeToMins(ini) + redondeado;
       const hSug = Math.floor(horasSugeridas / 60) % 24;
       const mSug = horasSugeridas % 60;
       const horaSugerida = String(hSug).padStart(2,'0') + ':' + String(mSug).padStart(2,'0');
-      showToast(`El registro debe ser múltiplo de 30 min. Hora sugerida de salida: ${horaSugerida}`, true);
+      showToast(`El registro debe ser múltiplo de 15 min. Hora sugerida de salida: ${horaSugerida}`, true);
       return;
     }
   }
@@ -1112,11 +1138,19 @@ async function saveRegistro() {
   btn.textContent = 'Guardando...';
 
   try {
-    await fetch(FLOW_SAVE_REGISTRO, {
+    const resp = await fetch(FLOW_SAVE_REGISTRO, {
       method: 'POST',
       headers: { 'Content-Type': 'application/json' },
       body: JSON.stringify(payload)
     });
+    const data = await resp.json().catch(() => ({}));
+    if (data && data.ok === false) {
+      if (data.error === 'observaciones_requeridas') {
+        document.getElementById('errObservaciones').classList.add('show');
+      }
+      showToast(data.message || 'No se pudo guardar el registro.', true);
+      return;
+    }
     closeModal();
     showToast('✓ Registro guardado correctamente.');
     setTimeout(() => loadRegistros(), 1500);
