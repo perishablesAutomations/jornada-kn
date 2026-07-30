@@ -1,5 +1,6 @@
 {
   "horasSemanales": 42,
   "diasLaboralesSemana": 6,
+  "horasFestivo": 8,
   "semanasHabilitadasEdicion": 5
-} 
+}
