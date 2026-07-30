@@ -47,6 +47,14 @@
       font-weight: 600;
       letter-spacing: 0.3px;
     }
+    .btn-home {
+      width: 32px; height: 32px; border-radius: 50%;
+      background: rgba(255,255,255,0.12); border: 1px solid rgba(255,255,255,0.2);
+      display: flex; align-items: center; justify-content: center;
+      cursor: pointer; font-size: 15px; color: #fff; line-height: 1;
+      transition: background 0.15s;
+    }
+    .btn-home:hover { background: rgba(255,255,255,0.24); }
 
     /* ── WEEK NAV ───────────────────────────────── */
     .week-nav {
@@ -641,7 +649,10 @@
 
 <header>
   <span class="logo">KN <em>·</em> Aprobaciones</span>
-  <span class="jefe-chip" id="jefeChip">—</span>
+  <div style="display:flex;align-items:center;gap:10px">
+    <button class="btn-home" onclick="irAHome()" title="Ir al inicio" aria-label="Ir al inicio">🏠</button>
+    <span class="jefe-chip" id="jefeChip">—</span>
+  </div>
 </header>
 
 <div class="tabs">
@@ -714,6 +725,21 @@
     window.location.href = 'home.html';
   }
 })();
+
+// Botón "Ir al inicio": valida que la sesión siga vigente antes de navegar.
+// Si no hay sesión válida, limpia el residuo y home.html mostrará el login.
+function irAHome() {
+  let valido = false;
+  try {
+    const s = JSON.parse(sessionStorage.getItem('kn_sesion') || 'null');
+    valido = !!(s && s.token && s.email);
+  } catch { valido = false; }
+  if (!valido) {
+    sessionStorage.removeItem('kn_sesion');
+    showToast('Tu sesión expiró, inicia sesión de nuevo');
+  }
+  window.location.href = 'home.html';
+}
 // ─────────────────────────────────────────────────────────────────────────────
 // ══════════════════════════════════════════════════════════════════
 // CONSTANTES — ajusta FLOW_APROBACION con la URL real de Flow 5
