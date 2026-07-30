@@ -492,6 +492,52 @@
       font-weight: 600;
     }
 
+    /* ── Chips de selección rápida de semana ─────────────────────────── */
+    .reporte-semana-chips {
+      display: flex;
+      align-items: center;
+      gap: 8px;
+      flex-wrap: nowrap;
+      overflow-x: auto;
+      padding: 2px 2px 10px;
+      margin-bottom: 4px;
+      -webkit-overflow-scrolling: touch;
+      scrollbar-width: thin;
+    }
+    .reporte-semana-chips::-webkit-scrollbar { height: 5px; }
+    .reporte-semana-chips::-webkit-scrollbar-thumb { background: #d7dce3; border-radius: 10px; }
+    .reporte-chip {
+      flex: 0 0 auto;
+      background: white;
+      border: 1px solid #e2e6ea;
+      color: #4b5563;
+      font-size: 12px;
+      font-weight: 600;
+      font-family: 'Segoe UI', sans-serif;
+      padding: 7px 14px;
+      border-radius: 999px;
+      cursor: pointer;
+      white-space: nowrap;
+      transition: background 0.15s, color 0.15s, border-color 0.15s;
+    }
+    .reporte-chip:hover { border-color: #003087; color: #003087; }
+    .reporte-chip.active {
+      background: #003087;
+      border-color: #003087;
+      color: white;
+    }
+    .reporte-chip.es-actual::after {
+      content: '';
+      display: inline-block;
+      width: 5px;
+      height: 5px;
+      border-radius: 50%;
+      background: currentColor;
+      margin-left: 6px;
+      vertical-align: middle;
+      opacity: 0.6;
+    }
+
     .reporte-tabla-wrap { overflow-x: auto; }
     .reporte-tabla {
       width: 100%;
@@ -629,6 +675,8 @@
 
 <div id="vistaReporte" style="display:none">
   <div class="reporte-wrap">
+
+    <div class="reporte-semana-chips" id="reporteSemanaChips"></div>
 
     <div class="periodo-selector">
       <div style="display:flex;align-items:center;gap:8px">
@@ -1417,6 +1465,63 @@ function fmtH(v) {
   return n === 0 ? '<span class="cero">—</span>' : n.toFixed(1) + 'h';
 }
 
+// ══════════════════════════════════════════════════════════════════
+// CHIPS DE SELECCIÓN RÁPIDA DE SEMANA (reporte de nómina)
+// ══════════════════════════════════════════════════════════════════
+const NUM_CHIPS_SEMANA = 8; // cuántas semanas hacia atrás mostrar
+const MESES_CHIP = ['ene','feb','mar','abr','may','jun','jul','ago','sep','oct','nov','dic'];
+
+// Chips del reporte: semana calendario completa, lunes a domingo (7 días)
+function sumarDias(fechaStr, dias) {
+  const d = new Date(fechaStr + 'T12:00:00Z');
+  d.setUTCDate(d.getUTCDate() + dias);
+  return d.toISOString().split('T')[0];
+}
+
+function fmtRangoChip(desde, hasta) {
+  const d1 = new Date(desde + 'T12:00:00Z');
+  const d2 = new Date(hasta + 'T12:00:00Z');
+  const mismoMes = d1.getUTCMonth() === d2.getUTCMonth();
+  const parteIni = mismoMes ? `${d1.getUTCDate()}` : `${d1.getUTCDate()} ${MESES_CHIP[d1.getUTCMonth()]}`;
+  const parteFin = `${d2.getUTCDate()} ${MESES_CHIP[d2.getUTCMonth()]}`;
+  return `${parteIni} - ${parteFin}`;
+}
+
+function generarChipsSemana() {
+  const cont = document.getElementById('reporteSemanaChips');
+  if (!cont) return;
+
+  const mondayHoy = getWeekStart(new Date().toISOString());
+
+  let html = '';
+  for (let i = 0; i < NUM_CHIPS_SEMANA; i++) {
+    const desde = sumarDias(mondayHoy, -7 * i);
+    const hasta = sumarDias(desde, 6); // domingo de esa semana
+    const esActual = i === 0;
+    html += `<button type="button"
+      class="reporte-chip${esActual ? ' es-actual' : ''}"
+      data-desde="${desde}" data-hasta="${hasta}"
+      onclick="seleccionarChipSemana('${desde}','${hasta}', this)">
+      ${fmtRangoChip(desde, hasta)}
+    </button>`;
+  }
+  cont.innerHTML = html;
+}
+
+function marcarChipActivo(desde, hasta) {
+  document.querySelectorAll('.reporte-chip').forEach(b => {
+    b.classList.toggle('active', b.dataset.desde === desde && b.dataset.hasta === hasta);
+  });
+}
+
+function seleccionarChipSemana(desde, hasta, btn) {
+  document.getElementById('fechaDesde').value = desde;
+  document.getElementById('fechaHasta').value = hasta;
+  document.querySelectorAll('.reporte-chip').forEach(b => b.classList.remove('active'));
+  btn.classList.add('active');
+  generarReporte();
+}
+
 function renderReporte(data, desde, hasta) {
   const empleados = data.empleados || [];
   const container = document.getElementById('reporteResultado');
@@ -1632,6 +1737,12 @@ async function descargarExcel() {
     const fh = document.getElementById('fechaHasta');
     if (fd) fd.value = fmt(primerDia);
     if (fh) fh.value = fmt(hoy);
+
+    generarChipsSemana();
+
+    // Si el usuario edita las fechas manualmente, ningún chip queda "seleccionado"
+    if (fd) fd.addEventListener('input', () => marcarChipActivo(fd.value, fh ? fh.value : null));
+    if (fh) fh.addEventListener('input', () => marcarChipActivo(fd ? fd.value : null, fh.value));
   });
 })();
 
