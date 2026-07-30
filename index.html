@@ -26,9 +26,20 @@
     .link-resumen { display: block; text-align: center; color: #003366; font-size: 13px; margin-top: 14px; text-decoration: none; }
     .link-resumen:hover { text-decoration: underline; }
     .footer { color: #999; font-size: 12px; text-align: center; margin-top: 12px; }
+    .btn-home-float {
+      position: fixed; top: 16px; left: 16px;
+      width: 40px; height: 40px; border-radius: 50%;
+      background: white; border: 1px solid rgba(0,51,105,0.15);
+      box-shadow: 0 2px 10px rgba(0,51,105,0.12);
+      display: flex; align-items: center; justify-content: center;
+      cursor: pointer; font-size: 18px; line-height: 1;
+      transition: transform 0.15s, box-shadow 0.15s;
+    }
+    .btn-home-float:hover { transform: translateY(-1px); box-shadow: 0 4px 14px rgba(0,51,105,0.18); }
   </style>
 </head>
 <body>
+<button class="btn-home-float" onclick="irAHome()" title="Ir al inicio" aria-label="Ir al inicio">🏠</button>
 <div class="card" id="card">
   <div style="padding:40px;text-align:center;">
     <p style="color:#555;font-size:15px;">⏳ Cargando...</p>
@@ -36,6 +47,20 @@
 </div>
 
 <script>
+  // Botón "Ir al inicio": valida que exista una sesión vigente (kn_sesion en
+  // sessionStorage) antes de navegar. Esta página se abre normalmente desde un
+  // link de correo sin sesión propia, así que en la mayoría de los casos no
+  // habrá sesión y home.html mostrará el login — eso es lo esperado.
+  function irAHome() {
+    let valido = false;
+    try {
+      const s = JSON.parse(sessionStorage.getItem('kn_sesion') || 'null');
+      valido = !!(s && s.token && s.email);
+    } catch { valido = false; }
+    if (!valido) sessionStorage.removeItem('kn_sesion');
+    window.location.href = 'home.html';
+  }
+
   const params = new URLSearchParams(window.location.search);
   const email = params.get('email');
   const accion = params.get('accion');
