@@ -509,6 +509,7 @@ const FLOW_GET_EMPLEADOS  = 'https://bd4a763d737defaeacf0e99a4d082f.58.environme
 let CONFIG = {
   horasSemanales: 44,
   diasLaboralesSemana: 6,
+  horasFestivo: 8,
   semanasHabilitadasEdicion: 1
 };
 
@@ -853,16 +854,19 @@ function renderDias() {
 
   weekHorasOrdinarias = totalOrd;
 
-  // ── Base ajustada por festivos L-S ──────────────────────────────────────
+  // ── Base ajustada por festivos L-V ──────────────────────────────────────
+  // El sábado nunca es festivo en la operación de KN, por eso solo se revisan
+  // los 5 días L-V (i=0 Lun … i=4 Vie). Cada festivo L-V descuenta un día
+  // completo de oficina (horasFestivo, 8h fijas), no una fracción proporcional
+  // de la jornada semanal — el horario real es 8h L-V + remanente el sábado,
+  // no una distribución pareja entre 6 días.
   let countFestivosLaborales = 0;
-  for (let i = 0; i < CONFIG.diasLaboralesSemana; i++) {
+  for (let i = 0; i < 5; i++) {
     const diaCheck = new Date(monday);
     diaCheck.setDate(monday.getDate() + i);
     if (esFestivo(formatDate(diaCheck))) countFestivosLaborales++;
   }
-  // 44h / 6 días laborales = 7.333h por día
-  const hPorDia      = +(CONFIG.horasSemanales / CONFIG.diasLaboralesSemana).toFixed(4);
-  const baseAjustada = +(CONFIG.horasSemanales - countFestivosLaborales * hPorDia).toFixed(1);
+  const baseAjustada = +(CONFIG.horasSemanales - countFestivosLaborales * CONFIG.horasFestivo).toFixed(1);
   baseAjustadaSemana = baseAjustada; // actualizar global para saveRegistro()
   const horasLaboradas = +(totalOrd + totalExtra).toFixed(1);
   const pct            = baseAjustada > 0
