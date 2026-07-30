@@ -686,6 +686,7 @@ const DECISIONES = {
 let CONFIG = {
   horasSemanales: 44,
   diasLaboralesSemana: 6,
+  horasFestivo: 8,
   semanasHabilitadasEdicion: 1
 };
 
@@ -766,16 +767,18 @@ function esSabado(isoStr) {
 // Calcula la base semanal ajustada por festivos L-S para una semana dada
 // weekStart: 'YYYY-MM-DD' (lunes de la semana)
 function getBaseAjustada(weekStart) {
-  // Usa CONFIG para respetar los parámetros editables en config.json
-  const hPorDia = CONFIG.horasSemanales / CONFIG.diasLaboralesSemana;
+  // Usa CONFIG para respetar los parámetros editables en config.json.
+  // El sábado nunca es festivo en la operación de KN, por eso solo se revisan
+  // los 5 días L-V. Cada festivo L-V descuenta un día completo de oficina
+  // (horasFestivo, 8h fijas), no una fracción proporcional de la semana.
   let count = 0;
-  for (let i = 0; i < CONFIG.diasLaboralesSemana; i++) {
+  for (let i = 0; i < 5; i++) {
     const d = new Date(weekStart + 'T12:00:00Z');
     d.setUTCDate(d.getUTCDate() + i);
     const fechaStr = d.toISOString().split('T')[0];
     if (festivosCO.has(fechaStr)) count++;
   }
-  return +(CONFIG.horasSemanales - count * hPorDia).toFixed(1);
+  return +(CONFIG.horasSemanales - count * CONFIG.horasFestivo).toFixed(1);
 }
 
 function getTipoDiaEfectivo(r) {
@@ -1000,7 +1003,7 @@ function buildEmpCard(email, nombre, registros) {
   const pct44       = Math.min((horasLaboradas / base44) * 100, 100);
   const barColor    = pct44 >= 100 ? '#dc2626' : pct44 >= 88 ? '#d97706' : '#2563eb';
   const festivosSemana = Math.round(
-    (CONFIG.horasSemanales - base44) / (CONFIG.horasSemanales / CONFIG.diasLaboralesSemana)
+    (CONFIG.horasSemanales - base44) / CONFIG.horasFestivo
   );
   const hasPend    = pendientes.length > 0;
   const empSafeId  = safeId(email);
