@@ -1360,8 +1360,12 @@ async function guardarDecisiones(email, nombreCorto, pendientes) {
             // Solo enviar si el jefe modificó el valor
             return !isNaN(val) ? val : null;
           })(),
-          // Prorateo semanal: solo para sábados y domingos
-          ...(['Sabado','Dominical'].includes(getVal(r.TipoDia)) ? {
+          // Prorateo semanal: se envía SIEMPRE (antes solo Sábado/Dominical) para
+          // que Flow 5 pueda aplicar el tope dinámico de 42h también en días
+          // Hábil. HorasSemanales usa la base ya ajustada por festivos de la
+          // semana (getBaseAjustada), igual que ya hace resumen.html, en vez
+          // del valor crudo de CONFIG.
+          ...(['Habil','Sabado','Dominical'].includes(getVal(r.TipoDia)) ? {
             HorasOrdinariasAcumuladasSemana: (() => {
               // Sumar HorasOrdinarias de todos los registros cerrados
               // de la semana del empleado, excluyendo el registro actual
@@ -1374,7 +1378,7 @@ async function guardarDecisiones(email, nombreCorto, pendientes) {
                 )
                 .reduce((s, x) => s + (parseFloat(x.HorasOrdinarias) || 0), 0);
             })(),
-            HorasSemanales: CONFIG.horasSemanales
+            HorasSemanales: getBaseAjustada(semanas[semanaIdx])
           } : {})
         })
       })
