@@ -1134,9 +1134,6 @@ async function saveRegistro() {
     }
   }
 
-  const fechaObj     = parseDate(fecha);
-  const esFinDeSemana = fechaObj.getDay() === 0 || fechaObj.getDay() === 6;
-
   const payload = {
     email: emailActivo,   // en modo admin usa el empleado activo, no el de la URL
     accion: editingId ? 'editar' : 'nuevo',
@@ -1145,23 +1142,26 @@ async function saveRegistro() {
     HoraInicio: ini,
     HoraFin: fin || null,
     Observaciones: document.getElementById('fObservaciones').value,
-    ...(esFinDeSemana ? {
+    // Se envían SIEMPRE (antes solo en sábado/domingo) para que Flow 4 pueda
+    // aplicar el tope dinámico de 42h también en días Hábil: la hora #9 de un
+    // turno diurno entre semana debe seguir siendo ordinaria mientras el
+    // acumulado semanal no supere las 42h — solo se marca extra/requiere
+    // aprobación si ya se superó el tope o si cae en franja nocturna.
+    HorasOrdinariasAcumuladasSemana: (() => {
       // Excluir el registro actual del acumulado si es una edición —
       // de lo contrario sus propias ordinarias inflan el total y el tope queda en 0
-      HorasOrdinariasAcumuladasSemana: (() => {
-        let acum = weekHorasOrdinarias;
-        if (editingId) {
-          const regActual = registros.find(r => r.ID == editingId);
-          if (regActual && regActual.Estado !== 'Abierto') {
-            acum -= parseFloat(regActual.HorasOrdinarias || 0);
-          }
+      let acum = weekHorasOrdinarias;
+      if (editingId) {
+        const regActual = registros.find(r => r.ID == editingId);
+        if (regActual && regActual.Estado !== 'Abierto') {
+          acum -= parseFloat(regActual.HorasOrdinarias || 0);
         }
-        return Math.max(acum, 0);
-      })(),
-      // Enviar base ajustada por festivos (no el 44 bruto)
-      // para que Flow 4 calcule el tope correcto en sábados/domingos
-      HorasSemanales: baseAjustadaSemana
-    } : {})
+      }
+      return Math.max(acum, 0);
+    })(),
+    // Base ajustada por festivos (no el 42/44 bruto) para que Flow 4 calcule
+    // el tope correcto en cualquier día de la semana
+    HorasSemanales: baseAjustadaSemana
   };
 
   const btn = document.getElementById('btnSaveModal');
