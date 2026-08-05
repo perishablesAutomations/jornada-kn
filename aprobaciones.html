@@ -1350,21 +1350,22 @@ async function guardarDecisiones(email, nombreCorto, pendientes) {
           tipoAprobacion:   DECISIONES[decisions[r.ID]],
           aprobado:         decisions[r.ID] === 'Rechazar' ? 'no' : 'si',
           // Horas extra ajustadas por el jefe (si difieren del valor calculado).
-          // Antes esto siempre mandaba `val` (el valor por defecto del input,
-          // que es el HorasExtra ya calculado por Flow 4) sin comparar contra
-          // `original` — el comentario decía "solo si cambió" pero el código
-          // nunca hacía esa comparación. Eso pisaba el recálculo de Flow 5
-          // con el valor viejo incluso cuando el jefe no tocó el campo.
-          horasExtraAjustadas: (() => {
+          // El trigger de Flow 5 tipa horasExtraAjustadas como "number" en su
+          // schema — no acepta null explícito, así que en vez de mandar la
+          // clave con valor null cuando el jefe no ajustó nada, se omite la
+          // clave por completo (spread condicional). triggerBody()?[...] en
+          // Flow 5 sigue evaluando null cuando la clave no existe, así que
+          // ningún nodo de Flow 5 necesita cambiar.
+          ...(() => {
             const input = document.getElementById('extra-input-' + r.ID);
-            if (!input) return null;
+            if (!input) return {};
             const val = parseFloat(input.value);
             // original combina HorasExtra + HorasRecargo: Flow 4 solo llena
             // una de las dos, pero comparar contra la suma cubre igual el
             // caso sin necesidad de saber cuál de las dos trae el valor.
             const original = (parseFloat(r.HorasExtra)||0) + (parseFloat(r.HorasRecargo)||0);
-            if (isNaN(val)) return null;
-            return val !== original ? val : null;
+            if (isNaN(val) || val === original) return {};
+            return { horasExtraAjustadas: val };
           })(),
           // Prorateo semanal: se envía SIEMPRE (antes solo Sábado/Dominical) para
           // que Flow 5 pueda aplicar el tope dinámico de 42h también en días
