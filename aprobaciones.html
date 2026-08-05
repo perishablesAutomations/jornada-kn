@@ -1067,7 +1067,7 @@ function buildEmpCard(email, nombre, registros) {
 
   const cerrados      = sorted.filter(r => getVal(r.Estado) === 'Cerrado');
   const horasOrd      = cerrados.reduce((s, r) => s + (parseFloat(r.HorasOrdinarias) || 0), 0);
-  const horasExtra    = cerrados.reduce((s, r) => s + (parseFloat(r.HorasExtra)      || 0), 0);
+  const horasExtra    = cerrados.reduce((s, r) => s + (parseFloat(r.HorasExtra) || 0) + (parseFloat(r.HorasRecargo) || 0), 0);
   const horasLaboradas = horasOrd + horasExtra;
   const pendientes = sorted.filter(r => r.RequiereAprobacion);
   const hayAbierto = sorted.some(r => getVal(r.Estado) === 'Abierto');
@@ -1190,14 +1190,12 @@ function buildFila(r, horasLaboradas = 0, base44 = 44) {
   const isPending = r.RequiereAprobacion;
   const isAnomalo = (parseFloat(r.HorasBrutas) || 0) > 24;
 
-  // Sugerencia de tipo basada en acumulado semanal
-  const tipoDiaEfec = getTipoDiaEfectivo(r);
-  const esDominical = tipoDiaEfec === 'Dominical' || tipoDiaEfec === 'Festivo';
-  const sugerencia  = esDominical
-    ? { label: 'Recargo dominical', color: '#d97706', bg: '#fef3c7', icon: 'attach_money' }
-    : horasLaboradas >= base44
-      ? { label: 'Hora extra', color: '#1d4ed8', bg: '#dbeafe', icon: 'trending_up' }
-      : { label: 'Recargo', color: '#d97706', bg: '#fef3c7', icon: 'attach_money' };
+  // Sugerencia de tipo — ya no se infiere por acumulado semanal: Flow 4 ya
+  // clasificó cada registro en HorasExtra o HorasRecargo (nunca ambos), así
+  // que la sugerencia solo refleja esa clasificación.
+  const sugerencia  = parseFloat(r.HorasRecargo) > 0
+    ? { label: 'Recargo', color: '#d97706', bg: '#fef3c7', icon: 'attach_money' }
+    : { label: 'Hora extra', color: '#1d4ed8', bg: '#dbeafe', icon: 'trending_up' };
 
   let rowClass = '';
   if (isAnomalo)  rowClass = 'fila-anomala';
@@ -1210,7 +1208,7 @@ function buildFila(r, horasLaboradas = 0, base44 = 44) {
   if (isAbierto) {
     decisionCell = `<td><em style="color:#16a34a;font-size:11px">En curso</em></td>`;
   } else if (isPending) {
-    const horasExtraActual = parseFloat(r.HorasExtra || 0).toFixed(1);
+    const horasExtraActual = (parseFloat(r.HorasExtra) > 0 ? parseFloat(r.HorasExtra) : parseFloat(r.HorasRecargo || 0)).toFixed(1);
     decisionCell = `
       <td>
         <div style="margin-bottom:5px">
@@ -1225,7 +1223,7 @@ function buildFila(r, horasLaboradas = 0, base44 = 44) {
           </span>
         </div>
         <div class="extra-input-wrap">
-          <span class="extra-input-label">H. Extra:</span>
+          <span class="extra-input-label" title="Sugerido por Flow 4 como: ${sugerencia.label}">Horas a aprobar:</span>
           <input
             class="extra-input"
             type="number"
@@ -1234,7 +1232,7 @@ function buildFila(r, horasLaboradas = 0, base44 = 44) {
             value="${horasExtraActual}"
             data-record-id="${r.ID}"
             id="extra-input-${r.ID}"
-            title="Horas extra a aprobar (editable)"
+            title="Horas a aprobar (extra o recargo, editable)"
           />
           <span class="extra-input-unit">h</span>
         </div>
@@ -1267,7 +1265,7 @@ function buildFila(r, horasLaboradas = 0, base44 = 44) {
       <td style="font-variant-numeric:tabular-nums">${formatHora(r.HoraInicio)}</td>
       <td style="font-variant-numeric:tabular-nums">${isAbierto ? '—' : formatHora(r.HoraFin)}</td>
       <td>${fmtH(r.HorasOrdinarias)}${isAnomalo ? ' <span class="material-icons" style="font-size:12px;color:#d97706;vertical-align:middle" title="Brutas: ' + (parseFloat(r.HorasBrutas)||0).toFixed(1) + 'h — revisar registro">warning</span>' : ''}</td>
-      <td>${fmtH(r.HorasExtra)}</td>
+      <td>${fmtH((parseFloat(r.HorasExtra)||0) + (parseFloat(r.HorasRecargo)||0))}</td>
       <td>${chipTipoDia(r)}</td>
       <td style="font-size:11px;color:#6b7280">${franja ? franja.split('(')[0].trim() : '—'}</td>
       <td style="font-size:11px;color:#6b7280;max-width:220px;overflow:hidden;text-overflow:ellipsis;white-space:nowrap" title="${obs}">${obs || '—'}</td>
@@ -1351,14 +1349,22 @@ async function guardarDecisiones(email, nombreCorto, pendientes) {
           registro:         String(r.ID),
           tipoAprobacion:   DECISIONES[decisions[r.ID]],
           aprobado:         decisions[r.ID] === 'Rechazar' ? 'no' : 'si',
-          // Horas extra ajustadas por el jefe (si difieren del valor calculado)
+          // Horas extra ajustadas por el jefe (si difieren del valor calculado).
+          // Antes esto siempre mandaba `val` (el valor por defecto del input,
+          // que es el HorasExtra ya calculado por Flow 4) sin comparar contra
+          // `original` — el comentario decía "solo si cambió" pero el código
+          // nunca hacía esa comparación. Eso pisaba el recálculo de Flow 5
+          // con el valor viejo incluso cuando el jefe no tocó el campo.
           horasExtraAjustadas: (() => {
             const input = document.getElementById('extra-input-' + r.ID);
             if (!input) return null;
             const val = parseFloat(input.value);
-            const original = parseFloat(r.HorasExtra || 0);
-            // Solo enviar si el jefe modificó el valor
-            return !isNaN(val) ? val : null;
+            // original combina HorasExtra + HorasRecargo: Flow 4 solo llena
+            // una de las dos, pero comparar contra la suma cubre igual el
+            // caso sin necesidad de saber cuál de las dos trae el valor.
+            const original = (parseFloat(r.HorasExtra)||0) + (parseFloat(r.HorasRecargo)||0);
+            if (isNaN(val)) return null;
+            return val !== original ? val : null;
           })(),
           // Prorateo semanal: se envía SIEMPRE (antes solo Sábado/Dominical) para
           // que Flow 5 pueda aplicar el tope dinámico de 42h también en días
