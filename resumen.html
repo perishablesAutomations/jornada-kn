@@ -746,6 +746,7 @@ async function loadRegistros() {
       Recargo:       (r.Recargo       || 'N/A').trim(),
       FechaAprobacion: r.FechaAprobacion || null,
       HorasExtra: r.HorasExtra || 0,
+      HorasRecargo: r.HorasRecargo || 0,
     }));
   } catch(e) {
     registros = getDemoData();
@@ -825,7 +826,7 @@ function renderDias() {
       // Contar todas las horas de registros cerrados, estén aprobadas o no
       if (r.Estado === 'Abierto') return;
       totalOrd   += parseFloat(r.HorasOrdinarias || 0);
-      totalExtra += parseFloat(r.HorasExtra      || 0);
+      totalExtra += parseFloat(r.HorasExtra      || 0) + parseFloat(r.HorasRecargo || 0);
     });
     if (pendienteAprobacion || sinRegistro || tieneAbierto) totalPending++;
 
@@ -851,6 +852,7 @@ function renderDias() {
       if (r.Estado === 'Abierto') return;
       totalHorasDia += parseFloat(r.HorasOrdinarias || 0);
       totalHorasDia += parseFloat(r.HorasExtra      || 0);
+      totalHorasDia += parseFloat(r.HorasRecargo    || 0);
     });
     const horasStr = regsDelDia.length > 0 && totalHorasDia > 0 ? `${totalHorasDia.toFixed(1)}h` : '';
 
@@ -942,7 +944,9 @@ function renderDayBody(regs, diaStr, isFuture) {
       const horasOrd   = r.HorasOrdinarias ? parseFloat(r.HorasOrdinarias).toFixed(1) + 'h' : '—';
       const horasExtra = r.HorasExtra && parseFloat(r.HorasExtra) > 0
         ? `<div style="font-size:11px;color:var(--warn-text);font-weight:600;margin-top:2px;">+${parseFloat(r.HorasExtra).toFixed(1)}h extra</div>`
-        : '';
+        : r.HorasRecargo && parseFloat(r.HorasRecargo) > 0
+          ? `<div style="font-size:11px;color:var(--info-text);font-weight:600;margin-top:2px;">+${parseFloat(r.HorasRecargo).toFixed(1)}h recargo</div>`
+          : '';
       const horas   = `<div>${horasOrd}</div>${horasExtra}`;
       const aprobado = r.AprobadoJefe === true
         ? '<span class="badge ok">✓ Aprobado</span>'
