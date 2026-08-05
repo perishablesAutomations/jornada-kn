@@ -1,232 +1,1783 @@
 <!DOCTYPE html>
 <html lang="es">
 <head>
-  <meta charset="UTF-8">
-  <meta name="viewport" content="width=device-width, initial-scale=1.0">
-  <title>Control de Jornada · KN</title>
-  <link href="https://fonts.googleapis.com/css2?family=Syne:wght@400;500;600;700&display=swap" rel="stylesheet">
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Aprobaciones — KN Perishables</title>
+  <link href="https://fonts.googleapis.com/icon?family=Material+Icons" rel="stylesheet" />
+  <script src="https://cdn.sheetjs.com/xlsx-0.20.3/package/dist/xlsx.full.min.js"></script>
   <style>
-    * { box-sizing: border-box; margin: 0; padding: 0; }
-    body { font-family: 'Syne', Calibri, Arial, sans-serif; display: flex; justify-content: center; align-items: center; min-height: 100vh; background: #f0f4f8; padding: 20px; }
-    .card { background: white; border-radius: 16px; box-shadow: 0 4px 24px rgba(0,51,105,0.12); max-width: 400px; width: 100%; overflow: hidden; }
-    .card-header { padding: 28px 24px; text-align: center; }
-    .card-header .icon { font-size: 36px; margin-bottom: 8px; }
-    .card-header .titulo { color: white; font-size: 18px; font-weight: 700; margin: 0; }
-    .card-header .subtitulo { color: rgba(255,255,255,0.8); font-size: 13px; margin: 4px 0 0 0; }
-    .card-body { padding: 24px; }
-    .card-body p { color: #555; font-size: 14px; line-height: 1.6; text-align: center; margin-bottom: 16px; }
-    .field { margin-bottom: 16px; }
-    .field label { display: block; font-size: 12px; font-weight: 600; color: #003369; text-transform: uppercase; letter-spacing: 0.08em; margin-bottom: 6px; }
-    .field textarea { width: 100%; padding: 10px 12px; border: 1px solid rgba(0,51,105,0.2); border-radius: 8px; font-family: inherit; font-size: 13px; color: #333; resize: none; min-height: 80px; outline: none; transition: border-color 0.15s; }
-    .field textarea:focus { border-color: #0099DA; box-shadow: 0 0 0 3px rgba(0,153,218,0.15); }
-    .info-box { background: #fff3cd; border-left: 3px solid #ff8c00; border-radius: 6px; padding: 10px 14px; font-size: 13px; color: #7a4a00; margin-bottom: 16px; text-align: left; }
-    .btn { display: block; width: 100%; padding: 13px; border: none; border-radius: 8px; font-family: inherit; font-size: 15px; font-weight: 700; cursor: pointer; transition: opacity 0.15s; text-align: center; }
-    .btn:hover { opacity: 0.88; }
-    .btn:disabled { opacity: 0.5; cursor: not-allowed; }
-    .link-resumen { display: block; text-align: center; color: #003366; font-size: 13px; margin-top: 14px; text-decoration: none; }
-    .link-resumen:hover { text-decoration: underline; }
-    .footer { color: #999; font-size: 12px; text-align: center; margin-top: 12px; }
-    .btn-home-float {
-      position: fixed; top: 16px; left: 16px;
-      width: 40px; height: 40px; border-radius: 50%;
-      background: white; border: 1px solid rgba(0,51,105,0.15);
-      box-shadow: 0 2px 10px rgba(0,51,105,0.12);
-      display: flex; align-items: center; justify-content: center;
-      cursor: pointer; font-size: 18px; line-height: 1;
-      transition: transform 0.15s, box-shadow 0.15s;
+    *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+
+    body {
+      font-family: 'Segoe UI', system-ui, sans-serif;
+      background: #f0f2f5;
+      color: #1a1a2e;
+      min-height: 100vh;
     }
-    .btn-home-float:hover { transform: translateY(-1px); box-shadow: 0 4px 14px rgba(0,51,105,0.18); }
+
+    /* ── HEADER ─────────────────────────────────── */
+    header {
+      background: #003087;
+      color: white;
+      padding: 0 24px;
+      height: 52px;
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      box-shadow: 0 2px 8px rgba(0,0,0,0.25);
+      position: sticky;
+      top: 0;
+      z-index: 20;
+    }
+    .logo {
+      font-size: 14px;
+      font-weight: 700;
+      letter-spacing: 2px;
+      text-transform: uppercase;
+      opacity: 0.95;
+    }
+    .logo em { font-style: normal; opacity: 0.55; margin: 0 6px; }
+    .jefe-chip {
+      background: rgba(255,255,255,0.12);
+      border: 1px solid rgba(255,255,255,0.2);
+      border-radius: 20px;
+      padding: 4px 14px;
+      font-size: 12px;
+      font-weight: 600;
+      letter-spacing: 0.3px;
+    }
+    .btn-home {
+      width: 32px; height: 32px; border-radius: 50%;
+      background: rgba(255,255,255,0.12); border: 1px solid rgba(255,255,255,0.2);
+      display: flex; align-items: center; justify-content: center;
+      cursor: pointer; font-size: 15px; color: #fff; line-height: 1;
+      transition: background 0.15s;
+    }
+    .btn-home:hover { background: rgba(255,255,255,0.24); }
+
+    /* ── WEEK NAV ───────────────────────────────── */
+    .week-nav {
+      background: white;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      gap: 20px;
+      padding: 10px 24px;
+      border-bottom: 1px solid #e2e6ea;
+      box-shadow: 0 1px 4px rgba(0,0,0,0.06);
+      position: sticky;
+      top: 94px;  /* header(52) + tabs(42) */
+      z-index: 10;
+    }
+    .nav-btn {
+      background: none;
+      border: 1px solid #dde1e7;
+      cursor: pointer;
+      color: #003087;
+      padding: 5px;
+      border-radius: 6px;
+      display: flex;
+      align-items: center;
+      transition: all 0.15s;
+      line-height: 0;
+    }
+    .nav-btn:hover:not(:disabled) { background: #e8f0fe; border-color: #003087; }
+    .nav-btn:disabled { color: #c4c9d4; border-color: #eee; cursor: default; }
+    #weekLabel {
+      font-size: 14px;
+      font-weight: 600;
+      color: #1a1a2e;
+      min-width: 240px;
+      text-align: center;
+    }
+    .week-pendientes-count {
+      font-size: 11px;
+      font-weight: 700;
+      background: #e65100;
+      color: white;
+      border-radius: 10px;
+      padding: 2px 8px;
+      letter-spacing: 0.3px;
+    }
+
+    /* ── CONTENT ────────────────────────────────── */
+    .content { max-width: 1140px; margin: 0 auto; padding: 20px 16px 40px; }
+
+    /* ── EMP CARD ───────────────────────────────── */
+    .emp-card {
+      background: white;
+      border-radius: 10px;
+      box-shadow: 0 1px 4px rgba(0,0,0,0.08);
+      margin-bottom: 20px;
+      overflow: hidden;
+      border: 1px solid #e8eaed;
+      transition: box-shadow 0.2s;
+    }
+    .emp-card.has-pending {
+      border-left: 4px solid #f57c00;
+      box-shadow: 0 2px 10px rgba(245,124,0,0.12);
+    }
+    .emp-card:not(.has-pending) { opacity: 0.88; }
+
+    .emp-header {
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      padding: 14px 20px;
+      background: #fafbfc;
+      border-bottom: 1px solid #f0f0f0;
+    }
+    .emp-nombre {
+      font-size: 15px;
+      font-weight: 700;
+      color: #003087;
+    }
+    .emp-email {
+      font-size: 11px;
+      color: #8a93a2;
+      display: block;
+      margin-top: 2px;
+    }
+    .emp-badges { display: flex; gap: 6px; align-items: center; }
+    .badge {
+      font-size: 10px;
+      font-weight: 700;
+      padding: 3px 10px;
+      border-radius: 12px;
+      text-transform: uppercase;
+      letter-spacing: 0.6px;
+    }
+    .badge.pending { background: #fef3c7; color: #b45309; border: 1px solid #fcd34d; }
+    .badge.open    { background: #dcfce7; color: #15803d; border: 1px solid #86efac; }
+    .badge.done    { background: #f0fdf4; color: #15803d; border: 1px solid #bbf7d0; }
+
+    /* ── RESUMEN HORAS ──────────────────────────── */
+    .resumen-horas {
+      display: grid;
+      grid-template-columns: repeat(4, 1fr);
+      border-bottom: 1px solid #f0f0f0;
+    }
+    .hora-stat {
+      padding: 12px 20px;
+      border-right: 1px solid #f0f0f0;
+      text-align: center;
+    }
+    .hora-stat:last-child { border-right: none; }
+    .hora-val {
+      display: block;
+      font-size: 18px;
+      font-weight: 700;
+      color: #1a1a2e;
+      letter-spacing: -0.3px;
+    }
+    .hora-lbl {
+      font-size: 10px;
+      font-weight: 600;
+      color: #9aa1b0;
+      text-transform: uppercase;
+      letter-spacing: 0.7px;
+      margin-top: 2px;
+    }
+    .hora-stat.alerta .hora-val { color: #c2410c; }
+    .hora-stat.ok     .hora-val { color: #15803d; }
+
+    /* ── BARRA 44H ──────────────────────────────── */
+    .barra-wrap { padding: 10px 20px 0; }
+    .barra-track {
+      height: 8px;
+      background: #edf0f4;
+      border-radius: 4px;
+      overflow: hidden;
+    }
+    .barra-fill { height: 100%; border-radius: 4px; transition: width 0.5s ease; }
+    .barra-meta {
+      display: flex;
+      justify-content: space-between;
+      font-size: 11px;
+      color: #9aa1b0;
+      padding: 4px 0 8px;
+    }
+    .barra-meta strong { color: #1a1a2e; }
+
+    /* ── TABLA REGISTROS ────────────────────────── */
+    .tabla-wrap { overflow-x: auto; }
+    .registros-tabla {
+      width: 100%;
+      border-collapse: collapse;
+      font-size: 12.5px;
+    }
+    .registros-tabla th {
+      background: #f7f8fa;
+      color: #6b7280;
+      font-weight: 600;
+      font-size: 10.5px;
+      text-transform: uppercase;
+      letter-spacing: 0.6px;
+      padding: 8px 12px;
+      text-align: left;
+      border-bottom: 1px solid #e8eaed;
+      white-space: nowrap;
+    }
+    .registros-tabla td {
+      padding: 8px 12px;
+      border-bottom: 1px solid #f5f6f8;
+      vertical-align: middle;
+    }
+    .registros-tabla tr:last-child td { border-bottom: none; }
+
+    .fila-pending td   { background: #fffbf2; }
+    .fila-abierta td   { background: #f0fdf4; }
+    .fila-anomala td   { background: #fff0f0; }
+
+    /* tipo dia chips */
+    .chip-dia {
+      display: inline-block;
+      padding: 2px 8px;
+      border-radius: 10px;
+      font-size: 10px;
+      font-weight: 700;
+      text-transform: uppercase;
+      letter-spacing: 0.4px;
+      white-space: nowrap;
+    }
+    .chip-habil      { background: #dbeafe; color: #1d4ed8; }
+    .chip-sabado     { background: #ede9fe; color: #6d28d9; }
+    .chip-dominical  { background: #fce7f3; color: #be185d; }
+    .chip-festivo    { background: #ffedd5; color: #c2410c; }
+    .chip-desconocido{ background: #f3f4f6; color: #6b7280; }
+
+    /* ── DECISION BUTTONS ───────────────────────── */
+    .decision-btns {
+      display: flex;
+      gap: 4px;
+      align-items: center;
+      white-space: nowrap;
+    }
+    .dec-btn {
+      border: 1.5px solid #e0e0e0;
+      border-radius: 6px;
+      padding: 4px 9px;
+      cursor: pointer;
+      display: inline-flex;
+      align-items: center;
+      gap: 3px;
+      font-size: 11px;
+      font-weight: 600;
+      background: #f9fafb;
+      color: #6b7280;
+      transition: all 0.12s;
+      white-space: nowrap;
+      line-height: 1;
+    }
+    .dec-btn .material-icons { font-size: 13px; }
+    .dec-btn:hover { transform: translateY(-1px); box-shadow: 0 2px 6px rgba(0,0,0,0.12); }
+
+    .dec-btn.extra:hover,      .dec-btn.extra.selected      { background: #1d4ed8; color: white; border-color: #1d4ed8; }
+    .dec-btn.recargo:hover,    .dec-btn.recargo.selected    { background: #d97706; color: white; border-color: #d97706; }
+    .dec-btn.compensado:hover, .dec-btn.compensado.selected { background: #16a34a; color: white; border-color: #16a34a; }
+    .dec-btn.rechazar:hover,   .dec-btn.rechazar.selected   { background: #dc2626; color: white; border-color: #dc2626; }
+
+    .decision-aprobada { font-size: 11.5px; color: #6b7280; }
+    .anomaly-txt { color: #dc2626; }
+
+    /* ── CARD FOOTER ────────────────────────────── */
+    .card-footer {
+      padding: 12px 20px;
+      border-top: 1px solid #f0f0f0;
+      background: #fafbfc;
+      display: flex;
+      align-items: center;
+      gap: 14px;
+    }
+    .btn-guardar {
+      display: inline-flex;
+      align-items: center;
+      gap: 6px;
+      padding: 8px 20px;
+      background: #003087;
+      color: white;
+      border: none;
+      border-radius: 7px;
+      font-size: 13px;
+      font-weight: 600;
+      cursor: pointer;
+      transition: background 0.15s, opacity 0.15s;
+      white-space: nowrap;
+    }
+    .btn-guardar:hover:not(:disabled) { background: #002166; }
+    .btn-guardar:disabled { opacity: 0.5; cursor: default; }
+    .btn-guardar .material-icons { font-size: 16px; }
+    .save-hint {
+      font-size: 12px;
+      color: #9aa1b0;
+      transition: color 0.2s;
+    }
+    .save-hint.ready { color: #16a34a; font-weight: 600; }
+
+    /* ── LOADING ────────────────────────────────── */
+    #loading {
+      display: none;
+      position: fixed;
+      inset: 0;
+      background: rgba(240,242,245,0.85);
+      z-index: 100;
+      align-items: center;
+      justify-content: center;
+      flex-direction: column;
+      gap: 14px;
+    }
+    #loading.visible { display: flex; }
+    .spinner {
+      width: 36px; height: 36px;
+      border: 3.5px solid #d1d5db;
+      border-top-color: #003087;
+      border-radius: 50%;
+      animation: spin 0.7s linear infinite;
+    }
+    @keyframes spin { to { transform: rotate(360deg); } }
+    .loading-label { font-size: 13px; color: #6b7280; }
+
+    /* ── ERROR ──────────────────────────────────── */
+    #error-box {
+      display: none;
+      background: #fef2f2;
+      border: 1px solid #fecaca;
+      color: #991b1b;
+      padding: 12px 16px;
+      border-radius: 8px;
+      margin-bottom: 16px;
+      font-size: 13px;
+    }
+
+    /* ── EMPTY ──────────────────────────────────── */
+    .empty {
+      text-align: center;
+      padding: 60px 24px;
+      color: #9aa1b0;
+      font-size: 14px;
+    }
+    .empty .material-icons { font-size: 48px; display: block; margin-bottom: 12px; color: #d1d5db; }
+
+    /* ── TOAST ──────────────────────────────────── */
+    #toast {
+      position: fixed;
+      bottom: 28px;
+      left: 50%;
+      transform: translateX(-50%) translateY(70px);
+      background: #1a1a2e;
+      color: white;
+      padding: 10px 24px;
+      border-radius: 24px;
+      font-size: 13px;
+      font-weight: 500;
+      transition: transform 0.3s cubic-bezier(0.4,0,0.2,1);
+      z-index: 300;
+      white-space: nowrap;
+      pointer-events: none;
+    }
+    #toast.show { transform: translateX(-50%) translateY(0); }
+
+    @media (max-width: 700px) {
+      .resumen-horas { grid-template-columns: repeat(2, 1fr); }
+      .dec-btn span:not(.material-icons) { display: none; }
+    }
+
+    /* ── TABS ───────────────────────────────────────── */
+    .tabs {
+      background: white;
+      border-bottom: 1px solid #e2e6ea;
+      display: flex;
+      gap: 0;
+      padding: 0 24px;
+      position: sticky;
+      top: 52px;   /* altura del header */
+      z-index: 15;
+      box-shadow: 0 1px 4px rgba(0,0,0,0.06);
+    }
+    .tab-btn {
+      padding: 12px 20px;
+      border: none;
+      background: none;
+      font-size: 13px;
+      font-weight: 600;
+      color: #9aa1b0;
+      cursor: pointer;
+      border-bottom: 3px solid transparent;
+      transition: all 0.15s;
+      display: flex;
+      align-items: center;
+      gap: 6px;
+    }
+    .tab-btn:hover { color: #003087; }
+    .tab-btn.active { color: #003087; border-bottom-color: #003087; }
+    .tab-btn .material-icons { font-size: 16px; }
+
+    /* ── REPORTE ─────────────────────────────────────── */
+    .reporte-wrap { max-width: 1140px; margin: 0 auto; padding: 24px 16px 40px; }
+
+    .periodo-selector {
+      background: white;
+      border: 1px solid #e8eaed;
+      border-radius: 10px;
+      padding: 16px 20px;
+      display: flex;
+      align-items: center;
+      gap: 16px;
+      flex-wrap: wrap;
+      margin-bottom: 20px;
+    }
+    .periodo-selector label {
+      font-size: 12px;
+      font-weight: 600;
+      color: #6b7280;
+      text-transform: uppercase;
+      letter-spacing: 0.5px;
+    }
+    .periodo-selector input[type=date] {
+      border: 1px solid #e2e6ea;
+      border-radius: 6px;
+      padding: 7px 12px;
+      font-size: 13px;
+      color: #1a1a2e;
+      font-family: 'Segoe UI', sans-serif;
+      cursor: pointer;
+    }
+    .btn-generar {
+      padding: 8px 20px;
+      background: #003087;
+      color: white;
+      border: none;
+      border-radius: 7px;
+      font-size: 13px;
+      font-weight: 600;
+      cursor: pointer;
+      display: inline-flex;
+      align-items: center;
+      gap: 6px;
+      transition: background 0.15s;
+    }
+    .btn-generar:hover { background: #002166; }
+    .btn-generar:disabled { opacity: 0.5; cursor: default; }
+    .btn-generar .material-icons { font-size: 16px; }
+
+    .btn-excel {
+      padding: 8px 20px;
+      background: #16a34a;
+      color: white;
+      border: none;
+      border-radius: 7px;
+      font-size: 13px;
+      font-weight: 600;
+      cursor: pointer;
+      display: inline-flex;
+      align-items: center;
+      gap: 6px;
+      transition: background 0.15s;
+      margin-left: auto;
+    }
+    .btn-excel:hover { background: #15803d; }
+    .btn-excel:disabled { opacity: 0.5; cursor: default; }
+    .btn-excel .material-icons { font-size: 16px; }
+
+    .reporte-header-bar {
+      display: flex;
+      align-items: center;
+      margin-bottom: 12px;
+      gap: 12px;
+    }
+    .reporte-title {
+      font-size: 14px;
+      font-weight: 700;
+      color: #1a1a2e;
+    }
+    .reporte-periodo-chip {
+      font-size: 11px;
+      background: #e8f0fe;
+      color: #003087;
+      padding: 3px 10px;
+      border-radius: 10px;
+      font-weight: 600;
+    }
+
+    /* ── Chips de selección rápida de semana ─────────────────────────── */
+    .reporte-semana-chips {
+      display: flex;
+      align-items: center;
+      gap: 8px;
+      flex-wrap: nowrap;
+      overflow-x: auto;
+      padding: 2px 2px 10px;
+      margin-bottom: 4px;
+      -webkit-overflow-scrolling: touch;
+      scrollbar-width: thin;
+    }
+    .reporte-semana-chips::-webkit-scrollbar { height: 5px; }
+    .reporte-semana-chips::-webkit-scrollbar-thumb { background: #d7dce3; border-radius: 10px; }
+    .reporte-chip {
+      flex: 0 0 auto;
+      background: white;
+      border: 1px solid #e2e6ea;
+      color: #4b5563;
+      font-size: 12px;
+      font-weight: 600;
+      font-family: 'Segoe UI', sans-serif;
+      padding: 7px 14px;
+      border-radius: 999px;
+      cursor: pointer;
+      white-space: nowrap;
+      transition: background 0.15s, color 0.15s, border-color 0.15s;
+    }
+    .reporte-chip:hover { border-color: #003087; color: #003087; }
+    .reporte-chip.active {
+      background: #003087;
+      border-color: #003087;
+      color: white;
+    }
+    .reporte-chip.es-actual::after {
+      content: '';
+      display: inline-block;
+      width: 5px;
+      height: 5px;
+      border-radius: 50%;
+      background: currentColor;
+      margin-left: 6px;
+      vertical-align: middle;
+      opacity: 0.6;
+    }
+
+    .reporte-tabla-wrap { overflow-x: auto; }
+    .reporte-tabla {
+      width: 100%;
+      border-collapse: collapse;
+      font-size: 12px;
+      background: white;
+      border-radius: 10px;
+      overflow: hidden;
+      border: 1px solid #e8eaed;
+    }
+    .reporte-tabla th {
+      background: #003087;
+      color: white;
+      font-size: 10px;
+      font-weight: 700;
+      text-transform: uppercase;
+      letter-spacing: 0.5px;
+      padding: 8px 10px;
+      text-align: center;
+      white-space: nowrap;
+    }
+    .reporte-tabla th.left { text-align: left; }
+    .reporte-tabla th.grupo-extra { background: #1d4ed8; }
+    .reporte-tabla th.grupo-recargo { background: #d97706; }
+    .reporte-tabla th.grupo-dom { background: #be185d; }
+    .reporte-tabla th.grupo-total { background: #1a1a2e; }
+    .reporte-tabla td {
+      padding: 8px 10px;
+      border-bottom: 1px solid #f5f6f8;
+      text-align: center;
+      color: #1a1a2e;
+    }
+    .reporte-tabla td.left { text-align: left; }
+    .reporte-tabla tr:last-child td { border-bottom: none; }
+    .reporte-tabla tr:hover td { background: #f9fafb; }
+    .reporte-tabla .total-row td {
+      background: #f0f6ff;
+      font-weight: 700;
+      border-top: 2px solid #003087;
+    }
+    .reporte-tabla .cero { color: #d1d5db; }
+
+    /* Input editable de horas extra */
+    .extra-input-wrap {
+      display: flex;
+      align-items: center;
+      gap: 4px;
+      margin-bottom: 5px;
+    }
+    .extra-input-label {
+      font-size: 10px;
+      color: #9aa1b0;
+      text-transform: uppercase;
+      letter-spacing: 0.4px;
+      white-space: nowrap;
+    }
+    .extra-input {
+      width: 60px;
+      padding: 3px 6px;
+      border: 1.5px solid #e2e6ea;
+      border-radius: 5px;
+      font-size: 12px;
+      font-family: 'DM Mono', monospace;
+      color: #1a1a2e;
+      text-align: center;
+      outline: none;
+      transition: border-color 0.15s;
+    }
+    .extra-input:focus { border-color: #1d4ed8; }
+    .extra-input-unit { font-size: 11px; color: #9aa1b0; }
+
+    [data-tooltip] {
+      position: relative;
+      cursor: help;
+    }
+    [data-tooltip]:hover::after {
+      content: attr(data-tooltip);
+      position: absolute;
+      bottom: 125%;
+      left: 50%;
+      transform: translateX(-50%);
+      background: #1a1a2e;
+      color: white;
+      padding: 5px 10px;
+      border-radius: 6px;
+      font-size: 11px;
+      white-space: nowrap;
+      z-index: 100;
+      pointer-events: none;
+    }
   </style>
 </head>
 <body>
-<button class="btn-home-float" onclick="irAHome()" title="Ir al inicio" aria-label="Ir al inicio">🏠</button>
-<div class="card" id="card">
-  <div style="padding:40px;text-align:center;">
-    <p style="color:#555;font-size:15px;">⏳ Cargando...</p>
+
+<div id="toast"></div>
+
+<div id="loading">
+  <div class="spinner"></div>
+  <span class="loading-label">Cargando registros del equipo...</span>
+</div>
+
+<header>
+  <span class="logo">KN <em>·</em> Aprobaciones</span>
+  <div style="display:flex;align-items:center;gap:10px">
+    <button class="btn-home" onclick="irAHome()" title="Ir al inicio" aria-label="Ir al inicio">🏠</button>
+    <span class="jefe-chip" id="jefeChip">—</span>
+  </div>
+</header>
+
+<div class="tabs">
+  <button class="tab-btn active" id="tabAprobaciones" onclick="switchTab('aprobaciones')">
+    <span class="material-icons">check_circle</span>
+    Aprobaciones
+  </button>
+  <button class="tab-btn" id="tabReporte" onclick="switchTab('reporte')">
+    <span class="material-icons">assessment</span>
+    Reporte de nómina
+  </button>
+</div>
+
+<div id="vistaAprobaciones">
+<div class="week-nav">
+  <button class="nav-btn" id="prevWeek" disabled>
+    <span class="material-icons">chevron_left</span>
+  </button>
+  <span id="weekLabel">—</span>
+  <span class="week-pendientes-count" id="weekPendCount" style="display:none"></span>
+  <button class="nav-btn" id="nextWeek" disabled>
+    <span class="material-icons">chevron_right</span>
+  </button>
+</div>
+
+<div class="content">
+  <div id="error-box"></div>
+  <div id="empList"></div>
+</div>
+</div><!-- /vistaAprobaciones -->
+
+<div id="vistaReporte" style="display:none">
+  <div class="reporte-wrap">
+
+    <div class="reporte-semana-chips" id="reporteSemanaChips"></div>
+
+    <div class="periodo-selector">
+      <div style="display:flex;align-items:center;gap:8px">
+        <label>Desde</label>
+        <input type="date" id="fechaDesde" />
+      </div>
+      <div style="display:flex;align-items:center;gap:8px">
+        <label>Hasta</label>
+        <input type="date" id="fechaHasta" />
+      </div>
+      <button class="btn-generar" id="btnGenerar" onclick="generarReporte()">
+        <span class="material-icons">play_arrow</span>
+        Generar
+      </button>
+      <button class="btn-excel" id="btnExcel" onclick="descargarExcel()" style="display:none">
+        <span class="material-icons">download</span>
+        Descargar Excel
+      </button>
+    </div>
+
+    <div id="reporteResultado"></div>
   </div>
 </div>
 
 <script>
-  // Botón "Ir al inicio": valida que exista una sesión vigente (kn_sesion en
-  // sessionStorage) antes de navegar. Esta página se abre normalmente desde un
-  // link de correo sin sesión propia, así que en la mayoría de los casos no
-  // habrá sesión y home.html mostrará el login — eso es lo esperado.
-  function irAHome() {
-    let valido = false;
-    try {
-      const s = JSON.parse(sessionStorage.getItem('kn_sesion') || 'null');
-      valido = !!(s && s.token && s.email);
-    } catch { valido = false; }
-    if (!valido) sessionStorage.removeItem('kn_sesion');
+// ── VERIFICACIÓN DE SESIÓN ──────────────────────────────────────────────────
+(function checkSesion() {
+  const raw = sessionStorage.getItem('kn_sesion');
+  if (!raw) { window.location.href = 'home.html'; return; }
+  try {
+    const s = JSON.parse(raw);
+    if (!s.token || !s.email) throw new Error();
+  } catch {
+    sessionStorage.removeItem('kn_sesion');
     window.location.href = 'home.html';
   }
+})();
 
+// Botón "Ir al inicio": valida que la sesión siga vigente antes de navegar.
+// Si no hay sesión válida, limpia el residuo y home.html mostrará el login.
+function irAHome() {
+  let valido = false;
+  try {
+    const s = JSON.parse(sessionStorage.getItem('kn_sesion') || 'null');
+    valido = !!(s && s.token && s.email);
+  } catch { valido = false; }
+  if (!valido) {
+    sessionStorage.removeItem('kn_sesion');
+    showToast('Tu sesión expiró, inicia sesión de nuevo');
+  }
+  window.location.href = 'home.html';
+}
+// ─────────────────────────────────────────────────────────────────────────────
+// ══════════════════════════════════════════════════════════════════
+// CONSTANTES — ajusta FLOW_APROBACION con la URL real de Flow 5
+// ══════════════════════════════════════════════════════════════════
+const FLOW_EQUIPO = 'https://bd4a763d737defaeacf0e99a4d082f.58.environment.api.powerplatform.com:443/powerautomate/automations/direct/workflows/6dc19841dab7420aa93bd860ba461b94/triggers/manual/paths/invoke?api-version=1&sp=%2Ftriggers%2Fmanual%2Frun&sv=1.0&sig=f5T0mGD6vBp2h5qddS9LSx2pLVR_UCJb3vNSfQSyzfU';
+
+const FLOW_APROBACION = 'https://bd4a763d737defaeacf0e99a4d082f.58.environment.api.powerplatform.com:443/powerautomate/automations/direct/workflows/cad0dc8e16a4466cb83297306976794d/triggers/manual/paths/invoke?api-version=1&sp=%2Ftriggers%2Fmanual%2Frun&sv=1.0&sig=tTGdFfz_6i4mpPo6HmbobfRSPxoGwS9V5fBi0z7L9uA';
+
+// Mapeo de decisión UI → valor tipoAprobacion que espera Flow 5
+const DECISIONES = {
+  HoraExtra:  'extra',
+  Recargo:    'recargo',
+  Compensado: 'compensado',
+  Rechazar:   'rechazado'
+};
+
+// ── CONFIG ───────────────────────────────────────────────────────────────────
+let CONFIG = {
+  horasSemanales: 44,
+  diasLaboralesSemana: 6,
+  horasFestivo: 8,
+  semanasHabilitadasEdicion: 1
+};
+
+async function cargarConfig() {
+  try {
+    const r = await fetch('config.json?v=' + Date.now());
+    if (r.ok) Object.assign(CONFIG, await r.json());
+  } catch { /* usar valores por defecto */ }
+}
+// ─────────────────────────────────────────────────────────────────────────────
+
+// ══════════════════════════════════════════════════════════════════
+// ESTADO
+// ══════════════════════════════════════════════════════════════════
+let todosRegistros = [];
+let semanas        = [];       // ['2026-06-22', '2026-06-15', ...]  newest first
+let semanaIdx      = 0;        // índice en `semanas` de la semana visible
+let decisions      = {};       // { [recordId]: 'HoraExtra'|'Recargo'|'Compensado'|'Rechazar' }
+let emailJefe      = '';
+let festivosCO     = new Set(); // Set de fechas 'YYYY-MM-DD' de festivos Colombia
+
+// ══════════════════════════════════════════════════════════════════
+// INIT
+// ══════════════════════════════════════════════════════════════════
+async function init() {
   const params = new URLSearchParams(window.location.search);
-  const email = params.get('email');
-  const accion = params.get('accion');
+  emailJefe = (params.get('email') || '').trim();
 
-  const FLOW_CHECKINOUT = 'https://bd4a763d737defaeacf0e99a4d082f.58.environment.api.powerplatform.com:443/powerautomate/automations/direct/workflows/b2fe41514358434ebfd8d0c3ac7d93bf/triggers/manual/paths/invoke?api-version=1&sp=%2Ftriggers%2Fmanual%2Frun&sv=1.0&sig=xraaWVMOl8mvVYae3WXNM_G9RTaBhuKB5pHja5eU5rQ';
-  const FLOW_GET = 'https://bd4a763d737defaeacf0e99a4d082f.58.environment.api.powerplatform.com:443/powerautomate/automations/direct/workflows/3fd25ad09b5449a9a614f784b10bbc72/triggers/manual/paths/invoke?api-version=1&sp=%2Ftriggers%2Fmanual%2Frun&sv=1.0&sig=oYx-w7yw0ZHA9-KETPaXHxpMvUHGEI0iUJoElGXsHvQ';
-  const resumenUrl = `https://perishablesautomations.github.io/jornada-kn/resumen.html?email=${encodeURIComponent(email)}`;
+  if (!emailJefe) {
+    showError('Falta parámetro email en la URL. Ejemplo: ?email=tu.nombre@kuehne-nagel.com');
+    return;
+  }
 
-  const hoy = new Date().toISOString().slice(0,10);
+  const alias = emailJefe.split('@')[0].replace(/\./g, ' ');
+  document.getElementById('jefeChip').textContent = alias;
 
-  const mensajes = {
-    checkin_ok:  { color: '#107C10', icono: '✅', titulo: 'Check In Registrado',  texto: 'Tu entrada fue registrada correctamente.' },
-    checkout_ok: { color: '#003369', icono: '🔴', titulo: 'Check Out Registrado', texto: 'Tu salida fue registrada correctamente.' },
-    duplicado:   { color: '#FF8C00', icono: '⚠️', titulo: 'Ya tienes un turno abierto', texto: 'No puedes hacer Check In porque ya tienes un turno activo hoy.' },
-    error:       { color: '#D13438', icono: '❌', titulo: 'Error al registrar', texto: 'Por favor intenta de nuevo.' }
+  // Cargar config y festivos antes de renderizar
+  await cargarConfig();
+  await cargarFestivosCO();
+  await cargarRegistros();
+}
+
+// ══════════════════════════════════════════════════════════════════
+// FESTIVOS COLOMBIA
+// ══════════════════════════════════════════════════════════════════
+async function cargarFestivosCO() {
+  const anios = [new Date().getUTCFullYear() - 1, new Date().getUTCFullYear(), new Date().getUTCFullYear() + 1];
+  try {
+    const resultados = await Promise.all(
+      anios.map(y =>
+        fetch(`https://date.nager.at/api/v3/PublicHolidays/${y}/CO`)
+          .then(r => r.ok ? r.json() : [])
+          .catch(() => [])
+      )
+    );
+    resultados.flat().forEach(f => festivosCO.add(f.date)); // 'YYYY-MM-DD'
+  } catch {
+    // Si falla la API de festivos, continuar sin ellos
+  }
+}
+
+function esFestivo(isoStr) {
+  if (!isoStr) return false;
+  const d = new Date(isoStr);
+  const fecha = `${d.getUTCFullYear()}-${String(d.getUTCMonth()+1).padStart(2,'0')}-${String(d.getUTCDate()).padStart(2,'0')}`;
+  return festivosCO.has(fecha);
+}
+
+function esDomingo(isoStr) {
+  return new Date(isoStr).getUTCDay() === 0;
+}
+
+function esSabado(isoStr) {
+  return new Date(isoStr).getUTCDay() === 6;
+}
+
+// Devuelve el tipo de día correcto según fecha, ignorando lo que diga el campo almacenado
+// Calcula la base semanal ajustada por festivos L-S para una semana dada
+// weekStart: 'YYYY-MM-DD' (lunes de la semana)
+function getBaseAjustada(weekStart) {
+  // Usa CONFIG para respetar los parámetros editables en config.json.
+  // El sábado nunca es festivo en la operación de KN, por eso solo se revisan
+  // los 5 días L-V. Cada festivo L-V descuenta un día completo de oficina
+  // (horasFestivo, 8h fijas), no una fracción proporcional de la semana.
+  let count = 0;
+  for (let i = 0; i < 5; i++) {
+    const d = new Date(weekStart + 'T12:00:00Z');
+    d.setUTCDate(d.getUTCDate() + i);
+    const fechaStr = d.toISOString().split('T')[0];
+    if (festivosCO.has(fechaStr)) count++;
+  }
+  return +(CONFIG.horasSemanales - count * CONFIG.horasFestivo).toFixed(1);
+}
+
+function getTipoDiaEfectivo(r) {
+  const almacenado = getVal(r.TipoDia);
+  const iso = r.HoraInicio;
+  if (!iso) return almacenado || 'Habil';
+  if (esFestivo(iso))  return 'Festivo';
+  if (esDomingo(iso))  return 'Dominical';
+  if (esSabado(iso))   return 'Sabado';
+  return almacenado || 'Habil';
+}
+
+// ══════════════════════════════════════════════════════════════════
+// CARGA DE DATOS
+// ══════════════════════════════════════════════════════════════════
+async function cargarRegistros(semanaARestaurar = null) {
+  showLoading(true);
+  hideError();
+  try {
+    const res = await fetch(FLOW_EQUIPO, {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({ email: emailJefe })
+    });
+    if (!res.ok) throw new Error(`HTTP ${res.status} — ${res.statusText}`);
+    const data = await res.json();
+
+    // Filtrar registros sin empleado (registros de prueba/viejos)
+    todosRegistros = (data.registros || []).filter(r => r.Empleado && r.Empleado.includes('@'));
+    decisions = {};
+    procesarSemanas();
+    // Restaurar la semana en la que estaba el jefe antes de recargar
+    if (semanaARestaurar) {
+      const idx = semanas.indexOf(semanaARestaurar);
+      if (idx !== -1) semanaIdx = idx;
+    }
+    renderSemana();
+  } catch (err) {
+    showError('Error cargando registros: ' + err.message);
+  } finally {
+    showLoading(false);
+  }
+}
+
+// ══════════════════════════════════════════════════════════════════
+// SEMANAS (lunes–domingo, hora local Colombia UTC-5)
+// ══════════════════════════════════════════════════════════════════
+function toLocalDate(isoStr) {
+  // Los timestamps están guardados como hora local Colombia con notación UTC
+  // No se aplica offset — se usan métodos getUTC* para leer la hora "local" almacenada
+  return new Date(isoStr);
+}
+
+function getWeekStart(isoStr) {
+  // Usar UTC* directamente — las fechas almacenadas son hora local Colombia
+  const d   = new Date(isoStr);
+  const dow  = d.getUTCDay();                  // 0=Dom, 1=Lun
+  const diff = dow === 0 ? -6 : 1 - dow;      // días hasta el lunes
+  const monday = new Date(d);
+  monday.setUTCDate(d.getUTCDate() + diff);
+  return monday.toISOString().split('T')[0];   // 'YYYY-MM-DD'
+}
+
+function procesarSemanas() {
+  const set = new Set(todosRegistros.map(r => getWeekStart(r.HoraInicio)));
+  semanas = Array.from(set).sort().reverse();  // más reciente primero
+
+  // Posicionar en la semana actual o la más reciente
+  const hoyStr = getWeekStart(new Date().toISOString());
+  const idx = semanas.indexOf(hoyStr);
+  semanaIdx = idx >= 0 ? idx : 0;
+}
+
+function registrosDeSemana(weekStart) {
+  return todosRegistros.filter(r => getWeekStart(r.HoraInicio) === weekStart);
+}
+
+function formatWeekLabel(weekStart) {
+  const lunes   = new Date(weekStart + 'T12:00:00Z');
+  const domingo = new Date(lunes);
+  domingo.setUTCDate(lunes.getUTCDate() + 6);
+  const fmtDate = d => d.toLocaleDateString('es-CO', { day: 'numeric', month: 'short', timeZone: 'UTC' });
+  return `${fmtDate(lunes)} – ${fmtDate(domingo)} · ${lunes.getUTCFullYear()}`;
+}
+
+// ══════════════════════════════════════════════════════════════════
+// HELPERS
+// ══════════════════════════════════════════════════════════════════
+function getVal(field) {
+  if (field === null || field === undefined) return null;
+  if (typeof field === 'string') return field.trim() || null;
+  if (typeof field === 'object' && field.Value !== undefined) return field.Value;
+  return null;
+}
+
+function formatHora(isoStr) {
+  if (!isoStr) return '—';
+  const local = toLocalDate(isoStr);
+  const h = String(local.getUTCHours()).padStart(2, '0');
+  const m = String(local.getUTCMinutes()).padStart(2, '0');
+  return `${h}:${m}`;
+}
+
+function formatFecha(isoStr) {
+  if (!isoStr) return '—';
+  const d = new Date(isoStr);
+  const dias  = ['dom','lun','mar','mié','jue','vie','sáb'];
+  const meses = ['ene','feb','mar','abr','may','jun','jul','ago','sep','oct','nov','dic'];
+  return `${dias[d.getUTCDay()]}, ${d.getUTCDate()} ${meses[d.getUTCMonth()]}`;
+}
+
+function formatNombre(nombreCompleto) {
+  if (!nombreCompleto) return '—';
+  return nombreCompleto.split('/')[0].trim();
+}
+
+function fmtH(val) {
+  const n = parseFloat(val) || 0;
+  return n.toFixed(1) + 'h';
+}
+
+function chipTipoDia(r) {
+  // Usa getTipoDiaEfectivo para corregir festivos/domingos mal clasificados
+  const v = getTipoDiaEfectivo(r);
+  const almacenado = getVal(r.TipoDia);
+  const m = {
+    'Habil':     'chip-habil',
+    'Sabado':    'chip-sabado',
+    'Dominical': 'chip-dominical',
+    'Festivo':   'chip-festivo'
   };
+  const cls = m[v] || 'chip-desconocido';
+  const diferente = almacenado && almacenado !== v;
+  const tooltip = diferente ? ` title="Almacenado como '${almacenado}' — corregido por festivos CO"` : '';
+  const icono = diferente ? ' 📅' : '';
+  return `<span class="chip-dia ${cls}"${tooltip}>${v}${icono}</span>`;
+}
 
-  function mostrarCargando(texto) {
-    document.getElementById('card').innerHTML = `
-      <div style="padding:40px;text-align:center;">
-        <p style="color:#555;font-size:15px;">⏳ ${texto}</p>
-      </div>`;
+function safeId(email) {
+  // genera un ID CSS-seguro a partir del email
+  return 'emp-' + email.replace(/[@.]/g, '_');
+}
+
+// ══════════════════════════════════════════════════════════════════
+// RENDER SEMANA
+// ══════════════════════════════════════════════════════════════════
+function renderSemana() {
+  const container = document.getElementById('empList');
+
+  if (semanas.length === 0) {
+    document.getElementById('weekLabel').textContent = 'Sin registros';
+    container.innerHTML = `<div class="empty">
+      <span class="material-icons">inbox</span>
+      No hay registros para este equipo.
+    </div>`;
+    return;
   }
 
-  function mostrarMensaje(tipo) {
-    const m = mensajes[tipo] || mensajes.error;
-    document.getElementById('card').innerHTML = `
-      <div class="card-header" style="background:${m.color}">
-        <div class="icon">${m.icono}</div>
-        <p class="titulo">${m.titulo}</p>
+  const weekStart = semanas[semanaIdx];
+  document.getElementById('weekLabel').textContent = formatWeekLabel(weekStart);
+  document.getElementById('prevWeek').disabled = semanaIdx >= semanas.length - 1;
+  document.getElementById('nextWeek').disabled = semanaIdx <= 0;
+
+  const regs = registrosDeSemana(weekStart);
+
+  // Agrupar por empleado
+  const empMap = {};
+  regs.forEach(r => {
+    const key = r.Empleado.toLowerCase(); // normalizar email
+    if (!empMap[key]) empMap[key] = { email: r.Empleado, nombre: r.NombreEmpleado, regs: [] };
+    empMap[key].regs.push(r);
+  });
+
+  // Ordenar: pendientes primero, luego por nombre
+  const empKeys = Object.keys(empMap).sort((a, b) => {
+    const ap = empMap[a].regs.some(r => r.RequiereAprobacion) ? 1 : 0;
+    const bp = empMap[b].regs.some(r => r.RequiereAprobacion) ? 1 : 0;
+    if (bp !== ap) return bp - ap;
+    return formatNombre(empMap[a].nombre).localeCompare(formatNombre(empMap[b].nombre));
+  });
+
+  // Total pendientes de la semana
+  const totalPend = empKeys.reduce((s, k) => s + empMap[k].regs.filter(r => r.RequiereAprobacion).length, 0);
+  const countEl = document.getElementById('weekPendCount');
+  if (totalPend > 0) {
+    countEl.style.display = '';
+    countEl.textContent = `${totalPend} pendiente${totalPend !== 1 ? 's' : ''}`;
+  } else {
+    countEl.style.display = 'none';
+  }
+
+  container.innerHTML = '';
+  if (empKeys.length === 0) {
+    container.innerHTML = `<div class="empty">
+      <span class="material-icons">event_busy</span>
+      No hay registros para esta semana.
+    </div>`;
+    return;
+  }
+
+  empKeys.forEach(key => {
+    const { email, nombre, regs: empRegs } = empMap[key];
+    container.appendChild(buildEmpCard(email, nombre, empRegs));
+  });
+}
+
+// ══════════════════════════════════════════════════════════════════
+// CARD EMPLEADO
+// ══════════════════════════════════════════════════════════════════
+function buildEmpCard(email, nombre, registros) {
+  const sorted = [...registros].sort((a, b) => new Date(a.HoraInicio) - new Date(b.HoraInicio));
+
+  const cerrados      = sorted.filter(r => getVal(r.Estado) === 'Cerrado');
+  const horasOrd      = cerrados.reduce((s, r) => s + (parseFloat(r.HorasOrdinarias) || 0), 0);
+  const horasExtra    = cerrados.reduce((s, r) => s + (parseFloat(r.HorasExtra)      || 0), 0);
+  const horasLaboradas = horasOrd + horasExtra;
+  const pendientes = sorted.filter(r => r.RequiereAprobacion);
+  const hayAbierto = sorted.some(r => getVal(r.Estado) === 'Abierto');
+  const weekStart44 = semanas[semanaIdx];
+  const base44      = getBaseAjustada(weekStart44);
+  const restante44  = +Math.max(base44 - horasLaboradas, 0).toFixed(1);
+  const pct44       = Math.min((horasLaboradas / base44) * 100, 100);
+  const barColor    = pct44 >= 100 ? '#dc2626' : pct44 >= 88 ? '#d97706' : '#2563eb';
+  const festivosSemana = Math.round(
+    (CONFIG.horasSemanales - base44) / CONFIG.horasFestivo
+  );
+  const hasPend    = pendientes.length > 0;
+  const empSafeId  = safeId(email);
+
+  const card = document.createElement('div');
+  card.className = 'emp-card' + (hasPend ? ' has-pending' : '');
+  card.id = empSafeId;
+
+  card.innerHTML = `
+    <div class="emp-header">
+      <div>
+        <span class="emp-nombre">${formatNombre(nombre)}</span>
+        <span class="emp-email">${email}</span>
       </div>
-      <div class="card-body">
-        <p>${m.texto}</p>
-        <a href="${resumenUrl}" class="link-resumen">📋 Ver mi resumen de jornada</a>
-        <p class="footer">Puedes cerrar esta ventana.</p>
-      </div>`;
-  }
-
-  // ── Check In / Check Out ────────────────────────────────────────────────────
-  // IMPORTANTE: estas llamadas van por POST con JSON body, no por query string
-  // en la URL. Power Automate migró el formato de URLs de los triggers HTTP
-  // ("automations/direct/workflows/.../triggers/manual/...") y, desde ese
-  // cambio, los query params ya NO se parsean automáticamente al objeto
-  // triggerOutputs().queries del lado del flujo — sin importar cómo se
-  // declare el schema. Por eso email/accion/observaciones se mandan en el
-  // body, igual que ya hacían FLOW_GET y FLOW_SAVE_REGISTRO en resumen.html.
-
-  function procesarCheckin() {
-    mostrarCargando('Procesando tu Check In...');
-    fetch(FLOW_CHECKINOUT, {
-      method: 'POST',
-      headers: { 'Content-Type': 'application/json' },
-      body: JSON.stringify({ email, accion: 'checkin' })
-    })
-      .then(res => res.text())
-      .then(body => {
-        if (body.includes('duplicado')) mostrarMensaje('duplicado');
-        else if (body.includes('checkin_ok')) mostrarMensaje('checkin_ok');
-        else mostrarMensaje('error');
-      })
-      .catch(() => mostrarMensaje('error'));
-  }
-
-  function procesarCheckout(observaciones) {
-    mostrarCargando('Procesando tu Check Out...');
-    fetch(FLOW_CHECKINOUT, {
-      method: 'POST',
-      headers: { 'Content-Type': 'application/json' },
-      body: JSON.stringify({ email, accion: 'checkout', observaciones: observaciones || '' })
-    })
-      .then(res => res.text())
-      .then(body => {
-        if (body.includes('checkout_ok')) mostrarMensaje('checkout_ok');
-        else mostrarMensaje('error');
-      })
-      .catch(() => mostrarMensaje('error'));
-  }
-
-  function mostrarFormCheckout(horasExtra) {
-    document.getElementById('card').innerHTML = `
-      <div class="card-header" style="background:#D13438">
-        <div class="icon">🔴</div>
-        <p class="titulo">Check Out</p>
-        <p class="subtitulo">Registra tu salida</p>
+      <div class="emp-badges">
+        ${hasPend
+          ? `<span class="badge pending">${pendientes.length} pendiente${pendientes.length !== 1 ? 's' : ''}</span>`
+          : '<span class="badge done">✓ Al día</span>'}
+        ${hayAbierto ? '<span class="badge open">Turno abierto</span>' : ''}
       </div>
-      <div class="card-body">
-        <div class="info-box">
-          ⚠️ Tienes aproximadamente <strong>${horasExtra.toFixed(1)}h extra</strong> hoy. Por favor justifica tu jornada extendida.
-        </div>
-        <div class="field">
-          <label>Observaciones *</label>
-          <textarea id="obsCheckout" placeholder="Describe el motivo de las horas extra..."></textarea>
-        </div>
-        <button class="btn" id="btnCheckout" style="background:#D13438;color:white;" onclick="confirmarCheckout()">
-          🔴 Confirmar Check Out
+    </div>
+
+    <div class="resumen-horas">
+      <div class="hora-stat">
+        <span class="hora-val">${fmtH(horasLaboradas)}</span>
+        <span class="hora-lbl">Horas laboradas</span>
+      </div>
+      <div class="hora-stat ${horasOrd >= 44 ? 'ok' : ''}">
+        <span class="hora-val">${fmtH(horasOrd)}</span>
+        <span class="hora-lbl">Ordinarias</span>
+      </div>
+      <div class="hora-stat ${horasExtra > 0 ? 'alerta' : ''}">
+        <span class="hora-val">${fmtH(horasExtra)}</span>
+        <span class="hora-lbl">Extralaborales</span>
+      </div>
+      <div class="hora-stat ${restante44 === 0 ? 'ok' : 'alerta'}">
+        <span class="hora-val">${restante44 === 0 ? '✓' : fmtH(restante44)}</span>
+        <span class="hora-lbl">${restante44 === 0 ? 'Tope completo' : 'Faltan p/' + base44 + 'h'}</span>
+      </div>
+    </div>
+
+    <div class="barra-wrap">
+      <div class="barra-track">
+        <div class="barra-fill" style="width:${pct44}%;background:${barColor}"></div>
+      </div>
+      <div class="barra-meta">
+        <span>
+          ${fmtH(horasLaboradas)} <strong>laboradas</strong> de ${base44}h
+          ${festivosSemana > 0 ? `<span style="background:#ede9fe;color:#6d28d9;font-size:10px;padding:1px 6px;border-radius:8px;margin-left:4px;">📅 ${festivosSemana} festivo${festivosSemana>1?'s':''}</span>` : ''}
+        </span>
+        <span>${Math.round(pct44)}%</span>
+      </div>
+    </div>
+
+    <div class="tabla-wrap">
+      <table class="registros-tabla">
+        <thead>
+          <tr>
+            <th>Fecha</th>
+            <th>Entrada</th>
+            <th>Salida</th>
+            <th>Ordinarias</th>
+            <th>Extra</th>
+            <th>Tipo día</th>
+            <th>Franja</th>
+            <th>Observaciones</th>
+            <th>Estado / Decisión</th>
+          </tr>
+        </thead>
+        <tbody>
+          ${sorted.map(r => buildFila(r, horasLaboradas, base44)).join('')}
+        </tbody>
+      </table>
+    </div>
+
+    ${hasPend ? `
+      <div class="card-footer">
+        <button class="btn-guardar" data-email="${email}" data-nombre="${formatNombre(nombre)}" disabled>
+          <span class="material-icons">save</span>
+          Guardar decisiones
         </button>
-        <p class="footer" style="margin-top:16px;">Puedes cerrar esta ventana si no deseas registrar la salida.</p>
-      </div>`;
+        <span class="save-hint" id="hint-${empSafeId}">
+          Define ${pendientes.length} decisión${pendientes.length !== 1 ? 'es' : ''} para guardar
+        </span>
+      </div>
+    ` : ''}
+  `;
+
+  // Listener en botón guardar
+  const btn = card.querySelector('.btn-guardar');
+  if (btn) {
+    btn.addEventListener('click', () => {
+      guardarDecisiones(email, formatNombre(nombre), pendientes);
+    });
   }
 
-  function confirmarCheckout() {
-    const obs = document.getElementById('obsCheckout')?.value?.trim() || '';
-    document.getElementById('btnCheckout').disabled = true;
-    document.getElementById('btnCheckout').textContent = '⏳ Procesando...';
-    procesarCheckout(obs);
+  return card;
+}
+
+// ══════════════════════════════════════════════════════════════════
+// FILA DE REGISTRO
+// ══════════════════════════════════════════════════════════════════
+function buildFila(r, horasLaboradas = 0, base44 = 44) {
+  const estado   = getVal(r.Estado);
+  const tipoPago = getVal(r.TipoPago);
+  const franja   = getVal(r.FranjaInicio);
+  const obs      = (r.Observaciones || '').trim();
+
+  const isAbierto = estado === 'Abierto';
+  const isPending = r.RequiereAprobacion;
+  const isAnomalo = (parseFloat(r.HorasBrutas) || 0) > 24;
+
+  // Sugerencia de tipo basada en acumulado semanal
+  const tipoDiaEfec = getTipoDiaEfectivo(r);
+  const esDominical = tipoDiaEfec === 'Dominical' || tipoDiaEfec === 'Festivo';
+  const sugerencia  = esDominical
+    ? { label: 'Recargo dominical', color: '#d97706', bg: '#fef3c7', icon: 'attach_money' }
+    : horasLaboradas >= base44
+      ? { label: 'Hora extra', color: '#1d4ed8', bg: '#dbeafe', icon: 'trending_up' }
+      : { label: 'Recargo', color: '#d97706', bg: '#fef3c7', icon: 'attach_money' };
+
+  let rowClass = '';
+  if (isAnomalo)  rowClass = 'fila-anomala';
+  else if (isPending)  rowClass = 'fila-pending';
+  else if (isAbierto)  rowClass = 'fila-abierta';
+
+  const dec = decisions[r.ID];
+
+  let decisionCell;
+  if (isAbierto) {
+    decisionCell = `<td><em style="color:#16a34a;font-size:11px">En curso</em></td>`;
+  } else if (isPending) {
+    const horasExtraActual = parseFloat(r.HorasExtra || 0).toFixed(1);
+    decisionCell = `
+      <td>
+        <div style="margin-bottom:5px">
+          <span style="
+            display:inline-flex;align-items:center;gap:3px;
+            background:${sugerencia.bg};color:${sugerencia.color};
+            font-size:10px;font-weight:700;padding:2px 8px;border-radius:10px;
+            letter-spacing:0.3px;
+          ">
+            <span class="material-icons" style="font-size:11px">${sugerencia.icon}</span>
+            Sugerido: ${sugerencia.label}
+          </span>
+        </div>
+        <div class="extra-input-wrap">
+          <span class="extra-input-label">H. Extra:</span>
+          <input
+            class="extra-input"
+            type="number"
+            min="0"
+            step="0.5"
+            value="${horasExtraActual}"
+            data-record-id="${r.ID}"
+            id="extra-input-${r.ID}"
+            title="Horas extra a aprobar (editable)"
+          />
+          <span class="extra-input-unit">h</span>
+        </div>
+        <div class="decision-btns" data-id="${r.ID}">
+          <button class="dec-btn extra      ${dec === 'HoraExtra'  ? 'selected' : ''}" data-id="${r.ID}" data-dec="HoraExtra"  title="Hora extra">
+            <span class="material-icons">trending_up</span><span>Extra</span>
+          </button>
+          <button class="dec-btn recargo    ${dec === 'Recargo'    ? 'selected' : ''}" data-id="${r.ID}" data-dec="Recargo"    title="Recargo">
+            <span class="material-icons">attach_money</span><span>Recargo</span>
+          </button>
+          <button class="dec-btn compensado ${dec === 'Compensado' ? 'selected' : ''}" data-id="${r.ID}" data-dec="Compensado" title="Compensado">
+            <span class="material-icons">event_available</span><span>Comp.</span>
+          </button>
+          <button class="dec-btn rechazar   ${dec === 'Rechazar'   ? 'selected' : ''}" data-id="${r.ID}" data-dec="Rechazar"   title="Rechazar">
+            <span class="material-icons">close</span><span>Rechazar</span>
+          </button>
+        </div>
+      </td>`;
+  } else {
+    decisionCell = `
+      <td class="decision-aprobada">
+        ${tipoPago || '—'}
+        ${isAnomalo ? ' <span class="material-icons anomaly-icon" style="font-size:13px;color:#d97706;vertical-align:middle" title="HorasBrutas anómalas (posible error de registro)">warning</span>' : ''}
+      </td>`;
   }
 
-  async function iniciarCheckout() {
-    mostrarCargando('Verificando tu jornada...');
-    try {
-      const resp = await fetch(FLOW_GET, {
+  return `
+    <tr class="${rowClass}">
+      <td style="white-space:nowrap">${formatFecha(r.HoraInicio)}</td>
+      <td style="font-variant-numeric:tabular-nums">${formatHora(r.HoraInicio)}</td>
+      <td style="font-variant-numeric:tabular-nums">${isAbierto ? '—' : formatHora(r.HoraFin)}</td>
+      <td>${fmtH(r.HorasOrdinarias)}${isAnomalo ? ' <span class="material-icons" style="font-size:12px;color:#d97706;vertical-align:middle" title="Brutas: ' + (parseFloat(r.HorasBrutas)||0).toFixed(1) + 'h — revisar registro">warning</span>' : ''}</td>
+      <td>${fmtH(r.HorasExtra)}</td>
+      <td>${chipTipoDia(r)}</td>
+      <td style="font-size:11px;color:#6b7280">${franja ? franja.split('(')[0].trim() : '—'}</td>
+      <td style="font-size:11px;color:#6b7280;max-width:220px;overflow:hidden;text-overflow:ellipsis;white-space:nowrap" title="${obs}">${obs || '—'}</td>
+      ${decisionCell}
+    </tr>`;
+}
+
+// ══════════════════════════════════════════════════════════════════
+// EVENTO: CLICK EN BOTÓN DE DECISIÓN
+// ══════════════════════════════════════════════════════════════════
+document.addEventListener('click', e => {
+  const btn = e.target.closest('.dec-btn[data-dec]');
+  if (!btn) return;
+
+  const id  = parseInt(btn.dataset.id);
+  const dec = btn.dataset.dec;
+
+  decisions[id] = dec;
+
+  // Actualizar visual del grupo de botones
+  const group = document.querySelector(`.decision-btns[data-id="${id}"]`);
+  if (group) {
+    group.querySelectorAll('.dec-btn').forEach(b => b.classList.remove('selected'));
+    btn.classList.add('selected');
+  }
+
+  // Actualizar hint y estado del botón guardar del card
+  const card = btn.closest('.emp-card');
+  if (!card) return;
+
+  const emailCard  = card.querySelector('.btn-guardar')?.dataset.email;
+  if (!emailCard) return;
+
+  const weekStart  = semanas[semanaIdx];
+  const regs       = registrosDeSemana(weekStart);
+  const pendientes = regs.filter(r => r.Empleado.toLowerCase() === emailCard.toLowerCase() && r.RequiereAprobacion);
+  const sinDec     = pendientes.filter(r => !decisions[r.ID]).length;
+
+  const hint    = document.getElementById('hint-' + safeId(emailCard));
+  const guardar = card.querySelector('.btn-guardar');
+
+  const conDec = pendientes.filter(r => decisions[r.ID]).length;
+  if (hint) {
+    if (sinDec === 0) {
+      hint.textContent = '✓ Todos listos para guardar';
+      hint.className = 'save-hint ready';
+    } else if (conDec > 0) {
+      hint.textContent = `${conDec} listo${conDec !== 1 ? 's' : ''} · faltan ${sinDec}`;
+      hint.className = 'save-hint ready';
+    } else {
+      hint.textContent = `Define al menos 1 decisión para guardar`;
+      hint.className = 'save-hint';
+    }
+  }
+  if (guardar) guardar.disabled = conDec === 0;
+});
+
+// ══════════════════════════════════════════════════════════════════
+// GUARDAR DECISIONES
+// ══════════════════════════════════════════════════════════════════
+async function guardarDecisiones(email, nombreCorto, pendientes) {
+  // Solo guardar los registros que tienen decisión asignada
+  const conDecision = pendientes.filter(r => decisions[r.ID]);
+  if (conDecision.length === 0) {
+    showToast('Define al menos una decisión antes de guardar');
+    return;
+  }
+  const sinDec = pendientes.filter(r => !decisions[r.ID]);
+
+  const card    = document.getElementById(safeId(email));
+  const btn     = card ? card.querySelector('.btn-guardar') : null;
+  if (btn) { btn.disabled = true; btn.innerHTML = '<span class="material-icons">hourglass_empty</span> Guardando...'; }
+
+  try {
+    // Flow 5 (KN-Procesar Aprobación) — un call por registro pendiente
+    await Promise.all(conDecision.map(r =>
+      fetch(FLOW_APROBACION, {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ email, fechaInicio: hoy, fechaFin: hoy })
+        body: JSON.stringify({
+          registro:         String(r.ID),
+          tipoAprobacion:   DECISIONES[decisions[r.ID]],
+          aprobado:         decisions[r.ID] === 'Rechazar' ? 'no' : 'si',
+          // Horas extra ajustadas por el jefe (si difieren del valor calculado)
+          horasExtraAjustadas: (() => {
+            const input = document.getElementById('extra-input-' + r.ID);
+            if (!input) return null;
+            const val = parseFloat(input.value);
+            const original = parseFloat(r.HorasExtra || 0);
+            // Solo enviar si el jefe modificó el valor
+            return !isNaN(val) ? val : null;
+          })(),
+          // Prorateo semanal: se envía SIEMPRE (antes solo Sábado/Dominical) para
+          // que Flow 5 pueda aplicar el tope dinámico de 42h también en días
+          // Hábil. HorasSemanales usa la base ya ajustada por festivos de la
+          // semana (getBaseAjustada), igual que ya hace resumen.html, en vez
+          // del valor crudo de CONFIG.
+          ...(['Habil','Sabado','Dominical'].includes(getVal(r.TipoDia)) ? {
+            HorasOrdinariasAcumuladasSemana: (() => {
+              // Sumar HorasOrdinarias de todos los registros cerrados
+              // de la semana del empleado, excluyendo el registro actual
+              const weekStart = semanas[semanaIdx];
+              return registrosDeSemana(weekStart)
+                .filter(x =>
+                  x.Empleado.toLowerCase() === r.Empleado.toLowerCase() &&
+                  x.ID !== r.ID &&
+                  getVal(x.Estado) === 'Cerrado'
+                )
+                .reduce((s, x) => s + (parseFloat(x.HorasOrdinarias) || 0), 0);
+            })(),
+            HorasSemanales: getBaseAjustada(semanas[semanaIdx])
+          } : {})
+        })
+      })
+    ));
+
+    // Limpiar decisiones de estos registros
+    conDecision.forEach(r => delete decisions[r.ID]);
+
+    showToast(`Decisiones de ${nombreCorto} enviadas`);
+    // Guardar la semana actual antes de recargar para no perder la posición
+    const semanaActual = semanas[semanaIdx];
+    setTimeout(() => cargarRegistros(semanaActual), 2000);
+  } catch (err) {
+    showToast('Error al guardar: ' + err.message);
+    if (btn) {
+      btn.disabled = false;
+      btn.innerHTML = '<span class="material-icons">save</span> Guardar decisiones';
+    }
+  }
+}
+
+// ══════════════════════════════════════════════════════════════════
+// NAVEGACIÓN SEMANAS
+// ══════════════════════════════════════════════════════════════════
+document.getElementById('prevWeek').addEventListener('click', () => {
+  if (semanaIdx < semanas.length - 1) { semanaIdx++; renderSemana(); }
+});
+document.getElementById('nextWeek').addEventListener('click', () => {
+  if (semanaIdx > 0) { semanaIdx--; renderSemana(); }
+});
+
+// ══════════════════════════════════════════════════════════════════
+// UI HELPERS
+// ══════════════════════════════════════════════════════════════════
+function showLoading(v) {
+  document.getElementById('loading').classList.toggle('visible', v);
+}
+function showError(msg) {
+  const el = document.getElementById('error-box');
+  el.textContent = msg;
+  el.style.display = 'block';
+}
+function hideError() {
+  document.getElementById('error-box').style.display = 'none';
+}
+function showToast(msg) {
+  const t = document.getElementById('toast');
+  t.textContent = msg;
+  t.classList.add('show');
+  setTimeout(() => t.classList.remove('show'), 3200);
+}
+
+// ══════════════════════════════════════════════════════════════════
+// TABS
+// ══════════════════════════════════════════════════════════════════
+function switchTab(tab) {
+  window.scrollTo(0, 0);
+  const esAprobaciones = tab === 'aprobaciones';
+  document.getElementById('vistaAprobaciones').style.display = esAprobaciones ? '' : 'none';
+  document.getElementById('vistaReporte').style.display      = esAprobaciones ? 'none' : '';
+  document.getElementById('tabAprobaciones').classList.toggle('active',  esAprobaciones);
+  document.getElementById('tabReporte').classList.toggle('active', !esAprobaciones);
+}
+
+// ══════════════════════════════════════════════════════════════════
+// REPORTE DE NÓMINA
+// ══════════════════════════════════════════════════════════════════
+const N8N_REPORTE    = 'https://n8n-production-fbb1.up.railway.app/webhook/kn-semana-hora';
+const N8N_EXCEL      = 'https://n8n-production-fbb1.up.railway.app/webhook/kn-reporte-excel';
+
+const EMPRESA  = 'KUEHNE + NAGEL S A S';
+const AREA     = 'AIR LOGISTICS PERISHABLE';
+const SUCURSAL = 'BOGOTA';
+
+let reporteData = null; // guarda el último resultado para el Excel
+
+async function generarReporte() {
+  const desde = document.getElementById('fechaDesde').value;
+  const hasta = document.getElementById('fechaHasta').value;
+  if (!desde || !hasta) { showToast('Selecciona fecha desde y hasta'); return; }
+  if (desde > hasta)    { showToast('La fecha desde debe ser anterior a hasta'); return; }
+
+  const btn = document.getElementById('btnGenerar');
+  btn.disabled = true;
+  btn.innerHTML = '<span class="material-icons">hourglass_empty</span> Generando...';
+  document.getElementById('reporteResultado').innerHTML = '';
+  document.getElementById('btnExcel').style.display = 'none';
+
+  try {
+    const res = await fetch(N8N_REPORTE, {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({
+        registros:   todosRegistros,
+        fechaDesde:  desde,
+        fechaHasta:  hasta
+      })
+    });
+    const data = await res.json();
+    reporteData = { ...data, fechaDesde: desde, fechaHasta: hasta };
+    renderReporte(data, desde, hasta);
+    document.getElementById('btnExcel').style.display = '';
+  } catch(e) {
+    document.getElementById('reporteResultado').innerHTML =
+      `<div style="color:#dc2626;padding:20px">Error generando reporte: ${e.message}</div>`;
+  } finally {
+    btn.disabled = false;
+    btn.innerHTML = '<span class="material-icons">play_arrow</span> Generar';
+  }
+}
+
+function fmtH(v) {
+  const n = parseFloat(v) || 0;
+  return n === 0 ? '<span class="cero">—</span>' : n.toFixed(1) + 'h';
+}
+
+// ══════════════════════════════════════════════════════════════════
+// CHIPS DE SELECCIÓN RÁPIDA DE SEMANA (reporte de nómina)
+// ══════════════════════════════════════════════════════════════════
+const NUM_CHIPS_SEMANA = 8; // cuántas semanas hacia atrás mostrar
+const MESES_CHIP = ['ene','feb','mar','abr','may','jun','jul','ago','sep','oct','nov','dic'];
+
+// Chips del reporte: semana calendario completa, lunes a domingo (7 días)
+function sumarDias(fechaStr, dias) {
+  const d = new Date(fechaStr + 'T12:00:00Z');
+  d.setUTCDate(d.getUTCDate() + dias);
+  return d.toISOString().split('T')[0];
+}
+
+function fmtRangoChip(desde, hasta) {
+  const d1 = new Date(desde + 'T12:00:00Z');
+  const d2 = new Date(hasta + 'T12:00:00Z');
+  const mismoMes = d1.getUTCMonth() === d2.getUTCMonth();
+  const parteIni = mismoMes ? `${d1.getUTCDate()}` : `${d1.getUTCDate()} ${MESES_CHIP[d1.getUTCMonth()]}`;
+  const parteFin = `${d2.getUTCDate()} ${MESES_CHIP[d2.getUTCMonth()]}`;
+  return `${parteIni} - ${parteFin}`;
+}
+
+function generarChipsSemana() {
+  const cont = document.getElementById('reporteSemanaChips');
+  if (!cont) return;
+
+  const mondayHoy = getWeekStart(new Date().toISOString());
+
+  let html = '';
+  for (let i = 0; i < NUM_CHIPS_SEMANA; i++) {
+    const desde = sumarDias(mondayHoy, -7 * i);
+    const hasta = sumarDias(desde, 6); // domingo de esa semana
+    const esActual = i === 0;
+    html += `<button type="button"
+      class="reporte-chip${esActual ? ' es-actual' : ''}"
+      data-desde="${desde}" data-hasta="${hasta}"
+      onclick="seleccionarChipSemana('${desde}','${hasta}', this)">
+      ${fmtRangoChip(desde, hasta)}
+    </button>`;
+  }
+  cont.innerHTML = html;
+}
+
+function marcarChipActivo(desde, hasta) {
+  document.querySelectorAll('.reporte-chip').forEach(b => {
+    b.classList.toggle('active', b.dataset.desde === desde && b.dataset.hasta === hasta);
+  });
+}
+
+function seleccionarChipSemana(desde, hasta, btn) {
+  document.getElementById('fechaDesde').value = desde;
+  document.getElementById('fechaHasta').value = hasta;
+  document.querySelectorAll('.reporte-chip').forEach(b => b.classList.remove('active'));
+  btn.classList.add('active');
+  generarReporte();
+}
+
+function renderReporte(data, desde, hasta) {
+  const empleados = data.empleados || [];
+  const container = document.getElementById('reporteResultado');
+
+  if (!empleados.length) {
+    container.innerHTML = '<div style="text-align:center;padding:40px;color:#9aa1b0">Sin registros aprobados en el período seleccionado.</div>';
+    return;
+  }
+
+  // Totales
+  const tot = empleados.reduce((acc, e) => {
+    acc.cod1061 += e.cod1061; acc.cod1062 += e.cod1062;
+    acc.cod1063 += e.cod1063; acc.cod1064 += e.cod1064;
+    acc.cod1060 += e.cod1060; acc.cod1066 += e.cod1066;
+    acc.cod1065 += e.cod1065; acc.cod1067 += e.cod1067;
+    acc.total   += e.total;
+    return acc;
+  }, {cod1060:0,cod1061:0,cod1062:0,cod1063:0,cod1064:0,cod1065:0,cod1066:0,cod1067:0,total:0});
+
+  const round = n => Math.round(n * 100) / 100;
+  const fmtTotal = v => (parseFloat(v)||0) === 0 ? '<span class="cero">—</span>' : (parseFloat(v)||0).toFixed(1) + 'h';
+
+  const fmtFecha = s => {
+    const d = new Date(s + 'T12:00:00');
+    return d.toLocaleDateString('es-CO', { day: 'numeric', month: 'short', year: 'numeric', timeZone: 'UTC' });
+  };
+
+  const filas = empleados.map(e => {
+    const totalExtras   = round(e.cod1061 + e.cod1062 + e.cod1063 + e.cod1064);
+    const totalRecargos = round(e.cod1060 + e.cod1066 + e.cod1065);
+    const nombre = formatNombre(e.nombre);
+    return `<tr>
+      <td class="left" style="font-weight:600">${nombre}</td>
+      <td class="left" style="font-size:11px;color:#6b7280">${e.email}</td>
+      <td>${fmtH(e.cod1061)}</td>
+      <td>${fmtH(e.cod1062)}</td>
+      <td>${fmtH(e.cod1063)}</td>
+      <td>${fmtH(e.cod1064)}</td>
+      <td style="font-weight:700">${fmtTotal(totalExtras)}</td>
+      <td>${fmtH(e.cod1060)}</td>
+      <td>${fmtH(e.cod1066)}</td>
+      <td>${fmtH(e.cod1065)}</td>
+      <td style="font-weight:700">${fmtTotal(totalRecargos)}</td>
+      <td>${fmtH(e.cod1067)}</td>
+      <td style="font-weight:700;color:#003087">${fmtTotal(e.total)}</td>
+    </tr>`;
+  }).join('');
+
+  const totExtras   = round(tot.cod1061 + tot.cod1062 + tot.cod1063 + tot.cod1064);
+  const totRecargos = round(tot.cod1060 + tot.cod1066 + tot.cod1065);
+
+  container.innerHTML = `
+    <div class="reporte-header-bar">
+      <span class="reporte-title">Resumen período</span>
+      <span class="reporte-periodo-chip">${fmtFecha(desde)} → ${fmtFecha(hasta)}</span>
+      <span style="font-size:12px;color:#9aa1b0">${empleados.length} empleado${empleados.length!==1?'s':''}</span>
+    </div>
+    <div class="reporte-tabla-wrap">
+      <table class="reporte-tabla">
+        <thead>
+          <tr>
+            <th class="left" rowspan="2">Nombre</th>
+            <th class="left" rowspan="2">Correo</th>
+            <th class="grupo-extra" colspan="4">Horas Extra</th>
+            <th class="grupo-total" rowspan="2">Total<br>Extras</th>
+            <th class="grupo-recargo" colspan="3">Recargos</th>
+            <th class="grupo-total" rowspan="2">Total<br>Recargos</th>
+            <th class="grupo-dom" rowspan="2" data-tooltip="001067 — Festivo/Dominical sin compensatorio">Dom.<br>S/Comp.</th>
+            <th class="grupo-total" rowspan="2">TOTAL</th>
+          </tr>
+          <tr>
+            <th class="grupo-extra" data-tooltip="001061 — Horas Extras Diurnas">Ext.<br>Diurna</th>
+            <th class="grupo-extra" data-tooltip="001062 — Horas Extras Nocturnas">Ext.<br>Noct.</th>
+            <th class="grupo-extra" data-tooltip="001063 — Extra Dominical/Festiva Diurna">Ext.<br>Dom.D.</th>
+            <th class="grupo-extra" data-tooltip="001064 — Extra Dominical/Festiva Nocturna">Ext.<br>Dom.N.</th>
+            <th class="grupo-recargo" data-tooltip="001060 — Recargo Nocturno">Rec.<br>Noct.</th>
+            <th class="grupo-recargo" data-tooltip="001066 — Recargo Nocturno Festivo">Rec.N.<br>Fest.</th>
+            <th class="grupo-recargo" data-tooltip="001065 — Festivo/Dominical Compensado">Dom.<br>Comp.</th>
+          </tr>
+        </thead>
+        <tbody>
+          ${filas}
+          <tr class="total-row">
+            <td class="left" colspan="2">TOTALES</td>
+            <td>${fmtTotal(tot.cod1061)}</td>
+            <td>${fmtTotal(tot.cod1062)}</td>
+            <td>${fmtTotal(tot.cod1063)}</td>
+            <td>${fmtTotal(tot.cod1064)}</td>
+            <td>${fmtTotal(totExtras)}</td>
+            <td>${fmtTotal(tot.cod1060)}</td>
+            <td>${fmtTotal(tot.cod1066)}</td>
+            <td>${fmtTotal(tot.cod1065)}</td>
+            <td>${fmtTotal(totRecargos)}</td>
+            <td>${fmtTotal(tot.cod1067)}</td>
+            <td>${fmtTotal(tot.total)}</td>
+          </tr>
+        </tbody>
+      </table>
+    </div>`;
+}
+
+async function descargarExcel() {
+  if (!reporteData) return;
+  const btn = document.getElementById('btnExcel');
+  btn.disabled = true;
+  btn.innerHTML = '<span class="material-icons">hourglass_empty</span> Generando...';
+
+  try {
+    const empleados = reporteData.empleados || [];
+    const desde     = reporteData.fechaDesde || '';
+    const hasta     = reporteData.fechaHasta || '';
+
+    // 1. Cargar JSZip dinámicamente si no está disponible
+    if (!window.JSZip) {
+      await new Promise((res, rej) => {
+        const s = document.createElement('script');
+        s.src = 'https://cdnjs.cloudflare.com/ajax/libs/jszip/3.10.1/jszip.min.js';
+        s.onload = res; s.onerror = rej;
+        document.head.appendChild(s);
       });
-      const data = await resp.json();
-      const raw = data?.registros?.body || data.registros || data.value || data || [];
-
-      // Buscar turno abierto
-      const turnoAbierto = raw.find(r => r.Estado === 'Abierto');
-
-      if (turnoAbierto && turnoAbierto.HoraInicio) {
-        const horaIni = turnoAbierto.HoraInicio.substring(11, 16);
-        const ahora = new Date();
-        const [h, m] = horaIni.split(':').map(Number);
-        const minutos = (ahora.getHours() * 60 + ahora.getMinutes()) - (h * 60 + m);
-        const horasBrutas = minutos / 60;
-        // Descontar almuerzo si >= 5h
-        const horasNetas = horasBrutas >= 5 ? horasBrutas - 1 : horasBrutas;
-        const horasExtra = Math.max(horasNetas - 8, 0);
-        // Solo pedir justificación si las horas extra son múltiplo de 30 min
-        const horasExtraMins = Math.round(horasExtra * 60);
-        const horasExtraValidas = Math.floor(horasExtraMins / 30) * 30 / 60;
-
-        if (horasExtraValidas >= 0.5) {
-          mostrarFormCheckout(horasExtraValidas);
-        } else {
-          procesarCheckout('');
-        }
-      } else {
-        // No hay turno abierto, procesar directo
-        procesarCheckout('');
-      }
-    } catch(e) {
-      // Si falla la consulta, procesar directo sin observaciones
-      procesarCheckout('');
     }
-  }
 
-  // Init
-  if (email && accion) {
-    if (accion === 'checkout') {
-      iniciarCheckout();
-    } else {
-      procesarCheckin();
-    }
-  } else {
-    document.getElementById('card').innerHTML = `
-      <div class="card-header" style="background:#003369">
-        <div class="icon">⚠️</div>
-        <p class="titulo">Enlace inválido</p>
-      </div>
-      <div class="card-body">
-        <p>El enlace no contiene la información necesaria. Por favor usa el enlace del correo.</p>
-      </div>`;
+    // 2. Cargar template como binario
+    const templateUrl = 'https://perishablesautomations.github.io/jornada-kn/template_horas_extras.xlsx';
+    const res = await fetch(templateUrl);
+    if (!res.ok) throw new Error('No se pudo cargar el template');
+    const arrayBuffer = await res.arrayBuffer();
+
+    // 3. Abrir el ZIP del .xlsx
+    const zip = await JSZip.loadAsync(arrayBuffer);
+    let sheetXml = await zip.file('xl/worksheets/sheet1.xml').async('string');
+
+    // 4. Leer y actualizar shared strings para usar t="s" (igual que el template)
+    let ssXml = await zip.file('xl/sharedStrings.xml').async('string');
+    const ssMatches = [...ssXml.matchAll(/<si><t[^>]*>([^<]*)<\/t><\/si>/g)];
+    const strings = ssMatches.map(m => m[1]);
+    const esc   = s => String(s).replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;');
+    const getOrAdd = str => {
+      const e = esc(str);
+      let idx = strings.indexOf(e);
+      if (idx === -1) { strings.push(e); idx = strings.length - 1; }
+      return idx;
+    };
+
+    // 5. Construir filas XML con shared strings y atributos correctos
+    const round = n => Math.round((parseFloat(n)||0) * 100) / 100;
+    const n2s   = n => round(n) === 0 ? null : String(round(n));
+    const START_ROW = 3;  // datos desde fila 3 (después de las 2 filas de cabecera)
+
+    const rowsXml = empleados.map((e, i) => {
+      const row    = START_ROW + i;
+      const nombre = (e.nombre || e.email || '').split('/')[0].trim().toUpperCase();
+      const tE     = round(e.cod1061 + e.cod1062 + e.cod1063 + e.cod1064);
+      const tR     = round(e.cod1060 + e.cod1066 + e.cod1065);
+      const tT     = round(tE + tR + e.cod1067);
+      const cn = (col, val) => val === null ? '' : `<c r="${col}${row}"><v>${val}</v></c>`;
+      const cs = (col, val) => val ? `<c r="${col}${row}" t="s"><v>${getOrAdd(val)}</v></c>` : '';
+      return `<row r="${row}" spans="1:17" x14ac:dyDescent="0.25">`
+        + cs('B', nombre) + cn('D', n2s(e.cod1061)) + cn('E', n2s(e.cod1062))
+        + cn('F', n2s(e.cod1063)) + cn('G', n2s(e.cod1064)) + cn('H', n2s(tE))
+        + cn('I', n2s(e.cod1060)) + cn('J', n2s(e.cod1066)) + cn('K', n2s(e.cod1065))
+        + cn('L', n2s(tR)) + cn('M', n2s(e.cod1067)) + cn('N', n2s(tT))
+        + cs('O', EMPRESA) + cs('P', AREA) + cs('Q', SUCURSAL)
+        + '</row>';
+    }).join('');
+
+    // 6. Eliminar filas de datos existentes (filas > 2) para evitar duplicados
+    sheetXml = sheetXml.replace(/<row r="([^"]+)"[^>]*>[\s\S]*?<\/row>/g, (match, rNum) => {
+      return parseInt(rNum) <= 2 ? match : '';
+    });
+
+    // Insertar nuevas filas y actualizar dimension
+    sheetXml = sheetXml.replace('</sheetData>', rowsXml + '</sheetData>');
+    const lastRow = START_ROW + empleados.length - 1;
+    sheetXml = sheetXml.replace(/<dimension ref="[^"]*"/, `<dimension ref="A1:Q${lastRow}"`);
+
+    // Actualizar shared strings XML
+    const newSsXml = '<?xml version="1.0" encoding="UTF-8" standalone="yes"?>\r\n'
+      + `<sst xmlns="http://schemas.openxmlformats.org/spreadsheetml/2006/main" count="${strings.length}" uniqueCount="${strings.length}">`
+      + strings.map(s => `<si><t>${s}</t></si>`).join('')
+      + '</sst>';
+
+    zip.file('xl/worksheets/sheet1.xml', sheetXml);
+    zip.file('xl/sharedStrings.xml', newSsXml);
+
+    // 7. Generar blob y descargar
+    const blob = await zip.generateAsync({
+      type: 'blob',
+      mimeType: 'application/vnd.openxmlformats-officedocument.spreadsheetml.sheet'
+    });
+    const url = URL.createObjectURL(blob);
+    const a   = document.createElement('a');
+    a.href    = url;
+    a.download = `HorasExtra_${desde}_${hasta}.xlsx`;
+    a.click();
+    setTimeout(() => URL.revokeObjectURL(url), 1000);
+
+  } catch(e) {
+    showToast('Error generando Excel: ' + e.message);
+  } finally {
+    btn.disabled = false;
+    btn.innerHTML = '<span class="material-icons">download</span> Descargar Excel';
   }
+}
+
+// Inicializar fechas por defecto: primer día del mes actual → hoy
+(function initFechas() {
+  const hoy = new Date();
+  const primerDia = new Date(hoy.getFullYear(), hoy.getMonth(), 1);
+  const fmt = d => d.toISOString().split('T')[0];
+  document.addEventListener('DOMContentLoaded', () => {
+    const fd = document.getElementById('fechaDesde');
+    const fh = document.getElementById('fechaHasta');
+    if (fd) fd.value = fmt(primerDia);
+    if (fh) fh.value = fmt(hoy);
+
+    generarChipsSemana();
+
+    // Si el usuario edita las fechas manualmente, ningún chip queda "seleccionado"
+    if (fd) fd.addEventListener('input', () => marcarChipActivo(fd.value, fh ? fh.value : null));
+    if (fh) fh.addEventListener('input', () => marcarChipActivo(fd ? fd.value : null, fh.value));
+  });
+})();
+
+// ══════════════════════════════════════════════════════════════════
+init();
 </script>
 </body>
 </html>
